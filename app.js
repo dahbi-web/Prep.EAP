@@ -569,8 +569,9 @@ function vConcours() {
   h += '<h1>📝 Concours</h1><div class="sub">Sujets et corrigés du dossier Concours commun</div>';
   h += '<div class="card" style="border-color:var(--green)"><b>Examen blanc</b><div class="sub">Teste-toi avec les QCM de préparation, en conditions chronométrées.</div><div class="spacer"></div><button class="btn gold" data-go="exam">Lancer un examen blanc</button></div>';
   h += '<h2>Sujets disponibles <span class="sub">(' + CONCOURS_DOCS.length + ' PDF)</span></h2>';
-  CONCOURS_DOCS.forEach(function (p) {
-    h += '<a class="card row" style="display:flex;text-decoration:none;color:inherit" href="concours-commun/' + encodeURI(p[0]) + '" target="_blank" rel="noopener"><div style="font-size:25px">📄</div><div style="flex:1"><b>' + esc(p[1]) + '</b><div class="sub">Ouvrir le PDF</div></div><span style="font-size:20px">↗</span></a>';
+  CONCOURS_DOCS.forEach(function (p, i) {
+    var htmlFile = 'sujet-' + String(i + 1).padStart(2, '0') + '.html';
+    h += '<a class="card row" style="display:flex;text-decoration:none;color:inherit" href="concours-commun/' + htmlFile + '" target="_blank" rel="noopener"><div style="font-size:25px">📄</div><div style="flex:1"><b>' + esc(p[1]) + '</b><div class="sub">Ouvrir la version HTML interactive · recherche et navigation</div></div><span style="font-size:20px">↗</span></a>';
   });
   return h + '</div>';
 }

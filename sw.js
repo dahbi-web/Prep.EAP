@@ -6,7 +6,17 @@ var ASSETS = [
   './data/doc01_concours.js',
   './data/doc01.js', './data/doc02.js', './data/doc03.js', './data/doc04.js',
   './data/doc05.js', './data/doc06.js', './data/doc07.js', './data/doc08.js',
-  './data/doc16.js', './data/doc26.js', './data/doc31.js'
+  './data/doc16.js', './data/doc26.js', './data/doc31.js',
+  './concours-commun/sujet-01.html', './concours-commun/sujet-02.html',
+  './concours-commun/sujet-03.html', './concours-commun/sujet-04.html',
+  './concours-commun/sujet-05.html', './concours-commun/sujet-06.html',
+  './concours-commun/sujet-07.html', './concours-commun/sujet-08.html',
+  './concours-commun/sujet-09.html', './concours-commun/sujet-10.html',
+  './concours-commun/sujet-11.html', './concours-commun/sujet-12.html',
+  './concours-commun/sujet-13.html', './concours-commun/sujet-14.html',
+  './concours-commun/sujet-15.html', './concours-commun/sujet-16.html',
+  './concours-commun/sujet-17.html', './concours-commun/sujet-18.html',
+  './concours-commun/sujet-19.html'
 ];
 self.addEventListener('install', function (e) {
   self.skipWaiting();
