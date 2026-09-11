@@ -499,6 +499,7 @@ function render() {
     case 'quiz': html = vQuizStart(r[1], r[2]); break;
     case 'cards': html = vCardsStart(r[1], r[2]); break;
     case 'review': html = vReview(); break;
+    case 'concours': html = vConcours(); break;
     case 'exam': html = vExamSetup(); break;
     case 'stats': html = vStats(); break;
     case 'set': html = vSettings(); break;
@@ -522,7 +523,7 @@ function navBar(v) {
   var items = [
     ['', '🛣️', 'Le chemin'],
     ['review', '🧠', 'Évaluation intelligente'],
-    ['exam', '📝', 'concours'],
+    ['concours', '📝', 'concours'],
     ['cards', '🃏', 'Cartes'],
     ['stats', '📊', 'Statistiques'],
     ['set', '⚙️', 'Réglages']
@@ -539,6 +540,39 @@ function ring(pct) {
     '<circle cx="28" cy="28" r="' + r + '" stroke="rgba(255,255,255,.3)" stroke-width="7" fill="none"/>' +
     '<circle cx="28" cy="28" r="' + r + '" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + o.toFixed(1) + '"/>' +
     '</svg><div class="txt">' + Math.round(pct * 100) + '%</div></div>';
+}
+
+/* ------------------------------------------------------- vue CONCOURS */
+var CONCOURS_DOCS = [
+  ['08- CNC Marrakech - Commun 2024-1.pdf', 'CNC Marrakech · Commun 2024'],
+  ['15- CNC Marrakech - Commun 2025-2.pdf', 'CNC Marrakech · Commun 2025'],
+  ['Chu Marrakech.pdf', 'CHU Marrakech'],
+  ['CNC Beni Mellal Khénifra 2023 Avec Justification.pdf', 'CNC Beni Mellal-Khénifra 2023 · corrigé'],
+  ['CNC Guelmim 2023 Avec Justification.pdf', 'CNC Guelmim 2023 · corrigé'],
+  ['cnc rect Marrakech 2025-1.pdf', 'CNC Marrakech 2025 · rectificatif'],
+  ['CNC Tanger 2023 - preuve 1 Avec Justification.pdf', 'CNC Tanger 2023 · corrigé'],
+  ['commun marrakech 2024.pdf', 'Commun Marrakech 2024'],
+  ['Concours CHU MARRAKECH 2020.pdf', 'Concours CHU Marrakech 2020'],
+  ['Concours CHU SM 2024 Avec Justification.pdf', 'Concours CHU SM 2024 · corrigé'],
+  ['Concours Commun 03 Mars 2019 Avec Justification.pdf', 'Concours commun · 3 mars 2019 · corrigé'],
+  ['Concours Commun National 10 Juin 2018 Avec Justification.pdf', 'Concours commun national · 10 juin 2018 · corrigé'],
+  ['Concours commun souss massa 2024.pdf', 'Concours commun Souss-Massa 2024'],
+  ['Concours ISFSC Région  Marrakech 2024 Avec Justification.docx-1.pdf', 'ISFSC Marrakech 2024 · corrigé'],
+  ['Concours National 26 Juin 2026 Avec Justification.pdf', 'Concours national · 26 juin 2026 · corrigé'],
+  ['Concours Région Fès Meknes Avec Justification.pdf', 'Concours région Fès-Meknès · corrigé'],
+  ['correction commun marrakech.pdf', 'Correction commun Marrakech'],
+  ['Etat Marrakech commun 2024VF.pdf', 'État Marrakech commun 2024'],
+  ['QCM_marrakech_2024_logo_arriere_plan_plus_clair-1.pdf', 'QCM Marrakech 2024']
+];
+function vConcours() {
+  var h = bar('Concours', '') + '<div class="wrap">';
+  h += '<h1>📝 Concours</h1><div class="sub">Sujets et corrigés du dossier Concours commun</div>';
+  h += '<div class="card" style="border-color:var(--green)"><b>Examen blanc</b><div class="sub">Teste-toi avec les QCM de préparation, en conditions chronométrées.</div><div class="spacer"></div><button class="btn gold" data-go="exam">Lancer un examen blanc</button></div>';
+  h += '<h2>Sujets disponibles <span class="sub">(' + CONCOURS_DOCS.length + ' PDF)</span></h2>';
+  CONCOURS_DOCS.forEach(function (p) {
+    h += '<a class="card row" style="display:flex;text-decoration:none;color:inherit" href="concours-commun/' + encodeURI(p[0]) + '" target="_blank" rel="noopener"><div style="font-size:25px">📄</div><div style="flex:1"><b>' + esc(p[1]) + '</b><div class="sub">Ouvrir le PDF</div></div><span style="font-size:20px">↗</span></a>';
+  });
+  return h + '</div>';
 }
 
 /* ------------------------------------------------------------ vue ACCUEIL */
