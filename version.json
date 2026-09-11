@@ -1,7 +1,7 @@
 {
-    "version":  "2.4.0",
+    "version":  "2.4.1",
     "date":  "2026-09-10",
-    "cache":  "cnc-anass-v7",
+    "cache":  "cnc-anass-v8",
     "modules":  11,
     "nouveautes":  [
                        "Flashcards par unite : bouton sur chaque unite et sur la page de lecon, en-tete avec l\u0027emoji et le titre de l\u0027unite",

@@ -87,7 +87,10 @@ window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault()
 window.addEventListener('appinstalled', function () { INSTALL_PROMPT = null; toast('✅ Application installée hors ligne'); render(); });
 function installApp() {
   if (INSTALL_PROMPT) { INSTALL_PROMPT.prompt(); INSTALL_PROMPT.userChoice.then(function () { INSTALL_PROMPT = null; render(); }); }
-  else toast('Menu du navigateur → « Ajouter à l’écran d’accueil »');
+  else {
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    toast(ios ? 'iPhone/iPad : Partager → Sur l’écran d’accueil → Ajouter' : 'Android : menu ⋮ → Installer l’application ou Ajouter à l’écran d’accueil');
+  }
 }
 function load() {
   try {
