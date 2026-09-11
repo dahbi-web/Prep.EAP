@@ -1,0 +1,860 @@
+/* ==========================================================================
+   CNC ANASS — moteur de l'application
+   Révision type "Duolingo" pour le concours (licence) — 31 modules
+   Aucune dépendance externe. Fonctionne hors-ligne.
+   ========================================================================== */
+(function () {
+"use strict";
+
+/* ------------------------------------------------------------------ data */
+var DOCS = (window.CNC_DATA && window.CNC_DATA.docs) || [];
+DOCS.sort(function (a, b) { return a.id - b.id; });
+
+// index rapide
+var DOC_BY_ID = {};
+DOCS.forEach(function (d) {
+  DOC_BY_ID[d.id] = d;
+  d.units.forEach(function (u, i) { u._d = d.id; u._i = i; u.qs = u.qs || []; u.cards = u.cards || []; });
+});
+function doc(id) { return DOC_BY_ID[+id]; }
+function unit(did, ui) { var d = doc(did); return d && d.units[+ui]; }
+function qKey(did, ui, qi) { return 'q' + did + '.' + ui + '.' + qi; }
+function cKey(did, ui, ci) { return 'c' + did + '.' + ui + '.' + ci; }
+function uKey(did, ui) { return did + '.' + ui; }
+
+function allQuestions(filterDocId) {
+  var out = [];
+  DOCS.forEach(function (d) {
+    if (filterDocId && d.id !== +filterDocId) return;
+    d.units.forEach(function (u, ui) {
+      u.qs.forEach(function (q, qi) { out.push({ q: q, k: qKey(d.id, ui, qi), d: d.id, u: ui }); });
+    });
+  });
+  return out;
+}
+function allCards(filterDocId) {
+  var out = [];
+  DOCS.forEach(function (d) {
+    if (filterDocId && d.id !== +filterDocId) return;
+    d.units.forEach(function (u, ui) {
+      u.cards.forEach(function (c, ci) { out.push({ c: c, k: cKey(d.id, ui, ci), d: d.id, u: ui }); });
+    });
+  });
+  return out;
+}
+
+/* ----------------------------------------------------------------- state */
+var KEY = 'cnc_anass_v2';
+var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
+var CROWN_MAX = 5, CROWN_PCT = 0.8;
+
+function today() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+function dayShift(str, n) { var p = str.split('-'); var d = new Date(+p[0], +p[1] - 1, +p[2]); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function dayDiff(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+
+function blank() {
+  return {
+    v: 2, xp: 0, day: today(), xpDay: 0, streak: 0, lastDay: null, best: 0,
+    hearts: HEART_MAX, heartTs: Date.now(),
+    goal: 50, sound: true, theme: 'auto', unlimited: false,
+    units: {}, srs: {}, exams: [], hist: {}, seen: {}
+  };
+}
+var S = load();
+function load() {
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (!raw) return blank();
+    var s = JSON.parse(raw); var b = blank();
+    for (var k in b) if (!(k in s)) s[k] = b[k];
+    return s;
+  } catch (e) { return blank(); }
+}
+var saveT = null;
+function save() { clearTimeout(saveT); saveT = setTimeout(function () { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }, 120); }
+
+function rollDay() {
+  var t = today();
+  if (S.day !== t) { S.hist[S.day] = S.xpDay; S.day = t; S.xpDay = 0; save(); }
+}
+function addXP(n) {
+  rollDay();
+  S.xp += n; S.xpDay += n;
+  if (S.lastDay !== S.day) {
+    if (S.lastDay && dayDiff(S.lastDay, S.day) === 1) S.streak++; else S.streak = 1;
+    S.lastDay = S.day;
+    if (S.streak > S.best) S.best = S.streak;
+    toast('🔥 Série : ' + S.streak + ' jour' + (S.streak > 1 ? 's' : ''));
+  }
+  save();
+}
+/* --- cœurs --- */
+function hearts() {
+  if (S.unlimited) return HEART_MAX;
+  var gained = Math.floor((Date.now() - (S.heartTs || Date.now())) / (HEART_MIN * 60000));
+  if (gained > 0 && S.hearts < HEART_MAX) {
+    S.hearts = Math.min(HEART_MAX, S.hearts + gained);
+    S.heartTs = Date.now(); save();
+  }
+  return S.hearts;
+}
+function loseHeart() {
+  if (S.unlimited) return HEART_MAX;
+  if (S.hearts === HEART_MAX) S.heartTs = Date.now();
+  S.hearts = Math.max(0, S.hearts - 1); save(); return S.hearts;
+}
+function gainHeart(n) { if (S.unlimited) return; S.hearts = Math.min(HEART_MAX, S.hearts + (n || 1)); save(); }
+function heartIn() {
+  if (S.hearts >= HEART_MAX) return '';
+  var ms = HEART_MIN * 60000 - ((Date.now() - S.heartTs) % (HEART_MIN * 60000));
+  var m = Math.floor(ms / 60000), s = Math.floor(ms % 60000 / 1000);
+  return m + ':' + pad(s);
+}
+
+/* --- progression unité --- */
+function ust(did, ui) {
+  var k = uKey(did, ui);
+  if (!S.units[k]) S.units[k] = { runs: 0, best: 0, crowns: 0, lesson: 0, ok: 0, ko: 0 };
+  return S.units[k];
+}
+function docPct(d) {
+  var tot = 0, got = 0;
+  d.units.forEach(function (u, i) { tot += CROWN_MAX; got += ust(d.id, i).crowns; });
+  return tot ? Math.round(got / tot * 100) : 0;
+}
+function docStarted(d) { return d.units.some(function (u, i) { return ust(d.id, i).runs > 0 || ust(d.id, i).lesson; }); }
+
+/* --- SRS (SM-2 adapté) --- */
+function srs(k) {
+  if (!S.srs[k]) S.srs[k] = { ef: 2.5, iv: 0, r: 0, due: today(), lap: 0 };
+  return S.srs[k];
+}
+function grade(k, g) {                      // g : 0 = raté, 3 dur, 4 bien, 5 facile
+  var it = srs(k);
+  if (g < 3) { it.r = 0; it.iv = 0; it.lap++; it.due = today(); }
+  else {
+    it.r++;
+    it.iv = it.r === 1 ? 1 : it.r === 2 ? 3 : Math.round(it.iv * it.ef);
+    if (g === 5) it.iv = Math.max(it.iv, Math.round(it.iv * 1.3));
+    it.ef = Math.max(1.3, it.ef + (0.1 - (5 - g) * (0.08 + (5 - g) * 0.02)));
+    it.due = dayShift(today(), it.iv);
+  }
+  save();
+}
+function dueList() {
+  var t = today(), out = [];
+  for (var k in S.srs) { if (S.srs[k].due <= t) out.push(k); }
+  return out;
+}
+function resolveKey(k) {
+  var kind = k[0], p = k.slice(1).split('.');
+  var u = unit(p[0], p[1]); if (!u) return null;
+  if (kind === 'q') { var q = u.qs[+p[2]]; return q ? { type: 'q', q: q, k: k, d: +p[0], u: +p[1] } : null; }
+  var c = u.cards[+p[2]]; return c ? { type: 'c', c: c, k: k, d: +p[0], u: +p[1] } : null;
+}
+
+/* ------------------------------------------------------------------ util */
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function rich(s) { return String(s == null ? '' : s); }   // le contenu est de confiance (généré localement)
+function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function el(id) { return document.getElementById(id); }
+function toast(msg) {
+  var t = document.createElement('div'); t.className = 'toast'; t.innerHTML = rich(msg);
+  document.body.appendChild(t); setTimeout(function () { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; }, 1700);
+  setTimeout(function () { t.remove(); }, 2100);
+}
+function confetti() {
+  var c = document.createElement('div'); c.className = 'confetti';
+  var cols = ['#58cc02', '#1cb0f6', '#ffc800', '#ff4b4b', '#ce82ff'];
+  for (var i = 0; i < 40; i++) {
+    var s = document.createElement('i');
+    s.style.left = Math.random() * 100 + 'vw'; s.style.top = '-20px';
+    s.style.background = cols[i % cols.length];
+    s.style.animationDuration = (1.2 + Math.random() * 1.2) + 's';
+    s.style.animationDelay = (Math.random() * .4) + 's';
+    c.appendChild(s);
+  }
+  document.body.appendChild(c); setTimeout(function () { c.remove(); }, 2800);
+}
+
+/* ------------------------------------------------------------------ sons */
+var AC = null;
+function beep(kind) {
+  if (!S.sound) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === 'suspended') AC.resume();
+    var seq = kind === 'ok' ? [[660, 0], [880, .08]] :
+      kind === 'ko' ? [[200, 0], [150, .09]] :
+        kind === 'up' ? [[523, 0], [659, .09], [784, .18], [1047, .27]] : [[440, 0]];
+    seq.forEach(function (p) {
+      var o = AC.createOscillator(), g = AC.createGain();
+      o.type = kind === 'ko' ? 'square' : 'sine';
+      o.frequency.value = p[0];
+      var t0 = AC.currentTime + p[1];
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(kind === 'ko' ? .12 : .16, t0 + .012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + .19);
+      o.connect(g); g.connect(AC.destination); o.start(t0); o.stop(t0 + .22);
+    });
+  } catch (e) { }
+}
+function vibrate(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) { } }
+
+/* ----------------------------------------------------------------- thème */
+function applyTheme() {
+  var t = S.theme;
+  if (t === 'auto') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  var m = document.querySelector('meta[name=theme-color]');
+  if (m) m.content = t === 'dark' ? '#111820' : '#58cc02';
+}
+if (window.matchMedia) { try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme); } catch (e) { } }
+
+/* --------------------------------------------------------------- routeur */
+function go(h) { location.hash = h; }
+function route() { return (location.hash || '#/').replace(/^#\/?/, '').split('/'); }
+window.addEventListener('hashchange', render);
+
+var ROOT;
+function render() {
+  rollDay(); hearts();
+  var r = route(), v = r[0] || '';
+  window.scrollTo(0, 0);
+  var html;
+  switch (v) {
+    case '': case 'home': html = vHome(); break;
+    case 'doc': html = vDoc(r[1]); break;
+    case 'lesson': html = vLesson(r[1], r[2]); break;
+    case 'quiz': html = vQuizStart(r[1], r[2]); break;
+    case 'cards': html = vCardsStart(r[1]); break;
+    case 'review': html = vReview(); break;
+    case 'exam': html = vExamSetup(); break;
+    case 'stats': html = vStats(); break;
+    case 'set': html = vSettings(); break;
+    case 'search': html = vSearch(); break;
+    default: html = vHome();
+  }
+  ROOT.innerHTML = html + navBar(v);
+  bind();
+}
+
+/* ------------------------------------------------------------ composants */
+function bar(title, back) {
+  return '<div class="topbar">' +
+    (back ? '<button class="iconbtn" data-go="' + back + '">←</button>' : '<span style="width:34px"></span>') +
+    '<span class="ttl">' + esc(title) + '</span>' +
+    '<span class="pill hearts">' + (S.unlimited ? '♾️' : '❤️ ' + hearts()) + '</span>' +
+    '</div>';
+}
+function navBar(v) {
+  var d = dueList().length;
+  var items = [
+    ['', '🏠', 'Accueil'],
+    ['review', '🔁', 'Réviser'],
+    ['exam', '📝', 'Examen'],
+    ['stats', '📊', 'Stats'],
+    ['set', '⚙️', 'Réglages']
+  ];
+  return '<div class="nav"><div class="in">' + items.map(function (it) {
+    var on = (v === it[0] || (v === 'home' && it[0] === '')) ? ' on' : '';
+    var dot = (it[0] === 'review' && d) ? '<span class="dot">' + (d > 99 ? '99+' : d) + '</span>' : '';
+    return '<button class="' + on.trim() + '" data-go="' + it[0] + '"><span class="ic">' + it[1] + '</span>' + it[2] + dot + '</button>';
+  }).join('') + '</div></div>';
+}
+function ring(pct) {
+  var r = 24, c = 2 * Math.PI * r, o = c * (1 - Math.min(1, pct));
+  return '<div class="ring"><svg width="56" height="56">' +
+    '<circle cx="28" cy="28" r="' + r + '" stroke="rgba(255,255,255,.3)" stroke-width="7" fill="none"/>' +
+    '<circle cx="28" cy="28" r="' + r + '" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + o.toFixed(1) + '"/>' +
+    '</svg><div class="txt">' + Math.round(pct * 100) + '%</div></div>';
+}
+
+/* ------------------------------------------------------------ vue ACCUEIL */
+function vHome() {
+  var due = dueList().length;
+  var totQ = 0; DOCS.forEach(function (d) { d.units.forEach(function (u) { totQ += u.qs.length; }); });
+  var nextU = firstUnfinished();
+  var g = Math.min(1, S.xpDay / (S.goal || 50));
+
+  var h = '<div class="hero">' +
+    '<div class="row" style="justify-content:space-between">' +
+    '<span class="pill">🔥 ' + S.streak + '</span>' +
+    '<span class="pill">⭐ ' + S.xp + ' XP</span>' +
+    '<span class="pill">' + (S.unlimited ? '♾️ cœurs' : '❤️ ' + hearts() + (hearts() < HEART_MAX ? ' · ' + heartIn() : '')) + '</span>' +
+    '</div>' +
+    '<h1 style="margin-top:12px">Prépare ton concours</h1>' +
+    '<div class="sub">' + DOCS.length + ' modules · ' + totQ + ' questions · licence → concours</div>' +
+    '<div class="goal-ring">' + ring(g) +
+    '<div style="flex:1"><div style="font-weight:800">Objectif du jour</div>' +
+    '<div class="sub" style="color:#eafbe0">' + S.xpDay + ' / ' + S.goal + ' XP' + (g >= 1 ? ' ✅ atteint !' : '') + '</div></div></div>' +
+    '</div>';
+
+  h += '<div class="wrap">';
+  if (nextU) {
+    var d0 = doc(nextU.d), u0 = unit(nextU.d, nextU.u);
+    h += '<div class="card" style="border-color:var(--green)">' +
+      '<div class="sub">Continuer</div>' +
+      '<div style="font-weight:800;font-size:15.5px;margin:2px 0 10px">' + esc(d0.code + ' · ' + u0.t) + '</div>' +
+      '<button class="btn" data-go="lesson/' + nextU.d + '/' + nextU.u + '">Commencer</button></div>';
+  }
+  h += '<div class="qa-grid">' +
+    '<div class="qa" data-go="review"><div class="ic">🔁</div><div class="t">Révision</div><div class="d">' + (due ? due + ' à revoir' : 'à jour ✅') + '</div></div>' +
+    '<div class="qa" data-go="exam"><div class="ic">📝</div><div class="t">Examen blanc</div><div class="d">chronométré</div></div>' +
+    '</div><div class="spacer"></div>' +
+    '<input class="search" id="q" placeholder="🔎 Chercher une notion, une loi, un chiffre…">' +
+    '<h2>Modules</h2>';
+
+  DOCS.forEach(function (d) {
+    var p = docPct(d), st = docStarted(d);
+    var nq = 0; d.units.forEach(function (u) { nq += u.qs.length; });
+    h += '<div class="mod' + (p >= 100 ? ' done' : st ? ' started' : '') + '" data-go="doc/' + d.id + '">' +
+      '<div class="bub">' + d.icon + '</div>' +
+      '<div class="info"><div class="t">' + esc(d.code + '. ' + d.title) + '</div>' +
+      '<div class="p">' + d.units.length + ' unités · ' + nq + ' QCM</div>' +
+      '<div class="progress thin" style="margin-top:6px"><div style="width:' + p + '%"></div></div></div>' +
+      '<div class="pct">' + p + '%</div></div>';
+  });
+  h += '</div>';
+  return h;
+}
+function firstUnfinished() {
+  for (var i = 0; i < DOCS.length; i++) {
+    var d = DOCS[i];
+    for (var j = 0; j < d.units.length; j++) if (ust(d.id, j).crowns < CROWN_MAX) return { d: d.id, u: j };
+  }
+  return null;
+}
+
+/* --------------------------------------------------------------- vue DOC */
+function vDoc(id) {
+  var d = doc(id); if (!d) return vHome();
+  var h = bar(d.code + '. ' + d.title, '') + '<div class="wrap">';
+  h += '<h1>' + d.icon + ' ' + esc(d.title) + '</h1><div class="sub">' + esc(d.sub || '') + '</div>';
+  h += '<div class="row" style="margin:12px 0 4px"><div class="progress"><div style="width:' + docPct(d) + '%"></div></div>' +
+    '<b style="font-size:13px">' + docPct(d) + '%</b></div>';
+  h += '<div class="row2" style="margin:12px 0"><button class="btn blue sm" data-go="cards/' + d.id + '">🃏 Flashcards</button>' +
+    '<button class="btn gold sm" data-go="quiz/' + d.id + '/all">⚡ Quiz du module</button></div>';
+  h += '<div class="path">';
+  d.units.forEach(function (u, i) {
+    var s = ust(d.id, i);
+    var cls = s.crowns >= CROWN_MAX ? 'mastered' : (s.runs > 0 || s.lesson) ? 'started' : '';
+    h += '<div class="node ' + cls + '" data-go="lesson/' + d.id + '/' + i + '">' +
+      '<div class="circ">' + (u.ic || '📘') + '</div>' +
+      '<div class="info" style="flex:1"><div class="t">' + esc(u.t) + '</div>' +
+      '<div class="d">' + u.qs.length + ' QCM · ' + u.cards.length + ' cartes' + (u.pages ? ' · ' + u.pages : '') + '</div>' +
+      '<div class="crowns">' + '👑'.repeat(s.crowns) + '<span style="opacity:.25">' + '👑'.repeat(CROWN_MAX - s.crowns) + '</span>' +
+      (s.best ? ' <span class="badge ok">' + s.best + '%</span>' : '') + '</div></div></div>';
+  });
+  h += '</div></div>';
+  return h;
+}
+
+/* ------------------------------------------------------------ vue LEÇON */
+function vLesson(did, ui) {
+  var d = doc(did), u = unit(did, ui); if (!u) return vHome();
+  var s = ust(d.id, ui); s.lesson = 1; save();
+  return bar(u.t, 'doc/' + d.id) + '<div class="wrap"><div class="card lesson">' + rich(u.lesson || '<p class="muted">Pas de leçon pour cette unité.</p>') + '</div>' +
+    '<button class="btn" data-go="quiz/' + d.id + '/' + ui + '">Passer au quiz →</button>' +
+    '<div class="spacer"></div>' +
+    '<button class="btn ghost sm" data-go="cards/' + d.id + '">🃏 Réviser les cartes du module</button>' +
+    '</div>';
+}
+
+/* ------------------------------------------------------------- vue QUIZ */
+var RUN = null;
+function vQuizStart(did, ui) {
+  var d = doc(did); if (!d) return vHome();
+  var pool;
+  if (ui === 'all') pool = allQuestions(d.id);
+  else { var u = unit(did, ui); if (!u) return vHome(); pool = u.qs.map(function (q, qi) { return { q: q, k: qKey(d.id, ui, qi), d: d.id, u: +ui }; }); }
+  if (!pool.length) { return bar('Quiz', 'doc/' + d.id) + '<div class="wrap"><div class="card">Aucune question ici.</div></div>'; }
+  var n = ui === 'all' ? Math.min(20, pool.length) : pool.length;
+  RUN = {
+    mode: 'lesson', items: shuffle(pool).slice(0, n), i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0,
+    xp: 0, back: ui === 'all' ? 'doc/' + d.id : 'doc/' + d.id, title: ui === 'all' ? d.title : unit(did, ui).t,
+    did: d.id, ui: ui === 'all' ? null : +ui, wrong: [], t0: Date.now()
+  };
+  if (!S.unlimited && hearts() <= 0) return vNoHearts();
+  return quizFrame();
+}
+function vNoHearts() {
+  return bar('Plus de cœurs', '') + '<div class="wrap center">' +
+    '<div style="font-size:60px;margin:26px 0 6px">💔</div>' +
+    '<h1>Plus de cœurs</h1>' +
+    '<div class="sub">Un cœur revient toutes les ' + HEART_MIN + ' min — prochain dans <b>' + heartIn() + '</b>.</div>' +
+    '<div class="spacer"></div>' +
+    '<div class="card"><div class="sub" style="margin-bottom:10px">Tu peux regagner un cœur tout de suite en faisant une session de révision (5 items).</div>' +
+    '<button class="btn blue" data-go="review">🔁 Réviser pour un cœur</button></div>' +
+    '<button class="btn ghost" data-act="unlimited">♾️ Activer les cœurs illimités</button>' +
+    '<div class="spacer"></div><button class="btn ghost" data-go="">Retour</button></div>';
+}
+function quizFrame() {
+  var R = RUN, it = R.items[R.i];
+  if (!it) return quizEnd();
+  var q = it.q;
+  var pct = R.i / R.items.length * 100;
+  var opts = q._sh || (q._sh = shuffle(q.o.map(function (t, i) { return { t: t, i: i }; })));
+  var letters = 'ABCDEF';
+  var h = '<div class="qbar">' +
+    '<button class="iconbtn" data-act="quit">✕</button>' +
+    '<div class="progress"><div style="width:' + pct + '%"></div></div>' +
+    (R.mode === 'lesson' ? '<span class="pill hearts">' + (S.unlimited ? '♾️' : '❤️ ' + S.hearts) + '</span>' : '<span class="pill xp">' + (R.i + 1) + '/' + R.items.length + '</span>') +
+    (R.mode === 'exam' ? '<span class="pill gem timer" id="tm">--:--</span>' : '') +
+    '</div>';
+  h += '<div class="wrap"><div class="sub">' + esc(doc(it.d).code + ' · ' + unit(it.d, it.u).t) + '</div>' +
+    '<div class="qtext">' + rich(q.q) + '</div><div id="opts">';
+  opts.forEach(function (o, n) {
+    h += '<button class="opt" data-opt="' + o.i + '"><span class="k">' + letters[n] + '</span>' + rich(o.t) + '</button>';
+  });
+  h += '</div><div style="height:150px"></div></div>';
+  return h;
+}
+function answer(chosen) {
+  var R = RUN, it = R.items[R.i], q = it.q;
+  var correct = (+chosen === q.c);
+  var btns = ROOT.querySelectorAll('.opt');
+  Array.prototype.forEach.call(btns, function (b) {
+    b.disabled = true;
+    var v = +b.getAttribute('data-opt');
+    if (v === q.c) b.classList.add('correct');
+    else if (v === +chosen) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  if (correct) {
+    R.ok++; R.combo++; R.maxCombo = Math.max(R.maxCombo, R.combo);
+    var gain = 2 + (R.combo >= 5 ? 2 : 0);
+    R.xp += gain; beep('ok');
+    grade(it.k, R.mode === 'exam' ? 4 : 4);
+    if (R.combo === 5 || R.combo === 10 || R.combo === 15) {
+      var c = document.createElement('div'); c.className = 'combo'; c.textContent = '🔥 ' + R.combo + ' d\'affilée ! +2 XP';
+      document.body.appendChild(c); setTimeout(function () { c.remove(); }, 1400);
+    }
+  } else {
+    R.ko++; R.combo = 0; R.wrong.push(it); beep('ko'); vibrate(60);
+    grade(it.k, 0);
+    if (R.mode === 'lesson') { loseHeart(); }
+    var w = ROOT.querySelector('.qtext'); if (w) { w.classList.add('shake'); setTimeout(function () { w.classList.remove('shake'); }, 400); }
+  }
+  var us = ust(it.d, it.u); if (correct) us.ok++; else us.ko++; save();
+
+  var fb = document.createElement('div');
+  fb.className = 'fbbar ' + (correct ? 'ok' : 'ko');
+  fb.innerHTML = '<div class="inner"><div class="h">' + (correct ? '✅ Bonne réponse !' : '❌ Réponse : ' + rich(q.o[q.c])) + '</div>' +
+    (q.e ? '<div class="e">' + rich(q.e) + '</div>' : '<div class="e"></div>') +
+    '<button class="btn ' + (correct ? '' : 'red') + '" id="next">Continuer</button></div>';
+  document.body.appendChild(fb);
+  el('next').onclick = function () {
+    fb.remove(); RUN.i++;
+    if (!S.unlimited && RUN.mode === 'lesson' && S.hearts <= 0 && RUN.i < RUN.items.length) { ROOT.innerHTML = vNoHearts() + navBar(''); bind(); return; }
+    ROOT.innerHTML = quizFrame() + navBar(''); bind();
+  };
+  el('next').focus();
+}
+function quizEnd() {
+  var R = RUN, tot = R.items.length, pct = tot ? Math.round(R.ok / tot * 100) : 0;
+  addXP(R.xp + (R.mode === 'lesson' ? 10 : 0) + (pct === 100 ? 5 : 0));
+  if (R.mode === 'lesson' && R.ui != null) {
+    var s = ust(R.did, R.ui);
+    s.runs++; s.best = Math.max(s.best, pct);
+    if (pct >= CROWN_PCT * 100 && s.crowns < CROWN_MAX) { s.crowns++; beep('up'); confetti(); }
+    save();
+  }
+  if (pct >= 80) { beep('up'); if (pct === 100) confetti(); }
+  var secs = Math.round((Date.now() - R.t0) / 1000);
+  var h = bar('Résultat', '') + '<div class="wrap center">' +
+    '<div style="font-size:56px;margin:16px 0 4px">' + (pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '💪' : '📚') + '</div>' +
+    '<h1>' + pct + '%</h1><div class="sub">' + R.ok + ' bonnes / ' + tot + ' questions · ' + Math.floor(secs / 60) + 'm' + pad(secs % 60) + 's</div>' +
+    '<div class="row3" style="margin:16px 0">' +
+    '<div class="stat"><div class="v">+' + (R.xp + (R.mode === 'lesson' ? 10 : 0)) + '</div><div class="l">XP</div></div>' +
+    '<div class="stat"><div class="v">' + R.maxCombo + '</div><div class="l">meilleure série</div></div>' +
+    '<div class="stat"><div class="v">' + R.ko + '</div><div class="l">à revoir</div></div>' +
+    '</div>';
+  if (R.wrong.length) {
+    h += '<div class="card" style="text-align:left"><b>À revoir (' + R.wrong.length + ')</b>';
+    R.wrong.slice(0, 12).forEach(function (it) {
+      h += '<div style="margin-top:10px;font-size:13.5px"><div style="font-weight:700">' + rich(it.q.q) + '</div>' +
+        '<div style="color:var(--green-dk)">➜ ' + rich(it.q.o[it.q.c]) + '</div></div>';
+    });
+    h += '<div class="sub" style="margin-top:10px">Ces questions sont programmées dans ta révision espacée.</div></div>';
+  }
+  h += '<button class="btn" data-go="' + (R.back || '') + '">Continuer</button><div class="spacer"></div>' +
+    (R.ui != null ? '<button class="btn ghost" data-act="again">↻ Refaire cette unité</button>' : '') +
+    '</div>';
+  return h;
+}
+
+/* ---------------------------------------------------------- vue RÉVISION */
+function vReview() {
+  var keys = dueList();
+  if (!keys.length) {
+    // rien de dû → proposer une session libre
+    return bar('Révision', '') + '<div class="wrap center">' +
+      '<div style="font-size:56px;margin:26px 0 6px">✅</div><h1>Tout est à jour</h1>' +
+      '<div class="sub">Aucune carte ni question à revoir aujourd\'hui. Tu peux quand même t\'entraîner.</div>' +
+      '<div class="spacer"></div><button class="btn blue" data-act="freeplay">🎯 Entraînement libre (15 QCM)</button>' +
+      '<div class="spacer"></div><button class="btn ghost" data-go="">Retour</button></div>';
+  }
+  var items = shuffle(keys).slice(0, 20).map(resolveKey).filter(Boolean);
+  RUN = { mode: 'review', items: items, i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [], t0: Date.now(), back: '', title: 'Révision', did: null, ui: null };
+  return reviewFrame();
+}
+function reviewFrame() {
+  var R = RUN, it = R.items[R.i];
+  if (!it) return reviewEnd();
+  if (it.type === 'q') {
+    // réutilise l'affichage quiz
+    R.items[R.i] = { q: it.q, k: it.k, d: it.d, u: it.u, type: 'q' };
+    return quizFrame();
+  }
+  var pct = R.i / R.items.length * 100;
+  var h = '<div class="qbar"><button class="iconbtn" data-act="quit">✕</button>' +
+    '<div class="progress blue"><div style="width:' + pct + '%"></div></div><span class="pill gem">' + (R.i + 1) + '/' + R.items.length + '</span></div>';
+  h += '<div class="wrap"><div class="sub">' + esc(doc(it.d).code + ' · ' + unit(it.d, it.u).t) + '</div>' +
+    '<div class="flip" id="flip"><div class="in">' +
+    '<div class="fa">' + rich(it.c.f) + '</div><div class="ba">' + rich(it.c.b) + '</div></div></div>' +
+    '<div id="cardbtns"><button class="btn blue" data-act="flip">Voir la réponse</button></div>' +
+    '<div style="height:90px"></div></div>';
+  return h;
+}
+function cardGrade(g) {
+  var R = RUN, it = R.items[R.i];
+  grade(it.k, g);
+  if (g >= 3) { R.ok++; R.xp += 1; beep('ok'); } else { R.ko++; beep('ko'); }
+  R.i++;
+  ROOT.innerHTML = reviewFrame() + navBar('review'); bind();
+}
+function reviewEnd() {
+  var R = RUN;
+  addXP(R.xp + 5);
+  if (!S.unlimited && S.hearts < HEART_MAX && R.items.length >= 5) { gainHeart(1); }
+  beep('up');
+  return bar('Révision terminée', '') + '<div class="wrap center">' +
+    '<div style="font-size:56px;margin:20px 0 4px">🔁</div><h1>Bien joué !</h1>' +
+    '<div class="sub">' + R.items.length + ' items revus · +' + (R.xp + 5) + ' XP' +
+    (!S.unlimited && R.items.length >= 5 ? ' · ❤️ +1 cœur' : '') + '</div>' +
+    '<div class="spacer"></div><button class="btn" data-go="">Retour à l\'accueil</button>' +
+    '<div class="spacer"></div><button class="btn ghost" data-go="review">Encore une session</button></div>';
+}
+
+/* -------------------------------------------------------- vue FLASHCARDS */
+function vCardsStart(did) {
+  var d = doc(did); if (!d) return vHome();
+  var pool = allCards(d.id);
+  if (!pool.length) return bar('Cartes', 'doc/' + d.id) + '<div class="wrap"><div class="card">Aucune carte.</div></div>';
+  RUN = { mode: 'review', items: shuffle(pool).map(function (p) { return { type: 'c', c: p.c, k: p.k, d: p.d, u: p.u }; }).slice(0, 30), i: 0, ok: 0, ko: 0, xp: 0, combo: 0, maxCombo: 0, wrong: [], t0: Date.now(), back: 'doc/' + d.id, did: d.id, ui: null };
+  return reviewFrame();
+}
+
+/* ------------------------------------------------------------ vue EXAMEN */
+function vExamSetup() {
+  var h = bar('Examen blanc', '') + '<div class="wrap">';
+  h += '<h1>📝 Examen blanc</h1><div class="sub">Conditions du concours : QCM chronométrés, correction détaillée à la fin.</div>';
+  h += '<div class="card"><b>Périmètre</b><div class="spacer"></div><select id="scope" class="search">' +
+    '<option value="0">Tous les modules</option>' +
+    DOCS.map(function (d) { return '<option value="' + d.id + '">' + esc(d.code + '. ' + d.title) + '</option>'; }).join('') +
+    '</select><div class="spacer"></div><b>Nombre de questions</b><div class="spacer"></div>' +
+    '<div class="row3"><button class="btn ghost sm nsel" data-n="20">20</button><button class="btn ghost sm nsel" data-n="40">40</button><button class="btn ghost sm nsel" data-n="60">60</button></div>' +
+    '<div class="spacer"></div><label class="row"><input type="checkbox" id="chrono" checked> <span>Chronomètre (45 s / question)</span></label>' +
+    '<div class="spacer"></div><button class="btn gold" data-act="startexam">Lancer l\'examen</button></div>';
+  if (S.exams.length) {
+    h += '<h2>Historique</h2>';
+    S.exams.slice(-10).reverse().forEach(function (e) {
+      h += '<div class="card tight row"><div style="flex:1"><b>' + e.pct + '%</b> <span class="sub">· ' + e.n + ' Q · ' + esc(e.scope) + '</span>' +
+        '<div class="sub">' + e.date + ' · ' + Math.floor(e.secs / 60) + ' min</div></div>' +
+        '<span class="badge ' + (e.pct >= 70 ? 'ok' : 'hot') + '">' + (e.pct >= 70 ? 'admis' : 'à travailler') + '</span></div>';
+    });
+  }
+  h += '</div>';
+  return h;
+}
+var EXN = 40, EXTIMER = null;
+function startExam() {
+  var scope = +(el('scope') ? el('scope').value : 0);
+  var chrono = el('chrono') ? el('chrono').checked : true;
+  var pool = allQuestions(scope || null);
+  if (pool.length < 5) { toast('Pas assez de questions'); return; }
+  var n = Math.min(EXN, pool.length);
+  RUN = {
+    mode: 'exam', items: shuffle(pool).slice(0, n), i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [],
+    t0: Date.now(), back: 'exam', did: null, ui: null,
+    scope: scope ? doc(scope).code + '. ' + doc(scope).title : 'Tous les modules',
+    end: chrono ? Date.now() + n * 45000 : 0
+  };
+  ROOT.innerHTML = quizFrame() + navBar('exam'); bind(); tickExam();
+}
+function tickExam() {
+  clearInterval(EXTIMER);
+  if (!RUN || RUN.mode !== 'exam' || !RUN.end) return;
+  EXTIMER = setInterval(function () {
+    var t = el('tm'); if (!t) return;
+    var left = Math.max(0, RUN.end - Date.now());
+    var m = Math.floor(left / 60000), s = Math.floor(left % 60000 / 1000);
+    t.textContent = m + ':' + pad(s);
+    if (left < 60000) t.classList.add('warn');
+    if (left <= 0) { clearInterval(EXTIMER); RUN.i = RUN.items.length; ROOT.innerHTML = examEnd() + navBar('exam'); bind(); }
+  }, 500);
+}
+function examEnd() {
+  clearInterval(EXTIMER);
+  var R = RUN, tot = R.items.length, pct = tot ? Math.round(R.ok / tot * 100) : 0;
+  var secs = Math.round((Date.now() - R.t0) / 1000);
+  addXP(R.xp + 25);
+  S.exams.push({ date: today(), n: tot, pct: pct, secs: secs, scope: R.scope });
+  save();
+  if (pct >= 70) { beep('up'); confetti(); }
+  var h = bar('Résultat examen', 'exam') + '<div class="wrap center">' +
+    '<div style="font-size:56px;margin:14px 0 2px">' + (pct >= 80 ? '🥇' : pct >= 70 ? '🎓' : pct >= 50 ? '📈' : '📚') + '</div>' +
+    '<h1>' + pct + '% · ' + R.ok + '/' + tot + '</h1>' +
+    '<div class="sub">' + esc(R.scope) + ' · ' + Math.floor(secs / 60) + ' min ' + pad(secs % 60) + ' s</div>' +
+    '<div class="row3" style="margin:16px 0">' +
+    '<div class="stat"><div class="v">' + R.ok + '</div><div class="l">justes</div></div>' +
+    '<div class="stat"><div class="v">' + R.ko + '</div><div class="l">faux</div></div>' +
+    '<div class="stat"><div class="v">' + Math.round(secs / Math.max(1, tot)) + 's</div><div class="l">/question</div></div></div>';
+  if (R.wrong.length) {
+    h += '<div class="card" style="text-align:left"><b>Correction des erreurs</b>';
+    R.wrong.forEach(function (it) {
+      h += '<div class="hr"></div><div style="font-size:13.6px"><div style="font-weight:700">' + rich(it.q.q) + '</div>' +
+        '<div style="color:var(--green-dk);margin:3px 0"><b>➜ ' + rich(it.q.o[it.q.c]) + '</b></div>' +
+        (it.q.e ? '<div class="sub">' + rich(it.q.e) + '</div>' : '') +
+        '<div class="sub" style="margin-top:3px">' + esc(doc(it.d).code + ' · ' + unit(it.d, it.u).t) + '</div></div>';
+    });
+    h += '</div>';
+  }
+  h += '<button class="btn" data-go="exam">Retour</button></div>';
+  return h;
+}
+
+/* ------------------------------------------------------------- vue STATS */
+function vStats() {
+  var days = [], t = today();
+  for (var i = 6; i >= 0; i--) { var d = dayShift(t, -i); days.push([d, d === t ? S.xpDay : (S.hist[d] || 0)]); }
+  var max = Math.max(10, Math.max.apply(null, days.map(function (x) { return x[1]; })));
+  var totQ = 0, okQ = 0, koQ = 0, crowns = 0, maxc = 0;
+  DOCS.forEach(function (d) {
+    d.units.forEach(function (u, i) { var s = ust(d.id, i); totQ += u.qs.length; okQ += s.ok; koQ += s.ko; crowns += s.crowns; maxc += CROWN_MAX; });
+  });
+  var h = bar('Statistiques', '') + '<div class="wrap">';
+  h += '<div class="row3">' +
+    '<div class="stat"><div class="v">' + S.xp + '</div><div class="l">XP total</div></div>' +
+    '<div class="stat"><div class="v">' + S.streak + '</div><div class="l">série (record ' + S.best + ')</div></div>' +
+    '<div class="stat"><div class="v">' + Math.round(crowns / Math.max(1, maxc) * 100) + '%</div><div class="l">maîtrise</div></div></div>';
+  h += '<h2>7 derniers jours</h2><div class="card"><div class="bars">' +
+    days.map(function (x) {
+      var n = ['D', 'L', 'M', 'M', 'J', 'V', 'S'][new Date(x[0]).getDay()];
+      return '<div class="b" style="height:' + Math.max(3, x[1] / max * 100) + '%;' + (x[1] === 0 ? 'background:var(--line)' : '') + '"><span>' + n + '</span></div>';
+    }).join('') + '</div><div style="height:24px"></div>' +
+    '<div class="sub center">' + days.reduce(function (a, x) { return a + x[1]; }, 0) + ' XP cette semaine</div></div>';
+  h += '<h2>Réponses</h2><div class="row3">' +
+    '<div class="stat"><div class="v">' + okQ + '</div><div class="l">justes</div></div>' +
+    '<div class="stat"><div class="v">' + koQ + '</div><div class="l">fausses</div></div>' +
+    '<div class="stat"><div class="v">' + (okQ + koQ ? Math.round(okQ / (okQ + koQ) * 100) : 0) + '%</div><div class="l">réussite</div></div></div>';
+  h += '<h2>Points faibles</h2>';
+  var weak = [];
+  DOCS.forEach(function (d) {
+    d.units.forEach(function (u, i) { var s = ust(d.id, i); if (s.ok + s.ko >= 4) weak.push({ d: d, u: u, i: i, r: s.ok / (s.ok + s.ko), n: s.ok + s.ko }); });
+  });
+  weak.sort(function (a, b) { return a.r - b.r; });
+  if (!weak.length) h += '<div class="card sub">Fais quelques quiz : tes unités les plus fragiles apparaîtront ici.</div>';
+  weak.slice(0, 8).forEach(function (w) {
+    h += '<div class="mod" data-go="lesson/' + w.d.id + '/' + w.i + '"><div class="bub">' + (w.u.ic || '📘') + '</div>' +
+      '<div class="info"><div class="t">' + esc(w.u.t) + '</div><div class="p">' + esc(w.d.code + '. ' + w.d.title) + '</div></div>' +
+      '<span class="badge ' + (w.r < .6 ? 'hot' : '') + '">' + Math.round(w.r * 100) + '%</span></div>';
+  });
+  h += '<h2>Révision espacée</h2>';
+  var due = dueList().length, tot = Object.keys(S.srs).length;
+  h += '<div class="card"><div class="row"><div style="flex:1"><b>' + due + '</b> item' + (due > 1 ? 's' : '') + ' à revoir aujourd\'hui<div class="sub">' + tot + ' items suivis au total</div></div>' +
+    '<button class="btn blue sm" style="width:auto;padding:10px 16px" data-go="review">Réviser</button></div></div>';
+  h += '</div>';
+  return h;
+}
+
+/* ---------------------------------------------------------- vue RÉGLAGES */
+function vSettings() {
+  var h = bar('Réglages', '') + '<div class="wrap">';
+  h += '<div class="card"><b>Objectif quotidien</b><div class="sub">XP à gagner chaque jour pour garder ta série</div>' +
+    '<div class="spacer"></div><div class="row3">' +
+    [20, 50, 100].map(function (g) { return '<button class="btn ' + (S.goal === g ? '' : 'ghost') + ' sm" data-goal="' + g + '">' + g + ' XP</button>'; }).join('') +
+    '</div></div>';
+  h += '<div class="card"><b>Thème</b><div class="spacer"></div><div class="row3">' +
+    [['auto', '🌗 Auto'], ['light', '☀️ Clair'], ['dark', '🌙 Sombre']].map(function (t) {
+      return '<button class="btn ' + (S.theme === t[0] ? '' : 'ghost') + ' sm" data-theme="' + t[0] + '">' + t[1] + '</button>';
+    }).join('') + '</div></div>';
+  h += '<div class="card"><label class="row" style="justify-content:space-between"><span><b>Sons</b><div class="sub">Retour audio juste / faux</div></span>' +
+    '<input type="checkbox" id="snd"' + (S.sound ? ' checked' : '') + ' style="width:22px;height:22px"></label>' +
+    '<div class="hr"></div><label class="row" style="justify-content:space-between"><span><b>Cœurs illimités</b><div class="sub">Ne jamais être bloqué par les erreurs</div></span>' +
+    '<input type="checkbox" id="unl"' + (S.unlimited ? ' checked' : '') + ' style="width:22px;height:22px"></label></div>';
+  h += '<div class="card"><b>Sauvegarde</b><div class="sub">Ta progression est stockée sur cet appareil. Exporte-la pour la transférer sur un autre (PC ↔ téléphone).</div>' +
+    '<div class="spacer"></div><div class="row2"><button class="btn blue sm" data-act="export">⬇️ Exporter</button>' +
+    '<button class="btn ghost sm" data-act="import">⬆️ Importer</button></div>' +
+    '<div class="spacer"></div><button class="btn red sm" data-act="reset">🗑️ Réinitialiser la progression</button></div>';
+  var nq = 0, nc = 0; DOCS.forEach(function (d) { d.units.forEach(function (u) { nq += u.qs.length; nc += u.cards.length; }); });
+  h += '<div class="card sub center">CNC ANASS · ' + DOCS.length + ' modules · ' + nq + ' QCM · ' + nc + ' flashcards<br>Contenu généré à partir des résumés « Prépare mon concours » (ANASS SLIT).</div>';
+  h += '</div>';
+  return h;
+}
+
+/* ---------------------------------------------------------- vue RECHERCHE */
+var SQ = '';
+function vSearch() {
+  var q = SQ.toLowerCase().trim();
+  var h = bar('Recherche', '') + '<div class="wrap">' +
+    '<input class="search" id="q2" placeholder="🔎 Chercher…" value="' + esc(SQ) + '"><div class="spacer"></div>';
+  if (q.length < 2) { h += '<div class="card sub">Tape au moins 2 caractères.</div></div>'; return h; }
+  var res = [];
+  DOCS.forEach(function (d) {
+    d.units.forEach(function (u, ui) {
+      var score = 0;
+      if ((u.t || '').toLowerCase().indexOf(q) >= 0) score += 3;
+      if ((u.lesson || '').toLowerCase().indexOf(q) >= 0) score += 2;
+      var hits = u.qs.filter(function (x) { return (x.q + ' ' + x.o.join(' ') + ' ' + (x.e || '')).toLowerCase().indexOf(q) >= 0; });
+      var chits = u.cards.filter(function (c) { return (c.f + ' ' + c.b).toLowerCase().indexOf(q) >= 0; });
+      score += hits.length + chits.length;
+      if (score) res.push({ d: d, u: u, ui: ui, n: hits.length + chits.length, score: score, sample: (chits[0] ? chits[0].f + ' → ' + chits[0].b : hits[0] ? hits[0].q : '') });
+    });
+  });
+  res.sort(function (a, b) { return b.score - a.score; });
+  h += '<div class="sub">' + res.length + ' unité(s) trouvée(s)</div><div class="spacer"></div>';
+  res.slice(0, 30).forEach(function (r) {
+    h += '<div class="mod" data-go="lesson/' + r.d.id + '/' + r.ui + '"><div class="bub">' + (r.u.ic || '📘') + '</div>' +
+      '<div class="info"><div class="t">' + esc(r.u.t) + '</div><div class="p">' + esc(r.d.code + '. ' + r.d.title) + ' · ' + r.n + ' occurrence(s)</div>' +
+      (r.sample ? '<div class="p" style="opacity:.8">' + esc(String(r.sample).replace(/<[^>]+>/g, '').slice(0, 90)) + '…</div>' : '') +
+      '</div></div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+/* ------------------------------------------------------------- bindings */
+function bind() {
+  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-go]'), function (b) {
+    b.onclick = function () { clearInterval(EXTIMER); go('/' + b.getAttribute('data-go')); };
+  });
+  Array.prototype.forEach.call(ROOT.querySelectorAll('.opt'), function (b) {
+    b.onclick = function () { answer(b.getAttribute('data-opt')); };
+  });
+  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-act]'), function (b) {
+    b.onclick = function () { act(b.getAttribute('data-act'), b); };
+  });
+  Array.prototype.forEach.call(ROOT.querySelectorAll('.nsel'), function (b) {
+    b.onclick = function () {
+      EXN = +b.getAttribute('data-n');
+      Array.prototype.forEach.call(ROOT.querySelectorAll('.nsel'), function (x) { x.classList.add('ghost'); });
+      b.classList.remove('ghost');
+    };
+    if (+b.getAttribute('data-n') === EXN) b.classList.remove('ghost');
+  });
+  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-goal]'), function (b) {
+    b.onclick = function () { S.goal = +b.getAttribute('data-goal'); save(); render(); };
+  });
+  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-theme]'), function (b) {
+    b.onclick = function () { S.theme = b.getAttribute('data-theme'); save(); applyTheme(); render(); };
+  });
+  var snd = el('snd'); if (snd) snd.onchange = function () { S.sound = snd.checked; save(); if (snd.checked) beep('ok'); };
+  var unl = el('unl'); if (unl) unl.onchange = function () { S.unlimited = unl.checked; save(); toast(unl.checked ? '♾️ Cœurs illimités' : '❤️ Cœurs activés'); render(); };
+  var q = el('q'); if (q) q.onkeyup = function (e) { if (q.value.length >= 2 && (e.key === 'Enter' || q.value.length > 2)) { SQ = q.value; go('/search'); } };
+  var q2 = el('q2'); if (q2) { q2.oninput = function () { SQ = q2.value; clearTimeout(q2._t); q2._t = setTimeout(function () { var p = q2.selectionStart; render(); var n = el('q2'); if (n) { n.focus(); n.setSelectionRange(p, p); } }, 350); }; q2.focus(); }
+  var flip = el('flip'); if (flip) flip.onclick = function () { doFlip(); };
+  if (RUN && RUN.mode === 'exam' && RUN.items[RUN.i]) tickExam();
+}
+function doFlip() {
+  var f = el('flip'); if (!f || f.classList.contains('on')) return;
+  f.classList.add('on');
+  el('cardbtns').innerHTML = '<div class="srsrow">' +
+    '<button class="srsbtn again" data-g="0">Raté</button>' +
+    '<button class="srsbtn hard" data-g="3">Dur</button>' +
+    '<button class="srsbtn good" data-g="4">Bien</button>' +
+    '<button class="srsbtn easy" data-g="5">Facile</button></div>';
+  Array.prototype.forEach.call(el('cardbtns').querySelectorAll('[data-g]'), function (b) {
+    b.onclick = function () { cardGrade(+b.getAttribute('data-g')); };
+  });
+}
+function anchorSave(text, name) {
+  try {
+    var blob = new Blob([text], { type: 'application/json' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    toast('Sauvegarde exportée');
+  } catch (e) { toast('Export impossible sur cet appareil'); }
+}
+function act(a, b) {
+  switch (a) {
+    case 'quit':
+      clearInterval(EXTIMER);
+      if (RUN && RUN.xp > 0) { addXP(RUN.xp); toast('+' + RUN.xp + ' XP conservés'); }
+      go('/' + (RUN && RUN.back ? RUN.back : ''));
+      break;
+    case 'flip': doFlip(); break;
+    case 'again': if (RUN) go('/quiz/' + RUN.did + '/' + RUN.ui); break;
+    case 'startexam': startExam(); break;
+    case 'unlimited': S.unlimited = true; save(); toast('♾️ Cœurs illimités activés'); go('/'); break;
+    case 'freeplay': {
+      var pool = allQuestions(null);
+      RUN = { mode: 'review', items: shuffle(pool).slice(0, 15), i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [], t0: Date.now(), back: '', did: null, ui: null };
+      ROOT.innerHTML = quizFrame() + navBar('review'); bind(); break;
+    }
+    case 'export': {
+      var json = JSON.stringify(S), name = 'cnc-anass-progression-' + today() + '.json';
+      if (window.claude && typeof window.claude.use === 'function') {
+        window.claude.use('downloads').then(function (dl) {
+          if (!dl) { anchorSave(json, name); return; }
+          dl.save({ filename: name, data: json })
+            .then(function () { toast('Sauvegarde enregistrée'); })
+            .catch(function (e) {
+              if (e && e.code === 'declined') return;
+              if (e && (e.code === 'rate_limited')) { toast('Réessaie dans un instant'); return; }
+              anchorSave(json, name);
+            });
+        }).catch(function () { anchorSave(json, name); });
+      } else anchorSave(json, name);
+      break;
+    }
+    case 'import': {
+      var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/json';
+      inp.onchange = function () {
+        var f = inp.files[0]; if (!f) return;
+        var rd = new FileReader();
+        rd.onload = function () {
+          try { var o = JSON.parse(rd.result); if (o && o.v) { S = o; save(); toast('Progression importée'); render(); } else toast('Fichier invalide'); }
+          catch (e) { toast('Fichier illisible'); }
+        };
+        rd.readAsText(f);
+      };
+      inp.click(); break;
+    }
+    case 'reset':
+      if (confirm('Effacer toute la progression (XP, séries, couronnes, révisions) ?')) { S = blank(); save(); applyTheme(); toast('Progression réinitialisée'); go('/'); render(); }
+      break;
+  }
+}
+
+/* ------------------------------------------------------- fin de session */
+var _endWrap = quizEnd;
+function quizEndRouter() { return RUN && RUN.mode === 'exam' ? examEnd() : RUN && RUN.mode === 'review' ? reviewEnd() : _endWrap(); }
+quizEnd = quizEndRouter;
+
+/* clavier : 1-6 pour répondre, Entrée pour continuer */
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') { var n = el('next'); if (n) { n.click(); e.preventDefault(); return; } }
+  if (/^[1-6]$/.test(e.key)) {
+    var opts = ROOT.querySelectorAll('.opt:not([disabled])');
+    var i = +e.key - 1; if (opts[i]) opts[i].click();
+  }
+  if (e.key === ' ') { var f = el('flip'); if (f && !f.classList.contains('on')) { doFlip(); e.preventDefault(); } }
+});
+
+/* ------------------------------------------------------------- démarrage */
+function boot() {
+  ROOT = el('app');
+  applyTheme();
+  if (!DOCS.length) { ROOT.innerHTML = '<div class="wrap"><div class="card">Aucune donnée chargée. Vérifie que les fichiers du dossier <b>data/</b> sont bien présents à côté de index.html.</div></div>'; return; }
+  render();
+  setInterval(function () { if ((route()[0] || '') === '' ) { /* rafraîchit les cœurs sur l'accueil */ if (!S.unlimited && S.hearts < HEART_MAX) render(); } }, 60000);
+  if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+    navigator.serviceWorker.register('sw.js').catch(function () { });
+  }
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+
+})();

@@ -1,0 +1,13 @@
+{
+    "version":  "2.4.0",
+    "date":  "2026-09-10",
+    "cache":  "cnc-anass-v7",
+    "modules":  11,
+    "nouveautes":  [
+                       "Flashcards par unite : bouton sur chaque unite et sur la page de lecon, en-tete avec l\u0027emoji et le titre de l\u0027unite",
+                       "Les unites ayant peu de cartes sont completees par leurs propres QCM (8 cartes minimum par seance)",
+                       "Charte du document source : emojis sur les titres et les listes, pastilles, citations, pieges",
+                       "Surlignage definition/date/chiffre/loi + legende",
+                       "Personnalisation de la terminologie (Le chemin, Évaluation intelligente, concours, Cartes, Statistiques, Mode diurne, Le son est activé)"
+                   ]
+}
