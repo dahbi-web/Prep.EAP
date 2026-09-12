@@ -1,14 +1,15 @@
 {
-    "version":  "2.5.0",
-    "date":  "2026-09-11",
-    "cache":  "cnc-anass-v9",
-    "modules":  11,
-    "nouveautes":  [
-                       "Flashcards par unite : bouton sur chaque unite et sur la page de lecon, en-tete avec l\u0027emoji et le titre de l\u0027unite",
-                       "Les unites ayant peu de cartes sont completees par leurs propres QCM (8 cartes minimum par seance)",
-                       "Charte du document source : emojis sur les titres et les listes, pastilles, citations, pieges",
-                       "Surlignage definition/date/chiffre/loi + legende",
-        "Personnalisation de la terminologie (Le chemin, Évaluation intelligente, concours, Cartes, Statistiques, Mode diurne, Le son est activé)",
-        "Section Concours : 19 sujets et corrigés PDF intégrés"
-                   ]
+  "version": "2.6.2",
+  "date": "2026-09-12",
+  "cache": "cnc-anass-v13",
+  "modules": 11,
+  "nouveautes": [
+    "Nom de l’application : Concours de santé",
+    "Flashcards par unite : bouton sur chaque unite et sur la page de lecon, en-tete avec l'emoji et le titre de l'unite",
+    "Les unites ayant peu de cartes sont completees par leurs propres QCM (8 cartes minimum par seance)",
+    "Charte du document source : emojis sur les titres et les listes, pastilles, citations, pieges",
+    "Surlignage definition/date/chiffre/loi + legende",
+    "Personnalisation de la terminologie (Le chemin, Évaluation intelligente, concours, Cartes, Statistiques, Mode diurne, Le son est activé)",
+    "Section Concours : 32 sujets et corrigés PDF intégrés"
+  ]
 }

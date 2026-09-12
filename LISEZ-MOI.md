@@ -1,4 +1,4 @@
-# CNC ANASS — application de révision (v2.3 · jour 2 + charte du document source + cartes par unité)
+# Concours de santé — application de révision (v2.3 · jour 2 + charte du document source + cartes par unité)
 
 Application type **Duolingo** pour préparer le concours : leçons courtes, QCM avec explications,
 flashcards, **cœurs**, **objectif quotidien**, **série (streak)**, **couronnes**, **révision espacée**
@@ -8,7 +8,7 @@ et **examens blancs chronométrés**. Tout fonctionne **hors ligne**, sans compt
 
 | Module | Unités | QCM | Cartes |
 |---|---|---|---|
-| 01. SNS Maroc | 12 | 82 | 56 |
+| 01. SNS Maroc | 12 | 99 | 66 |
 | 02. Règlement intérieur des hôpitaux | 13 | 108 | 41 |
 | 03. Loi 08-22 — GST | 8 | 61 | 29 |
 | 04. Économie de la santé | 7 | 50 | 19 |
@@ -19,7 +19,7 @@ et **examens blancs chronométrés**. Tout fonctionne **hors ligne**, sans compt
 | 16. Couverture Médicale de Base | 11 | 93 | 43 |
 | 26. Plan Santé 2025 | 11 | 95 | 39 |
 | 31. CS · SROS · CSN · CSR | 6 | 47 | 21 |
-| **Total** | **103** | **803** | **387** |
+| **Total** | **103** | **820** | **397** |
 
 Les 20 autres documents seront ajoutés ensuite : ils viendront s'ajouter dans le dossier `data/`
 **sans effacer ta progression**.

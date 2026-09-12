@@ -1,6 +1,6 @@
 {
-  "name": "CNC ANASS — Prépare mon concours",
-  "short_name": "CNC ANASS",
+  "name": "Concours de santé — Prépare mon concours",
+  "short_name": "Concours santé",
   "description": "Révision type Duolingo pour le concours : leçons, QCM, flashcards, révision espacée et examens blancs.",
   "start_url": "./index.html",
   "scope": "./",

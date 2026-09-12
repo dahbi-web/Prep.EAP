@@ -1,5 +1,5 @@
 /* Service worker — mise en cache complète pour usage hors-ligne */
-var CACHE = 'cnc-anass-v9';
+var CACHE = 'cnc-anass-v13';
 var ASSETS = [
   './', './index.html', './app.css', './app.js', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png',
@@ -16,7 +16,13 @@ var ASSETS = [
   './concours-commun/sujet-13.html', './concours-commun/sujet-14.html',
   './concours-commun/sujet-15.html', './concours-commun/sujet-16.html',
   './concours-commun/sujet-17.html', './concours-commun/sujet-18.html',
-  './concours-commun/sujet-19.html'
+  './concours-commun/sujet-19.html', './concours-commun/sujet-20.html',
+  './concours-commun/sujet-21.html', './concours-commun/sujet-22.html',
+  './concours-commun/sujet-23.html', './concours-commun/sujet-24.html',
+  './concours-commun/sujet-25.html', './concours-commun/sujet-26.html',
+  './concours-commun/sujet-27.html', './concours-commun/sujet-28.html',
+  './concours-commun/sujet-29.html', './concours-commun/sujet-30.html',
+  './concours-commun/sujet-31.html', './concours-commun/sujet-32.html'
 ];
 self.addEventListener('install', function (e) {
   self.skipWaiting();

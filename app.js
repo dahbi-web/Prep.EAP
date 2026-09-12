@@ -1,5 +1,5 @@
 /* ==========================================================================
-   CNC ANASS — moteur de l'application
+   Concours de santé — moteur de l'application
    Révision type "Duolingo" pour le concours (licence) — 31 modules
    Aucune dépendance externe. Fonctionne hors-ligne.
    ========================================================================== */
@@ -166,7 +166,7 @@ function requestNotifications() {
 }
 function dailyReminder() {
   if (S.notify && window.Notification && Notification.permission === 'granted' && S.notifyDay !== today() && S.xpDay < S.goal) {
-    var pi = planInfo(); new Notification('CNC ANASS · ton concours approche', { body: pi.left + ' jours restants. Vise ' + pi.perDay + ' unité(s) aujourd’hui.' });
+    var pi = planInfo(); new Notification('Concours de santé · ton concours approche', { body: pi.left + ' jours restants. Vise ' + pi.perDay + ' unité(s) aujourd’hui.' });
     S.notifyDay = today(); save();
   }
 }
@@ -482,7 +482,12 @@ function applyTheme() {
 if (window.matchMedia) { try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme); } catch (e) { } }
 
 /* --------------------------------------------------------------- routeur */
-function go(h) { location.hash = h; }
+function go(h) {
+  var path = '/' + String(h || '').replace(/^\/+/, '');
+  var target = '#' + path;
+  if (location.hash === target) { render(); return; }
+  location.hash = path;
+}
 function route() { return (location.hash || '#/').replace(/^#\/?/, '').split('/'); }
 window.addEventListener('hashchange', render);
 
@@ -543,6 +548,17 @@ function ring(pct) {
 }
 
 /* ------------------------------------------------------- vue CONCOURS */
+var CONCOURS_VIEWER_URLS = {};
+function concoursViewerUrl(htmlFile) {
+  var embedded = window.CNC_CONCOURS_VIEWERS_B64 && window.CNC_CONCOURS_VIEWERS_B64[htmlFile];
+  if (!embedded) return 'concours-commun/' + htmlFile;
+  if (!CONCOURS_VIEWER_URLS[htmlFile]) {
+    var binary = atob(embedded), bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    CONCOURS_VIEWER_URLS[htmlFile] = URL.createObjectURL(new Blob([bytes], { type: 'text/html;charset=utf-8' }));
+  }
+  return CONCOURS_VIEWER_URLS[htmlFile];
+}
 var CONCOURS_DOCS = [
   ['08- CNC Marrakech - Commun 2024-1.pdf', 'CNC Marrakech · Commun 2024'],
   ['15- CNC Marrakech - Commun 2025-2.pdf', 'CNC Marrakech · Commun 2025'],
@@ -562,7 +578,20 @@ var CONCOURS_DOCS = [
   ['Concours Région Fès Meknes Avec Justification.pdf', 'Concours région Fès-Meknès · corrigé'],
   ['correction commun marrakech.pdf', 'Correction commun Marrakech'],
   ['Etat Marrakech commun 2024VF.pdf', 'État Marrakech commun 2024'],
-  ['QCM_marrakech_2024_logo_arriere_plan_plus_clair-1.pdf', 'QCM Marrakech 2024']
+  ['QCM_marrakech_2024_logo_arriere_plan_plus_clair-1.pdf', 'QCM Marrakech 2024'],
+  ['Recueil des Epreuves du Concours ITS 2021-2025.pdf', 'Recueil des épreuves du concours ITS 2021–2025'],
+  ['draa 2024.pdf', 'Draa-Tafilalet · Commun 2024'],
+  ['Concours de draa Tafilalet octobre 2021.pdf', 'Draa-Tafilalet · octobre 2021'],
+  ['DRAA 2025.pdf', 'Draa-Tafilalet · concours 2025'],
+  ['CamScanner 22-06-2026 20.39.pdf', 'Sujet scanné · juin 2026'],
+  ['beni mellal 2025 commun .pdf', 'Béni Mellal · Commun 2025'],
+  ['commun CHU Oujda 2023.pdf', 'CHU Oujda · Commun 2023'],
+  ['CHU Oujda.pdf', 'CHU Oujda'],
+  ['cnc recrt laayoune 2025.pdf', 'Laâyoune · recrutement 2025'],
+  ['etat laayoun 2024 commun.pdf', 'Laâyoune · Commun 2024'],
+  ['cncr agadir 2024.pdf', 'Agadir · concours 2024'],
+  ['commun état Tanger 2025.pdf', 'Tanger · Commun 2025'],
+  ['état tanger.pdf', 'Tanger · concours d’État']
 ];
 function vConcours() {
   var h = bar('Concours', '') + '<div class="wrap">';
@@ -571,7 +600,7 @@ function vConcours() {
   h += '<h2>Sujets disponibles <span class="sub">(' + CONCOURS_DOCS.length + ' PDF)</span></h2>';
   CONCOURS_DOCS.forEach(function (p, i) {
     var htmlFile = 'sujet-' + String(i + 1).padStart(2, '0') + '.html';
-    h += '<a class="card row" style="display:flex;text-decoration:none;color:inherit" href="concours-commun/' + htmlFile + '" target="_blank" rel="noopener"><div style="font-size:25px">📄</div><div style="flex:1"><b>' + esc(p[1]) + '</b><div class="sub">Ouvrir la version HTML interactive · recherche et navigation</div></div><span style="font-size:20px">↗</span></a>';
+    h += '<a class="card row" style="display:flex;text-decoration:none;color:inherit" href="' + esc(concoursViewerUrl(htmlFile)) + '" target="_blank" rel="noopener"><div style="font-size:25px">📄</div><div style="flex:1"><b>' + esc(p[1]) + '</b><div class="sub">Ouvrir la version HTML interactive · recherche et navigation</div></div><span style="font-size:20px">↗</span></a>';
   });
   return h + '</div>';
 }
@@ -1068,7 +1097,7 @@ function vSettings() {
     '<button class="btn ghost sm" data-act="import">⬆️ Importer</button></div>' +
     '<div class="spacer"></div><button class="btn red sm" data-act="reset">🗑️ Réinitialiser la progression</button></div>';
   var nq = 0, nc = 0; DOCS.forEach(function (d) { d.units.forEach(function (u) { nq += u.qs.length; nc += u.cards.length; }); });
-  h += '<div class="card sub center">CNC ANASS · ' + DOCS.length + ' modules · ' + nq + ' QCM · ' + nc + ' flashcards<br>Contenu généré à partir des résumés « Prépare mon concours » (ANASS SLIT).</div>';
+  h += '<div class="card sub center">Concours de santé · ' + DOCS.length + ' modules · ' + nq + ' QCM · ' + nc + ' flashcards<br>Contenu généré à partir des résumés « Prépare mon concours » (ANASS SLIT).</div>';
   h += '</div>';
   return h;
 }

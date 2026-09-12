@@ -7,6 +7,7 @@ Usage :  python3 build_single.py
 Sortie : CNC_ANASS_App_MOBILE.html  (à copier sur le téléphone ou une clé USB)
 """
 import base64
+import json
 import pathlib
 import re
 
@@ -30,7 +31,15 @@ html = re.sub(r'<link rel="(icon|apple-touch-icon)" href="[^"]*">',
 def inline(match):
     src = match.group(1)
     code = (BASE / src).read_text(encoding="utf-8")
-    return "<script>\n" + code + "\n</script>"
+    embedded = ""
+    if src == "app.js":
+        viewers = {
+            page.name: base64.b64encode(page.read_bytes()).decode("ascii")
+            for page in sorted((BASE / "concours-commun").glob("sujet-*.html"))
+        }
+        payload = json.dumps(viewers, ensure_ascii=False).replace("</", "<\\/")
+        embedded = "<script>window.CNC_CONCOURS_VIEWERS_B64=" + payload + ";</script>\n"
+    return embedded + "<script>\n" + code + "\n</script>"
 
 html = re.sub(r'<script src="([^"]+)"></script>', inline, html)
 
