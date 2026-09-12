@@ -597,10 +597,14 @@ function vConcours() {
   var h = bar('Concours', '') + '<div class="wrap">';
   h += '<h1>📝 Concours</h1><div class="sub">Sujets et corrigés du dossier Concours commun</div>';
   h += '<div class="card" style="border-color:var(--green)"><b>Examen blanc</b><div class="sub">Teste-toi avec les QCM de préparation, en conditions chronométrées.</div><div class="spacer"></div><button class="btn gold" data-go="exam">Lancer un examen blanc</button></div>';
+  h += '<div class="card concours-note"><b>ℹ️ À propos des corrections</b><div class="sub">Les fiches ci-dessous transcrivent les sujets. Une transcription seule ne confirme pas les réponses : consulte le document original. Les explications des QCM d’entraînement sont pédagogiques et ne remplacent pas une source officielle.</div><div class="concours-badges"><span class="source-badge source-doc">Document pédagogique</span><span class="source-badge source-old">Ancien concours</span><span class="source-badge source-ai">Explication pédagogique</span></div></div>';
   h += '<h2>Sujets disponibles <span class="sub">(' + CONCOURS_DOCS.length + ' PDF)</span></h2>';
   CONCOURS_DOCS.forEach(function (p, i) {
     var htmlFile = 'sujet-' + String(i + 1).padStart(2, '0') + '.html';
-    h += '<a class="card row" style="display:flex;text-decoration:none;color:inherit" href="' + esc(concoursViewerUrl(htmlFile)) + '" target="_blank" rel="noopener"><div style="font-size:25px">📄</div><div style="flex:1"><b>' + esc(p[1]) + '</b><div class="sub">Ouvrir la version HTML interactive · recherche et navigation</div></div><span style="font-size:20px">↗</span></a>';
+    var pdfUrl = 'concours-commun/' + encodeURIComponent(p[0]).replace(/%2F/g, '/');
+    var correction = /justification|corrig|correction/i.test(p[0]);
+    var year = (p[0].match(/20\d{2}/g) || []).map(Number).filter(function (y) { return y <= 2025; })[0];
+    h += '<div class="card concours-item"><div class="concours-item-head"><div class="concours-file">📄</div><div class="concours-item-info"><b>' + esc(p[1]) + '</b><div class="concours-badges"><span class="source-badge source-doc">Document pédagogique</span>' + (year ? '<span class="source-badge source-old">Ancien concours · ' + year + '</span>' : '') + (correction ? '<span class="source-badge source-correction">Corrigé fourni · à vérifier</span>' : '<span class="source-badge source-pending">Réponse non vérifiée</span>') + '</div></div></div><div class="concours-actions"><a class="btn blue sm" href="' + esc(concoursViewerUrl(htmlFile)) + '" target="_blank" rel="noopener">Ouvrir la fiche</a><a class="btn ghost sm" href="' + esc(pdfUrl) + '" target="_blank" rel="noopener">🔎 Voir la source originale</a></div></div>';
   });
   return h + '</div>';
 }
@@ -786,8 +790,10 @@ function answer(chosen) {
   var fb = document.createElement('div');
   fb.className = 'fbbar ' + (correct ? 'ok' : 'ko');
   fb.innerHTML = '<div class="inner"><div class="h">' + (correct ? '✅ Bonne réponse !' : '❌ Réponse : ' + rich(q.o[q.c])) + '</div>' +
-    (q.e ? '<div class="e">' + rich(q.e) + '</div>' : '<div class="e"></div>') +
+    (q.e ? '<div class="e"><button class="btn ghost sm why-btn" type="button" aria-expanded="false">💡 Pourquoi cette réponse ?</button><div class="why-content" hidden><span class="source-badge source-ai">Explication pédagogique · non vérifiée comme source officielle</span><div class="q-explanation">' + rich(q.e) + '</div><div class="remember"><b>🎯 À retenir</b><div>' + rich(q.e) + '</div></div></div></div>' : '<div class="e">Aucune justification sourcée n’est disponible pour cette question.</div>') +
     '<button class="btn ' + (correct ? '' : 'red') + '" id="next">Continuer</button></div>';
+  var why = fb.querySelector('.why-btn');
+  if (why) why.onclick = function () { var box = fb.querySelector('.why-content'); box.hidden = !box.hidden; why.setAttribute('aria-expanded', String(!box.hidden)); why.textContent = box.hidden ? '💡 Pourquoi cette réponse ?' : 'Masquer l’explication'; };
   document.body.appendChild(fb);
   el('next').onclick = function () {
     fb.remove(); RUN.i++;

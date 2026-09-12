@@ -309,3 +309,24 @@ html[data-theme="dark"] .lesson table.fiche-tbl td.n{color:var(--green)}
 .node .cardbtn:active{transform:scale(.92)}
 html[data-theme="dark"] .node .cardbtn{color:var(--blue)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .node .cardbtn{color:var(--blue)}}
+
+/* ---------- fiches concours et explications QCM ---------- */
+.concours-note{border-color:var(--blue)}
+.concours-item{display:block}
+.concours-item-head{display:flex;align-items:flex-start;gap:12px}
+.concours-file{font-size:25px;flex:0 0 auto}
+.concours-item-info{min-width:0;flex:1}
+.concours-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.source-badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:10.5px;line-height:1.25;font-weight:800;background:var(--card2);color:var(--ink2)}
+.source-doc{background:var(--blue-bg);color:var(--blue-dk)}
+.source-old{background:var(--gold-bg);color:var(--gold-dk)}
+.source-correction{background:var(--green-bg);color:var(--green-dk)}
+.source-pending{background:var(--red-bg);color:var(--red-dk)}
+.source-ai{background:var(--purple-bg);color:var(--purple-dk)}
+.concours-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.concours-actions .btn{flex:1 1 150px;text-align:center;white-space:normal}
+.q-explanation{margin:10px 0;line-height:1.55}
+.why-btn{margin-top:10px}
+.remember{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--gold-bg);color:var(--ink)}
+.remember>div{margin-top:3px}
+@media(max-width:380px){.concours-actions{display:grid;grid-template-columns:1fr}.concours-actions .btn{width:100%}.source-badge{font-size:10px}}
