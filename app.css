@@ -233,14 +233,20 @@ html[data-theme="dark"] .fbbar.ko .h{color:var(--red)}
 /* ---------- barre de navigation ---------- */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:45;background:var(--card);border-top:2px solid var(--line);
   padding-bottom:var(--safe-b)}
-.nav .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
-.nav button{position:relative;background:none;border:none;padding:9px 0 8px;cursor:pointer;color:var(--sub);font-size:10.5px;font-weight:800}
-.nav button .ic{font-size:21px;display:block;line-height:1.15;filter:grayscale(1);opacity:.65}
+.nav .in{width:100%;max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+.nav button{position:relative;min-width:0;background:none;border:none;padding:8px 1px 7px;cursor:pointer;color:var(--sub);font-size:10px;font-weight:800;line-height:1.12}
+.nav button .ic{font-size:20px;display:block;line-height:1.15;filter:grayscale(1);opacity:.65}
+.nav-label{display:block;white-space:normal;overflow-wrap:anywhere}
 .nav button.on{color:var(--green-dk)}
 .nav button.on .ic{filter:none;opacity:1}
 html[data-theme="dark"] .nav button.on{color:var(--green)}
 .nav .dot{position:absolute;top:4px;left:50%;margin-left:4px;background:var(--red);color:#fff;border-radius:999px;
   font-size:9.5px;padding:1px 5px;font-weight:800;line-height:1.35}
+.pace-summary{font-size:13px;margin:4px 0 6px;color:var(--green-dk)}
+html[data-theme="dark"] .pace-summary{color:var(--green)}
+.review-target{border-color:var(--blue);margin-bottom:8px}
+.review-target .review-arrow{font-size:26px;font-weight:800;color:var(--blue);padding:0 5px}
+@media(max-width:380px){.nav button{font-size:8.7px;padding-left:0;padding-right:0}.nav button .ic{font-size:19px}}
 
 /* ---------- divers ---------- */
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--ink);color:var(--bg);

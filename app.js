@@ -158,7 +158,12 @@ function planInfo() {
   var left = Math.max(0, dayDiff(today(), CONTEST_DATE)), remaining = 0, total = 0, done = 0;
   DOCS.forEach(function (d) { d.units.forEach(function (u, i) { total++; if (ust(d.id, i).crowns >= CROWN_MAX) done++; else remaining++; }); });
   var perDay = left ? Math.ceil(remaining / left) : remaining;
-  return { left: left, remaining: remaining, total: total, done: done, perDay: perDay, ahead: done >= Math.max(0, total - Math.ceil(total * left / 30)) };
+  var elapsed = Math.min(30, Math.max(0, 30 - left));
+  var targetDone = Math.floor(total * elapsed / 30);
+  var delta = done - targetDone;
+  return { left: left, remaining: remaining, total: total, done: done, perDay: perDay,
+    targetDone: targetDone, delta: delta, ahead: delta >= 0,
+    status: delta > 0 ? 'En avance' : delta < 0 ? 'En retard' : 'Dans le rythme' };
 }
 function requestNotifications() {
   if (!('Notification' in window)) { toast('Notifications non disponibles dans ce navigateur'); return; }
@@ -536,7 +541,8 @@ function navBar(v) {
   return '<div class="nav"><div class="in">' + items.map(function (it) {
     var on = (v === it[0] || (v === 'home' && it[0] === '')) ? ' on' : '';
     var dot = (it[0] === 'review' && d) ? '<span class="dot">' + (d > 99 ? '99+' : d) + '</span>' : '';
-    return '<button class="' + on.trim() + '" data-go="' + it[0] + '"><span class="ic">' + it[1] + '</span>' + it[2] + dot + '</button>';
+    var label = it[2] === 'Évaluation intelligente' ? 'Évaluation<br>intelligente' : it[2];
+    return '<button class="' + on.trim() + '" data-go="' + it[0] + '"><span class="ic">' + it[1] + '</span><span class="nav-label">' + label + '</span>' + dot + '</button>';
   }).join('') + '</div></div>';
 }
 function ring(pct) {
@@ -616,6 +622,7 @@ function vHome() {
   var totQ = 0; DOCS.forEach(function (d) { d.units.forEach(function (u) { totQ += u.qs.length; }); });
   var nextU = firstUnfinished();
   var g = Math.min(1, S.xpDay / (S.goal || 50));
+  var xpGap = Math.max(0, S.goal - S.xpDay);
 
   var h = '<div class="card"><b>📲 Utiliser hors ligne</b><div class="sub">Installe l’application pour réviser sans Internet.</div><div class="spacer"></div><button class="btn blue sm" data-act="install">⬇️ Télécharger / installer</button></div>' +
     '<div class="hero">' +
@@ -628,11 +635,14 @@ function vHome() {
     '<div class="sub">' + DOCS.length + ' modules · ' + totQ + ' questions · licence → concours</div>' +
     '<div class="goal-ring">' + ring(g) +
     '<div style="flex:1"><div style="font-weight:800">Objectif du jour</div>' +
-    '<div class="sub" style="color:#eafbe0">' + S.xpDay + ' / ' + S.goal + ' XP' + (g >= 1 ? ' ✅ atteint !' : '') + '</div></div></div>' +
+    '<div class="sub" style="color:#eafbe0">' + S.xpDay + ' / ' + S.goal + ' XP' +
+    (g >= 1 ? ' ✅ atteint !' : ' · encore ' + xpGap + ' XP') + '</div></div></div>' +
     '</div>';
 
   h += '<div class="wrap">';
-  h += '<div class="card" style="border-color:' + (plan.ahead ? 'var(--green)' : 'var(--orange)') + '"><div class="row"><div style="font-size:28px">🗓️</div><div style="flex:1"><b>Objectif concours · 10 octobre 2026</b><div class="sub">' + plan.left + ' jours restants · ' + plan.remaining + ' unités à valider</div></div><span class="badge ' + (plan.ahead ? 'ok' : 'hot') + '">' + (plan.ahead ? 'Bon rythme' : 'À rattraper') + '</span></div><div class="progress" style="margin:12px 0 6px"><div style="width:' + Math.round(plan.done / Math.max(1, plan.total) * 100) + '%"></div></div><div class="sub">Aujourd’hui : vise ' + plan.perDay + ' unité' + (plan.perDay > 1 ? 's' : '') + ' + ' + due + ' révision' + (due > 1 ? 's' : '') + '</div></div>';
+  var paceLabel = plan.delta > 0 ? plan.delta + ' unité' + (plan.delta > 1 ? 's' : '') + ' d’avance' :
+    plan.delta < 0 ? Math.abs(plan.delta) + ' unité' + (plan.delta < -1 ? 's' : '') + ' de retard' : 'dans le rythme prévu';
+  h += '<div class="card" style="border-color:' + (plan.ahead ? 'var(--green)' : 'var(--orange)') + '"><div class="row"><div style="font-size:28px">🗓️</div><div style="flex:1"><b>Objectif concours · 10 octobre 2026</b><div class="sub">' + plan.left + ' jours restants · ' + plan.remaining + ' unités à valider</div></div><span class="badge ' + (plan.ahead ? 'ok' : 'hot') + '">' + plan.status + '</span></div><div class="progress" style="margin:12px 0 6px"><div style="width:' + Math.round(plan.done / Math.max(1, plan.total) * 100) + '%"></div></div><div class="pace-summary"><b>' + paceLabel + '</b> · ' + plan.done + ' faites · cible au rythme 30 jours : ' + plan.targetDone + '</div><div class="sub">Pour finir à temps : ' + plan.perDay + ' unité' + (plan.perDay > 1 ? 's' : '') + '/jour · aujourd’hui ' + due + ' révision' + (due > 1 ? 's' : '') + ' à faire</div></div>';
   if (nextU) {
     var d0 = doc(nextU.d), u0 = unit(nextU.d, nextU.u);
     h += '<div class="card" style="border-color:var(--green)">' +
@@ -640,7 +650,20 @@ function vHome() {
       '<div class="sub" style="margin-top:6px">' + (S.streak ? '🔥 Série de ' + S.streak + ' jour' + (S.streak > 1 ? 's' : '') : 'Commence ta série aujourd’hui') + '</div>' +
       '<div style="font-weight:800;font-size:15.5px;margin:2px 0 10px">' + esc(d0.code + ' · ' + u0.t) + '</div>' +
       '<button class="btn" data-go="lesson/' + nextU.d + '/' + nextU.u + '">Commencer</button></div>';
-  } else h += '<div class="card" style="border-color:var(--green)"><b>🏆 Chemin terminé !</b><div class="sub">Toutes les unités sont validées. Continue avec les révisions.</div></div>';
+  } else if (!plan.remaining) h += '<div class="card" style="border-color:var(--green)"><b>🏆 Chemin terminé !</b><div class="sub">Toutes les unités sont validées. Continue avec les révisions.</div></div>';
+  else h += '<div class="card" style="border-color:var(--blue)"><b>✅ Leçons déjà parcourues</b><div class="sub">Tu as déjà ouvert les leçons restantes. Reprends les cours signalés ci-dessous pour compléter les QCM et valider les unités.</div></div>';
+  var targets = reviewTargets();
+  if (targets.length) {
+    h += '<h2>📚 Cours à revoir</h2><div class="sub" style="margin:-4px 0 10px">Appuie sur un cours pour le reprendre. Les erreurs et les QCM jamais répondus restent visibles ici.</div>';
+    targets.slice(0, 6).forEach(function (x) {
+      var details = [];
+      if (x.due) details.push(x.due + ' révision' + (x.due > 1 ? 's' : '') + ' à faire');
+      if (x.unanswered) details.push(x.unanswered + ' QCM sans réponse');
+      if (!details.length && x.best < 80) details.push('meilleur score : ' + x.best + '%');
+      h += '<div class="mod review-target" data-go="lesson/' + x.d.id + '/' + x.i + '"><div class="bub">' + (x.u.ic || '📘') + '</div><div class="info"><div class="t">' + esc(x.u.t) + '</div><div class="p">' + esc(x.d.code + '. ' + x.d.title) + ' · ' + details.join(' · ') + '</div></div><span class="review-arrow">›</span></div>';
+    });
+    if (targets.length > 6) h += '<div class="sub">+' + (targets.length - 6) + ' autres cours à revoir</div>';
+  }
   h += '<div class="qa-grid">' +
     '<div class="qa" data-go="review"><div class="ic">🔁</div><div class="t">Révision</div><div class="d">' + (due ? due + ' à revoir' : 'à jour ✅') + '</div></div>' +
     '<div class="qa" data-go="exam"><div class="ic">📝</div><div class="t">Examen blanc</div><div class="d">chronométré</div></div>' +
@@ -664,9 +687,39 @@ function vHome() {
 function firstUnfinished() {
   for (var i = 0; i < DOCS.length; i++) {
     var d = DOCS[i];
-    for (var j = 0; j < d.units.length; j++) if (ust(d.id, j).crowns < CROWN_MAX) return { d: d.id, u: j };
+    for (var j = 0; j < d.units.length; j++) {
+      var s = ust(d.id, j);
+      if (s.crowns < CROWN_MAX && !s.lesson) return { d: d.id, u: j };
+    }
   }
   return null;
+}
+
+function reviewTargets() {
+  var map = {};
+  function target(did, ui) {
+    var k = uKey(did, ui);
+    if (!map[k]) map[k] = { d: doc(did), u: unit(did, ui), i: +ui, due: 0, unanswered: 0, best: 100 };
+    return map[k];
+  }
+  dueList().forEach(function (k) {
+    var it = resolveKey(k);
+    if (it) target(it.d, it.u).due++;
+  });
+  DOCS.forEach(function (d) {
+    d.units.forEach(function (u, i) {
+      var s = ust(d.id, i), unseen = 0;
+      if (s.lesson) u.qs.forEach(function (_, qi) { if (!S.srs[qKey(d.id, i, qi)]) unseen++; });
+      var weak = s.runs > 0 && s.best < 80;
+      if (unseen || weak) {
+        var x = target(d.id, i);
+        x.unanswered = unseen;
+        x.best = s.best || 0;
+      }
+    });
+  });
+  return Object.keys(map).map(function (k) { return map[k]; }).filter(function (x) { return x.d && x.u; })
+    .sort(function (a, b) { return (b.unanswered + b.due) - (a.unanswered + a.due) || a.best - b.best; });
 }
 
 /* --------------------------------------------------------------- vue DOC */
