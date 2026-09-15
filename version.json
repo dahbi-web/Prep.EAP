@@ -1,9 +1,13 @@
 {
-  "version": "2.6.3",
+  "version": "2.6.4",
   "date": "2026-09-15",
-  "cache": "cnc-anass-v14",
+  "cache": "cnc-anass-v15",
   "modules": 11,
   "nouveautes": [
+    "Logo Concours de santé original en haute qualité",
+    "Détection des mises à jour avec une notification affichée une seule fois par version",
+    "Service worker : l’application demande avant d’activer une mise à jour",
+    "Présentation d’accueil orientée vers les diplômés qui préparent leur concours",
     "Navigation sur une ligne, chemin sans leçon déjà parcourue, avancement et retards chiffrés, raccourcis vers les cours et questions à revoir",
     "Nom de l’application : Concours de santé",
     "Flashcards par unite : bouton sur chaque unite et sur la page de lecon, en-tete avec l'emoji et le titre de l'unite",

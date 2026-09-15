@@ -44,7 +44,7 @@ def inline(match):
 html = re.sub(r'<script src="([^"]+)"></script>', inline, html)
 
 # 5) pas de service worker en mode fichier unique
-html = html.replace("navigator.serviceWorker.register('sw.js')",
+html = html.replace("navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })",
                     "Promise.resolve()")
 
 out = BASE / "CNC_ANASS_App_MOBILE.html"

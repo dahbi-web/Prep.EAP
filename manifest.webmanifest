@@ -1,16 +1,17 @@
 {
   "name": "Concours de santé — Prépare mon concours",
   "short_name": "Concours santé",
-  "description": "Révision type Duolingo pour le concours : leçons, QCM, flashcards, révision espacée et examens blancs.",
+  "description": "Préparation aux concours de santé pour les diplômés : cours ciblés, QCM, flashcards, révisions et suivi des erreurs.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f7f9fc",
-  "theme_color": "#58cc02",
+  "theme_color": "#087f3e",
   "lang": "fr",
   "categories": ["education"],
   "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }

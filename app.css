@@ -336,3 +336,9 @@ html[data-theme="dark"] .node .cardbtn{color:var(--blue)}
 .remember{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--gold-bg);color:var(--ink)}
 .remember>div{margin-top:3px}
 @media(max-width:380px){.concours-actions{display:grid;grid-template-columns:1fr}.concours-actions .btn{width:100%}.source-badge{font-size:10px}}
+
+/* Mise à jour disponible : bannière claire sur mobile et ordinateur */
+.update-notice{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:120;width:min(720px,calc(100vw - 24px));box-sizing:border-box;display:flex;align-items:center;gap:16px;padding:14px 16px;background:var(--card);color:var(--ink);border:2px solid var(--green);border-radius:16px;box-shadow:0 12px 40px #14221e30}
+.update-copy{flex:1;min-width:0}.update-copy b,.update-copy span{display:block}.update-copy b{font-size:15px}.update-copy span{margin-top:3px;color:var(--sub);font-size:13px;line-height:1.4}
+.update-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}.update-notice .update-primary{width:auto;display:inline-flex;justify-content:center;align-items:center;margin:0;padding:9px 13px;text-transform:none;letter-spacing:0;white-space:nowrap;text-decoration:none}.update-later{border:0;background:transparent;color:var(--sub);font:inherit;font-weight:800;padding:9px;cursor:pointer;white-space:nowrap}
+@media(max-width:560px){.update-notice{align-items:stretch;flex-direction:column;gap:10px;padding:13px}.update-actions{display:grid;grid-template-columns:1fr 1fr}.update-notice .update-primary,.update-later{width:100%;box-sizing:border-box}.update-copy b{font-size:14px}}

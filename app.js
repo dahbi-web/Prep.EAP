@@ -67,6 +67,11 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
+var APP_VERSION = '2.6.4';
+var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
+var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
+var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
+var UPDATE_DOWNLOAD_URL = 'https://github.com/dahbi-web/cnc-anass-prepa/raw/refs/heads/main/CNC_ANASS_App_MOBILE.html';
 
 function today() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
 function pad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -91,6 +96,78 @@ function installApp() {
     var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
     toast(ios ? 'iPhone/iPad : Partager → Sur l’écran d’accueil → Ajouter' : 'Android : menu ⋮ → Installer l’application ou Ajouter à l’écran d’accueil');
   }
+}
+function versionIsNewer(remote, current) {
+  var a = String(remote || '').match(/\d+/g) || [], b = String(current || '').match(/\d+/g) || [];
+  for (var i = 0; i < Math.max(a.length, b.length); i++) {
+    var x = +(a[i] || 0), y = +(b[i] || 0);
+    if (x !== y) return x > y;
+  }
+  return false;
+}
+function showUpdateNotice(version, worker, force) {
+  version = String(version || '');
+  if (!version || (!force && !versionIsNewer(version, APP_VERSION))) return;
+  try { if (localStorage.getItem(UPDATE_DISMISSED_KEY) === version) return; } catch (e) { }
+  if (document.getElementById('app-update-notice')) return;
+  var box = document.createElement('aside');
+  box.id = 'app-update-notice'; box.className = 'update-notice';
+  box.setAttribute('role', 'status'); box.setAttribute('aria-live', 'polite');
+  box.innerHTML = '<div class="update-copy"><b>✨ Mise à jour disponible · v' + esc(version) + '</b><span>Une nouvelle version de Concours de santé est prête.</span></div>' +
+    '<div class="update-actions">' + (worker ? '<button type="button" class="btn update-primary">Mettre à jour</button>' : '<a class="btn update-primary" href="' + UPDATE_DOWNLOAD_URL + '" target="_blank" rel="noopener">Télécharger</a>') +
+    '<button type="button" class="update-later">Plus tard</button></div>';
+  document.body.appendChild(box);
+  var later = box.querySelector('.update-later');
+  later.onclick = function () { try { localStorage.setItem(UPDATE_DISMISSED_KEY, version); } catch (e) { } box.remove(); };
+  var accept = box.querySelector('.update-primary');
+  if (worker) accept.onclick = function () {
+    try { sessionStorage.setItem(UPDATE_RELOAD_KEY, '1'); } catch (e) { }
+    worker.postMessage({ type: 'SKIP_WAITING' });
+    accept.disabled = true; accept.textContent = 'Installation…';
+  };
+}
+function checkRemoteUpdate() {
+  if (!navigator.onLine || !window.fetch) return;
+  fetch(UPDATE_VERSION_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+    if (!r.ok) throw new Error('version unavailable');
+    return r.json();
+  }).then(function (info) {
+    if (info && versionIsNewer(info.version, APP_VERSION)) showUpdateNotice(info.version, null);
+  }).catch(function () { });
+}
+function watchAppUpdates() {
+  if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      var reload = false;
+      try { reload = sessionStorage.getItem(UPDATE_RELOAD_KEY) === '1'; sessionStorage.removeItem(UPDATE_RELOAD_KEY); } catch (e) { }
+      if (reload) location.reload();
+    });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (reg) {
+      function announceWaiting() {
+        if (!reg.waiting || !navigator.serviceWorker.controller) return;
+        var waiting = reg.waiting;
+        var channel = new MessageChannel();
+        channel.port1.onmessage = function (event) {
+          if (event.data && event.data.version) showUpdateNotice(event.data.version, waiting, true);
+        };
+        waiting.postMessage({ type: 'GET_VERSION' }, [channel.port2]);
+      }
+      reg.addEventListener('updatefound', function () {
+        var installing = reg.installing;
+        if (!installing) return;
+        installing.addEventListener('statechange', function () {
+          if (installing.state === 'installed') announceWaiting();
+        });
+      });
+      announceWaiting();
+      function check() { if (navigator.onLine) reg.update().then(announceWaiting).catch(function () { }); }
+      window.addEventListener('online', check);
+      check();
+    }).catch(function () { });
+  }
+  if (navigator.onLine) checkRemoteUpdate();
+  window.addEventListener('online', checkRemoteUpdate);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && navigator.onLine) checkRemoteUpdate(); });
 }
 function load() {
   try {
@@ -631,8 +708,8 @@ function vHome() {
     '<span class="pill">⭐ ' + S.xp + ' XP</span>' +
     '<span class="pill">' + (S.unlimited ? '♾️ cœurs' : '❤️ ' + hearts() + (hearts() < HEART_MAX ? ' · ' + heartIn() : '')) + '</span>' +
     '</div>' +
-    '<h1 style="margin-top:12px">Prépare ton concours</h1>' +
-    '<div class="sub">' + DOCS.length + ' modules · ' + totQ + ' questions · licence → concours</div>' +
+    '<h1 style="margin-top:12px">Diplômé en santé ? Prépare ton concours</h1>' +
+    '<div class="sub">Cours ciblés · QCM · flashcards · ' + DOCS.length + ' modules et ' + totQ + ' questions pour avancer jusqu’au concours.</div>' +
     '<div class="goal-ring">' + ring(g) +
     '<div style="flex:1"><div style="font-weight:800">Objectif du jour</div>' +
     '<div class="sub" style="color:#eafbe0">' + S.xpDay + ' / ' + S.goal + ' XP' +
@@ -1151,6 +1228,7 @@ function vSettings() {
     '<input type="checkbox" id="hlx"' + (S.hl ? ' checked' : '') + ' style="width:22px;height:22px"></label></div>';
   h += '<div class="card"><b>🔔 Rappels du concours</b><div class="sub">Autoriser les rappels de l’application sur cet appareil.</div><div class="spacer"></div><button class="btn blue sm" data-act="notify">' + (S.notify ? '✅ Rappels activés' : 'Activer les notifications') + '</button></div>';
   h += '<div class="card"><b>📲 Installation hors ligne</b><div class="sub">Si le bouton ne s’ouvre pas : menu du navigateur → « Ajouter à l’écran d’accueil ».</div><div class="spacer"></div><button class="btn blue sm" data-act="install">⬇️ Installer l’application</button></div>';
+  h += '<div class="card"><b>🔄 Mises à jour</b><div class="sub">Version ' + APP_VERSION + ' · vérification automatique quand Internet est disponible. Une alerte s’affiche seulement lorsqu’une nouvelle version est publiée.</div></div>';
   h += '<div class="card"><b>Sauvegarde</b><div class="sub">Ta progression est stockée sur cet appareil. Exporte-la pour la transférer sur un autre (PC ↔ téléphone).</div>' +
     '<div class="spacer"></div><div class="row2"><button class="btn blue sm" data-act="export">⬇️ Exporter</button>' +
     '<button class="btn ghost sm" data-act="import">⬆️ Importer</button></div>' +
@@ -1321,9 +1399,7 @@ function boot() {
   render();
   dailyReminder();
   setInterval(function () { if ((route()[0] || '') === '' ) { /* rafraîchit les cœurs sur l'accueil */ if (!S.unlimited && S.hearts < HEART_MAX) render(); } }, 60000);
-  if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
-    navigator.serviceWorker.register('sw.js').catch(function () { });
-  }
+  watchAppUpdates();
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 

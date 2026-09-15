@@ -1,8 +1,9 @@
 /* Service worker — mise en cache complète pour usage hors-ligne */
-var CACHE = 'cnc-anass-v14';
+var CACHE = 'cnc-anass-v15';
+var APP_VERSION = '2.6.4';
 var ASSETS = [
   './', './index.html', './app.css', './app.js', './manifest.webmanifest',
-  './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png',
+  './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png',
   './data/doc01_concours.js',
   './data/doc01.js', './data/doc02.js', './data/doc03.js', './data/doc04.js',
   './data/doc05.js', './data/doc06.js', './data/doc07.js', './data/doc08.js',
@@ -25,7 +26,6 @@ var ASSETS = [
   './concours-commun/sujet-31.html', './concours-commun/sujet-32.html'
 ];
 self.addEventListener('install', function (e) {
-  self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(function (c) {
     return Promise.all(ASSETS.map(function (u) { return c.add(u).catch(function () { }); }));
   }));
@@ -34,6 +34,13 @@ self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (ks) {
     return Promise.all(ks.map(function (k) { return k === CACHE ? null : caches.delete(k); }));
   }).then(function () { return self.clients.claim(); }));
+});
+self.addEventListener('message', function (e) {
+  if (!e.data) return;
+  if (e.data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (e.data.type === 'GET_VERSION' && e.ports && e.ports[0]) {
+    e.ports[0].postMessage({ version: APP_VERSION });
+  }
 });
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
