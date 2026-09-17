@@ -215,11 +215,11 @@ html[data-theme="dark"] .opt.sel{color:var(--blue)}
 .opt .k{display:inline-flex;width:22px;height:22px;border-radius:6px;background:var(--card2);color:var(--sub);
   align-items:center;justify-content:center;font-size:11.5px;font-weight:800;margin-right:9px;vertical-align:1px}
 
-.fbbar{position:fixed;left:0;right:0;bottom:0;z-index:50;padding:14px 16px calc(14px + var(--safe-b));
-  border-top:2px solid var(--line);animation:slideUp .2s ease both}
+.fbbar{position:fixed;left:50%;right:auto;bottom:calc(72px + var(--safe-b));z-index:100;width:min(520px,100%);
+  transform:translateX(-50%);padding:14px 16px;max-height:min(48svh,360px);overflow:auto;
+  border:2px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;box-shadow:0 -8px 24px rgba(15,23,42,.14)}
 .fbbar.ok{background:var(--green-bg)}
 .fbbar.ko{background:var(--red-bg)}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
 .fbbar .inner{max-width:520px;margin:0 auto}
 .fbbar .h{font-weight:800;font-size:17px;display:flex;align-items:center;gap:8px}
 .fbbar.ok .h{color:var(--green-dk)}
@@ -3557,7 +3557,7 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.1.1';
+var APP_VERSION = '3.1.2';
 var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
 var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
 var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
@@ -4468,7 +4468,9 @@ function answer(chosen) {
     if (!S.unlimited && RUN.mode === 'lesson' && S.hearts <= 0 && RUN.i < RUN.items.length) { ROOT.innerHTML = vNoHearts() + navBar(''); bind(); return; }
     ROOT.innerHTML = quizFrame() + navBar(''); bind();
   };
-  el('next').focus();
+  /* Sur téléphone, éviter le focus forcé : certains navigateurs recomposent mal
+     le panneau de correction animé. Le raccourci Entrée reste disponible au PC. */
+  if (window.matchMedia && window.matchMedia('(pointer:fine)').matches) el('next').focus();
 }
 function quizEnd() {
   var R = RUN, tot = R.items.length, pct = tot ? Math.round(R.ok / tot * 100) : 0;

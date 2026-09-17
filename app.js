@@ -78,7 +78,7 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.1.1';
+var APP_VERSION = '3.1.2';
 var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
 var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
 var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
@@ -989,7 +989,9 @@ function answer(chosen) {
     if (!S.unlimited && RUN.mode === 'lesson' && S.hearts <= 0 && RUN.i < RUN.items.length) { ROOT.innerHTML = vNoHearts() + navBar(''); bind(); return; }
     ROOT.innerHTML = quizFrame() + navBar(''); bind();
   };
-  el('next').focus();
+  /* Sur téléphone, éviter le focus forcé : certains navigateurs recomposent mal
+     le panneau de correction animé. Le raccourci Entrée reste disponible au PC. */
+  if (window.matchMedia && window.matchMedia('(pointer:fine)').matches) el('next').focus();
 }
 function quizEnd() {
   var R = RUN, tot = R.items.length, pct = tot ? Math.round(R.ok / tot * 100) : 0;
