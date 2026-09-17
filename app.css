@@ -147,6 +147,7 @@ html[data-theme="dark"] .mod .pct{color:var(--green)}
 .qa .ic{font-size:26px;line-height:1}
 .qa .t{font-weight:800;font-size:13px;margin-top:6px}
 .qa .d{font-size:11px;color:var(--sub)}
+.mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}.mode-switch button{border:2px solid var(--line);background:var(--card);color:var(--sub);border-radius:14px;padding:10px 8px;cursor:pointer;text-align:left}.mode-switch button b,.mode-switch button small{display:block}.mode-switch button small{font-size:11px;margin-top:2px}.mode-switch button.on{border-color:var(--green);background:var(--green-bg);color:var(--green-dk)}.manual-note{border-color:var(--blue)}
 
 .search{width:100%;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card);
   color:var(--ink);font-size:14px;outline:none}
