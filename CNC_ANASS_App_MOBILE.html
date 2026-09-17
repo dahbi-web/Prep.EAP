@@ -162,7 +162,7 @@ html[data-theme="dark"] .mod .pct{color:var(--green)}
 .qa .ic{font-size:26px;line-height:1}
 .qa .t{font-weight:800;font-size:13px;margin-top:6px}
 .qa .d{font-size:11px;color:var(--sub)}
-.mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}.mode-switch button{border:2px solid var(--line);background:var(--card);color:var(--sub);border-radius:14px;padding:10px 8px;cursor:pointer;text-align:left}.mode-switch button b,.mode-switch button small{display:block}.mode-switch button small{font-size:11px;margin-top:2px}.mode-switch button.on{border-color:var(--green);background:var(--green-bg);color:var(--green-dk)}.auto-action{text-align:center;border-color:var(--green);padding:22px 16px}.auto-action-icon{font-size:38px;line-height:1;margin-bottom:8px}.auto-action-title{font-size:19px;font-weight:900;margin:8px 0 4px}
+.mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}.mode-switch button{border:2px solid var(--line);background:var(--card);color:var(--sub);border-radius:14px;padding:10px 8px;cursor:pointer;text-align:left}.mode-switch button b,.mode-switch button small{display:block}.mode-switch button small{font-size:11px;margin-top:2px}.mode-switch button.on{border-color:var(--green);background:var(--green-bg);color:var(--green-dk)}.auto-action{text-align:center;border-color:var(--green);padding:22px 16px}.auto-action-icon{font-size:38px;line-height:1;margin-bottom:8px}.auto-action-title{font-size:19px;font-weight:900;margin:8px 0 4px}.auto-meta{display:grid;gap:5px;margin-top:12px;padding:10px;border-radius:12px;background:var(--green-bg);font-size:12px;color:var(--ink2);text-align:left}.auto-meta span:last-child{font-weight:800;color:var(--green-dk)}
 
 .search{width:100%;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card);
   color:var(--ink);font-size:14px;outline:none}
@@ -3557,7 +3557,7 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.1.2';
+var APP_VERSION = '3.2.0';
 var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
 var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
 var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
@@ -4219,9 +4219,12 @@ function vHome() {
   var autoMode = S.homeMode !== 'manual';
   var totQ = 0; DOCS.forEach(function (d) { d.units.forEach(function (u) { totQ += u.qs.length; }); });
   var nextU = firstUnfinished();
-  var nextAction = due ? { go: 'review', title: 'Réviser maintenant', detail: due + ' élément' + (due > 1 ? 's' : '') + ' à consolider avant de continuer.' } :
-    nextU ? { go: 'lesson/' + nextU.d + '/' + nextU.u, title: 'Commencer la prochaine leçon', detail: esc(doc(nextU.d).code + ' · ' + unit(nextU.d, nextU.u).t) } :
-    { go: 'exam', title: 'Lancer un examen blanc', detail: 'Tes leçons sont parcourues : mesure maintenant ton niveau.' };
+  var focusTarget = reviewTargets()[0];
+  var nextAction = due ? { go: 'review', title: 'Réviser maintenant', detail: due + ' élément' + (due > 1 ? 's' : '') + ' à consolider avant de continuer.', why: 'Tes révisions programmées sont prioritaires.', time: '≈ 8 min' } :
+    nextU ? { go: 'lesson/' + nextU.d + '/' + nextU.u, title: 'Commencer la prochaine leçon', detail: esc(doc(nextU.d).code + ' · ' + unit(nextU.d, nextU.u).t), why: 'C’est la prochaine étape de ton programme.', time: '≈ 10 min' } :
+    (focusTarget && focusTarget.unanswered ? { go: 'quiz/' + focusTarget.d.id + '/' + focusTarget.i, title: 'Terminer un quiz important', detail: esc(focusTarget.u.t + ' · ' + focusTarget.unanswered + ' QCM sans réponse'), why: 'Des questions restent à faire dans ce cours.', time: '≈ 8 min' } :
+    (focusTarget && focusTarget.best < 80 ? { go: 'quiz/' + focusTarget.d.id + '/' + focusTarget.i, title: 'Renforcer un point faible', detail: esc(focusTarget.u.t + ' · meilleur score : ' + focusTarget.best + '%'), why: 'Ce cours a besoin d’être consolidé avant un examen.', time: '≈ 10 min' } :
+    { go: 'exam', title: 'Lancer un examen blanc', detail: 'Tes cours sont à jour : mesure maintenant ton niveau.', why: 'Tu peux vérifier ta préparation en conditions réelles.', time: '≈ 15 min' }));
   var g = Math.min(1, S.xpDay / (S.goal || 50));
   var xpGap = Math.max(0, S.goal - S.xpDay);
 
@@ -4274,7 +4277,7 @@ function vHome() {
     if (targets.length > 6) h += '<div class="sub">+' + (targets.length - 6) + ' autres cours à revoir</div>';
   }
   } else {
-    h += '<div class="card auto-action"><div class="auto-action-icon">✨</div><b>PrepMe te conseille</b><div class="auto-action-title">' + nextAction.title + '</div><div class="sub">' + nextAction.detail + '</div><div class="spacer"></div><button class="btn" data-go="' + nextAction.go + '">' + nextAction.title + '</button></div>';
+    h += '<div class="card auto-action"><div class="auto-action-icon">✨</div><b>PrepMe te conseille</b><div class="auto-action-title">' + nextAction.title + '</div><div class="sub">' + nextAction.detail + '</div><div class="auto-meta"><span>🎯 ' + nextAction.why + '</span><span>⏱️ ' + nextAction.time + '</span></div><div class="spacer"></div><button class="btn" data-go="' + nextAction.go + '">' + nextAction.title + '</button></div>';
   }
   if (!autoMode) {
   h += '<div class="qa-grid">' +

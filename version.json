@@ -1,7 +1,7 @@
 {
-  "version": "3.1.2",
+  "version": "3.2.0",
   "date": "2026-09-16",
-  "cache": "cnc-anass-v22",
+  "cache": "cnc-anass-v23",
   "modules": 11,
   "nouveautes": [
     "Plan de préparation personnalisé : date du concours modifiable et rythme quotidien recalculé",
@@ -14,6 +14,7 @@
     "Nouveau logo en croissant vert et nouveau nom PrepMe",
     "Deux modes d’accueil corrigés : Manuel complet et Auto avec une seule action recommandée",
     "Panneau de correction du QCM stabilisé au-dessus de la navigation mobile",
+    "Mode Auto enrichi : action calculée selon les révisions, QCM incomplets et points faibles",
     "Détection des mises à jour avec une notification affichée une seule fois par version",
     "Service worker : l’application demande avant d’activer une mise à jour",
     "Présentation d’accueil orientée vers les diplômés qui préparent leur concours",
