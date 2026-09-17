@@ -86,7 +86,7 @@ Pour l'installer comme une vraie application (icône, fenêtre sans barre d'adre
 - **Rythme hebdomadaire** : suivi des 7 derniers jours et cible XP adaptée à l’objectif quotidien.
 - **Modules à prioriser** : classement automatique des modules selon le taux de réussite aux QCM.
 - **Examen ciblé** : chaque module propose un examen blanc limité à son contenu.
-- **Modes Auto et Manuel** : en Auto, PrepMe propose l’action suivante ; en Manuel, l’utilisateur choisit librement et consulte ses résultats.
+- **Modes Auto et Manuel** : en Manuel, l’utilisateur voit toutes ses données et choisit librement ; en Auto, PrepMe affiche une seule action recommandée.
 - **Mise en forme des leçons** : les leçons reprennent la charte de `Doc1_SNS_Maroc_p1-14.html` — 💡 **définition** en jaune, 📅 **date** en bleu, 🔢 **chiffre clé** en vert, ⚖️ **loi / article** en rose, avec la légende en haut de chaque leçon ; **une émoji thématique sur chaque titre et chaque item de liste**, les énumérations en pastilles 1️⃣2️⃣3️⃣, les définitions en bloc citation et les pièges en encadré orange. Désactivable dans Réglages.
 - **Réglages** : objectif quotidien, thème clair/sombre/auto, sons, **cœurs illimités**, **surlignage des leçons**,
   **export / import** de la progression (pour passer du PC au téléphone).

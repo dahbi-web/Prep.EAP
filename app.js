@@ -78,7 +78,7 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.1.0';
+var APP_VERSION = '3.1.1';
 var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
 var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
 var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
@@ -740,6 +740,9 @@ function vHome() {
   var autoMode = S.homeMode !== 'manual';
   var totQ = 0; DOCS.forEach(function (d) { d.units.forEach(function (u) { totQ += u.qs.length; }); });
   var nextU = firstUnfinished();
+  var nextAction = due ? { go: 'review', title: 'Réviser maintenant', detail: due + ' élément' + (due > 1 ? 's' : '') + ' à consolider avant de continuer.' } :
+    nextU ? { go: 'lesson/' + nextU.d + '/' + nextU.u, title: 'Commencer la prochaine leçon', detail: esc(doc(nextU.d).code + ' · ' + unit(nextU.d, nextU.u).t) } :
+    { go: 'exam', title: 'Lancer un examen blanc', detail: 'Tes leçons sont parcourues : mesure maintenant ton niveau.' };
   var g = Math.min(1, S.xpDay / (S.goal || 50));
   var xpGap = Math.max(0, S.goal - S.xpDay);
 
@@ -759,8 +762,8 @@ function vHome() {
     '</div>';
 
   h += '<div class="wrap">';
-  h += '<div class="mode-switch" role="group" aria-label="Mode de préparation"><button class="' + (autoMode ? 'on' : '') + '" data-home-mode="auto"><b>✨ Auto</b><small>PrepMe me guide</small></button><button class="' + (!autoMode ? 'on' : '') + '" data-home-mode="manual"><b>🖐️ Manuel</b><small>Je choisis moi-même</small></button></div>';
-  if (autoMode) {
+  h += '<div class="mode-switch" role="group" aria-label="Mode de préparation"><button class="' + (autoMode ? 'on' : '') + '" data-home-mode="auto"><b>✨ Auto</b><small>PrepMe décide</small></button><button class="' + (!autoMode ? 'on' : '') + '" data-home-mode="manual"><b>🖐️ Manuel</b><small>Je vois tout et je choisis</small></button></div>';
+  if (!autoMode) {
   var paceLabel = plan.delta > 0 ? plan.delta + ' unité' + (plan.delta > 1 ? 's' : '') + ' d’avance' :
     plan.delta < 0 ? Math.abs(plan.delta) + ' unité' + (plan.delta < -1 ? 's' : '') + ' de retard' : 'dans le rythme prévu';
   h += '<div class="card" style="border-color:' + (plan.ahead ? 'var(--green)' : 'var(--orange)') + '"><div class="row"><div style="font-size:28px">🗓️</div><div style="flex:1"><b>Objectif concours · ' + esc(dateFr(plan.date)) + '</b><div class="sub">' + (plan.expired ? 'Date dépassée · choisis une nouvelle date dans Réglages' : plan.left + ' jours restants') + ' · ' + plan.remaining + ' unités à valider</div></div><span class="badge ' + (plan.ahead ? 'ok' : 'hot') + '">' + plan.status + '</span></div><div class="progress" style="margin:12px 0 6px"><div style="width:' + Math.round(plan.done / Math.max(1, plan.total) * 100) + '%"></div></div><div class="pace-summary"><b>' + paceLabel + '</b> · ' + plan.done + ' faites · cible au rythme 30 jours : ' + plan.targetDone + '</div><div class="sub">Pour finir à temps : ' + plan.perDay + ' unité' + (plan.perDay > 1 ? 's' : '') + '/jour · aujourd’hui ' + due + ' révision' + (due > 1 ? 's' : '') + ' à faire</div></div>';
@@ -792,8 +795,9 @@ function vHome() {
     if (targets.length > 6) h += '<div class="sub">+' + (targets.length - 6) + ' autres cours à revoir</div>';
   }
   } else {
-    h += '<div class="card manual-note"><b>🖐️ Mode manuel activé</b><div class="sub">Aucune recommandation automatique : choisis librement un module, une révision ou un examen. Tes résultats restent disponibles dans Statistiques.</div><div class="spacer"></div><button class="btn blue sm" data-go="stats">Voir mes résultats</button></div>';
+    h += '<div class="card auto-action"><div class="auto-action-icon">✨</div><b>PrepMe te conseille</b><div class="auto-action-title">' + nextAction.title + '</div><div class="sub">' + nextAction.detail + '</div><div class="spacer"></div><button class="btn" data-go="' + nextAction.go + '">' + nextAction.title + '</button></div>';
   }
+  if (!autoMode) {
   h += '<div class="qa-grid">' +
     '<div class="qa" data-go="review"><div class="ic">🔁</div><div class="t">Révision</div><div class="d">' + (due ? due + ' à revoir' : 'à jour ✅') + '</div></div>' +
     '<div class="qa" data-go="exam"><div class="ic">📝</div><div class="t">Examen blanc</div><div class="d">chronométré</div></div>' +
@@ -811,6 +815,7 @@ function vHome() {
       '<div class="progress thin" style="margin-top:6px"><div style="width:' + p + '%"></div></div></div>' +
       '<div class="pct">' + p + '%</div></div>';
   });
+  }
   h += '</div>';
   return h;
 }
