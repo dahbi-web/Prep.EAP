@@ -1,6 +1,6 @@
 /* Service worker — mise en cache complète pour usage hors-ligne */
-var CACHE = 'cnc-anass-v23';
-var APP_VERSION = '3.2.0';
+var CACHE = 'cnc-anass-v24';
+var APP_VERSION = '3.2.1';
 var ASSETS = [
   './', './index.html', './app.css', './app.js', './manifest.webmanifest',
   './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png',

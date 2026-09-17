@@ -3557,11 +3557,11 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.2.0';
+var APP_VERSION = '3.2.1';
 var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
 var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
 var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
-var UPDATE_DOWNLOAD_URL = 'https://github.com/dahbi-web/cnc-anass-prepa/raw/refs/heads/main/CNC_ANASS_App_MOBILE.html';
+var UPDATE_DOWNLOAD_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/CNC_ANASS_App_MOBILE.html';
 
 function today() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
 function pad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -3595,6 +3595,25 @@ function versionIsNewer(remote, current) {
   }
   return false;
 }
+function downloadUpdate(button) {
+  if (!window.fetch) { toast('Téléchargement non disponible sur ce navigateur'); return; }
+  button.disabled = true; button.textContent = 'Préparation…';
+  fetch(UPDATE_DOWNLOAD_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+    if (!r.ok) throw new Error('download unavailable');
+    return r.blob();
+  }).then(function (blob) {
+    var file = new Blob([blob], { type: 'text/html;charset=utf-8' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(file); link.download = 'PrepMe_Mise_a_jour.html';
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(function () { URL.revokeObjectURL(link.href); }, 3000);
+    button.textContent = '✅ Téléchargé';
+    toast('Fichier téléchargé : ouvre PrepMe_Mise_a_jour.html');
+  }).catch(function () {
+    button.disabled = false; button.textContent = 'Réessayer';
+    toast('Téléchargement impossible. Vérifie ta connexion Internet.');
+  });
+}
 function showUpdateNotice(version, worker, force) {
   version = String(version || '');
   if (!version || (!force && !versionIsNewer(version, APP_VERSION))) return;
@@ -3604,7 +3623,7 @@ function showUpdateNotice(version, worker, force) {
   box.id = 'app-update-notice'; box.className = 'update-notice';
   box.setAttribute('role', 'status'); box.setAttribute('aria-live', 'polite');
   box.innerHTML = '<div class="update-copy"><b>✨ Mise à jour disponible · v' + esc(version) + '</b><span>Une nouvelle version de PrepMe est prête.</span></div>' +
-    '<div class="update-actions">' + (worker ? '<button type="button" class="btn update-primary">Mettre à jour</button>' : '<a class="btn update-primary" href="' + UPDATE_DOWNLOAD_URL + '" target="_blank" rel="noopener">Télécharger</a>') +
+    '<div class="update-actions">' + (worker ? '<button type="button" class="btn update-primary">Mettre à jour</button>' : '<button type="button" class="btn update-primary">Télécharger</button>') +
     '<button type="button" class="update-later">Plus tard</button></div>';
   document.body.appendChild(box);
   var later = box.querySelector('.update-later');
@@ -3615,6 +3634,7 @@ function showUpdateNotice(version, worker, force) {
     worker.postMessage({ type: 'SKIP_WAITING' });
     accept.disabled = true; accept.textContent = 'Installation…';
   };
+  else accept.onclick = function () { downloadUpdate(accept); };
 }
 function checkRemoteUpdate() {
   if (!navigator.onLine || !window.fetch) return;

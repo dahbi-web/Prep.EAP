@@ -1,7 +1,7 @@
 {
-  "version": "3.2.0",
+  "version": "3.2.1",
   "date": "2026-09-16",
-  "cache": "cnc-anass-v23",
+  "cache": "cnc-anass-v24",
   "modules": 11,
   "nouveautes": [
     "Plan de préparation personnalisé : date du concours modifiable et rythme quotidien recalculé",
@@ -15,6 +15,7 @@
     "Deux modes d’accueil corrigés : Manuel complet et Auto avec une seule action recommandée",
     "Panneau de correction du QCM stabilisé au-dessus de la navigation mobile",
     "Mode Auto enrichi : action calculée selon les révisions, QCM incomplets et points faibles",
+    "Téléchargement des mises à jour corrigé : le fichier HTML est enregistré sans ouvrir GitHub",
     "Détection des mises à jour avec une notification affichée une seule fois par version",
     "Service worker : l’application demande avant d’activer une mise à jour",
     "Présentation d’accueil orientée vers les diplômés qui préparent leur concours",
