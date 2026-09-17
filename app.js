@@ -78,7 +78,7 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '2.9.0';
+var APP_VERSION = '3.0.0';
 var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
 var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
 var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
@@ -124,7 +124,7 @@ function showUpdateNotice(version, worker, force) {
   var box = document.createElement('aside');
   box.id = 'app-update-notice'; box.className = 'update-notice';
   box.setAttribute('role', 'status'); box.setAttribute('aria-live', 'polite');
-  box.innerHTML = '<div class="update-copy"><b>✨ Mise à jour disponible · v' + esc(version) + '</b><span>Une nouvelle version de Concours de santé est prête.</span></div>' +
+  box.innerHTML = '<div class="update-copy"><b>✨ Mise à jour disponible · v' + esc(version) + '</b><span>Une nouvelle version de PrepMe est prête.</span></div>' +
     '<div class="update-actions">' + (worker ? '<button type="button" class="btn update-primary">Mettre à jour</button>' : '<a class="btn update-primary" href="' + UPDATE_DOWNLOAD_URL + '" target="_blank" rel="noopener">Télécharger</a>') +
     '<button type="button" class="update-later">Plus tard</button></div>';
   document.body.appendChild(box);
@@ -287,7 +287,7 @@ function requestNotifications() {
 }
 function dailyReminder() {
   if (S.notify && window.Notification && Notification.permission === 'granted' && S.notifyDay !== today() && S.xpDay < S.goal) {
-    var pi = planInfo(); new Notification('Concours de santé · ton concours approche', { body: pi.left + ' jours restants. Vise ' + pi.perDay + ' unité(s) aujourd’hui.' });
+    var pi = planInfo(); new Notification('PrepMe · ton concours approche', { body: pi.left + ' jours restants. Vise ' + pi.perDay + ' unité(s) aujourd’hui.' });
     S.notifyDay = today(); save();
   }
 }
@@ -1295,7 +1295,7 @@ function vSettings() {
     '<button class="btn ghost sm" data-act="import">⬆️ Importer</button></div>' +
     '<div class="spacer"></div><button class="btn red sm" data-act="reset">🗑️ Réinitialiser la progression</button></div>';
   var nq = 0, nc = 0; DOCS.forEach(function (d) { d.units.forEach(function (u) { nq += u.qs.length; nc += u.cards.length; }); });
-  h += '<div class="card sub center">Concours de santé · ' + DOCS.length + ' modules · ' + nq + ' QCM · ' + nc + ' flashcards<br>Contenu généré à partir des résumés « Prépare mon concours » (ANASS SLIT).</div>';
+  h += '<div class="card sub center">PrepMe · ' + DOCS.length + ' modules · ' + nq + ' QCM · ' + nc + ' flashcards<br>Contenu généré à partir des résumés « Prépare mon concours » (ANASS SLIT).</div>';
   h += '</div>';
   return h;
 }

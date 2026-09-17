@@ -1,4 +1,4 @@
-# Concours de santé — application de révision (v2.7)
+# PrepMe — application de préparation aux concours (v3.0)
 
 Application type **Duolingo** pour préparer le concours : leçons courtes, QCM avec explications,
 flashcards, **cœurs**, **objectif quotidien**, **série (streak)**, **couronnes**, **révision espacée**
