@@ -246,6 +246,21 @@ html[data-theme="dark"] .nav button.on{color:var(--green)}
 html[data-theme="dark"] .pace-summary{color:var(--green)}
 .review-target{border-color:var(--blue);margin-bottom:8px}
 .review-target .review-arrow{font-size:26px;font-weight:800;color:var(--blue);padding:0 5px}
+.readiness-card{border-color:var(--purple)}
+.readiness-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.readiness-score{font-size:28px;font-weight:900;color:var(--purple-dk);white-space:nowrap}
+.readiness-score small{font-size:12px;color:var(--sub);font-weight:800}
+.readiness-progress{margin:12px 0 10px}.readiness-progress>div{background:var(--purple)}
+.readiness-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;font-size:11px;color:var(--sub)}
+.readiness-grid span{background:var(--card2);border-radius:10px;padding:7px 3px}.readiness-grid b{display:block;color:var(--ink);font-size:14px}
+.readiness-help{margin-top:9px}
+.daily-plan{display:grid;gap:8px;margin-bottom:14px}
+.daily-step{width:100%;display:flex;align-items:center;gap:11px;text-align:left;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:14px;padding:11px 12px;cursor:pointer}
+.daily-step:active{transform:scale(.985)}.daily-step>span:nth-child(2){display:flex;flex:1;flex-direction:column}.daily-step small{color:var(--sub);font-size:11.5px}.daily-step strong{font-size:24px;color:var(--green)}
+.daily-num{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:var(--green-bg);color:var(--green-dk);font-weight:900}
+.quick-card{border-color:var(--purple)}.quick-icon{font-size:28px;width:40px;text-align:center}.quick-card .btn{margin-top:2px}
+.weekly-card{border-color:var(--blue)}.weekly-tip{margin-top:8px}
+.date-field{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;font-weight:800}.date-field input{max-width:190px;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--card2);color:var(--ink);font:inherit}
 @media(max-width:380px){.nav button{font-size:8.7px;padding-left:0;padding-right:0}.nav button .ic{font-size:19px}}
 
 /* ---------- divers ---------- */

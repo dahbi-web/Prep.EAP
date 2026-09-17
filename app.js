@@ -51,6 +51,17 @@ function allQuestions(filterDocId) {
   });
   return out;
 }
+function quickQuestions() {
+  var all = allQuestions(null), picked = [], used = {};
+  function add(it) { if (it && !used[it.k] && picked.length < 10) { used[it.k] = 1; picked.push(it); } }
+  dueList().forEach(function (k) { var it = resolveKey(k); if (it && it.type === 'q') add({ q: it.q, k: k, d: it.d, u: it.u }); });
+  all.slice().sort(function (a, b) {
+    var sa = ust(a.d, a.u), sb = ust(b.d, b.u);
+    return ((sa.ok + sa.ko ? sa.ok / (sa.ok + sa.ko) : 0) - (sb.ok + sb.ko ? sb.ok / (sb.ok + sb.ko) : 0));
+  }).forEach(add);
+  shuffle(all).forEach(function (it) { if (!S.srs[it.k]) add(it); });
+  return picked.length ? picked : shuffle(all).slice(0, 10);
+}
 function allCards(filterDocId) {
   var out = [];
   DOCS.forEach(function (d) {
@@ -67,7 +78,7 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '2.6.4';
+var APP_VERSION = '2.8.0';
 var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
 var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
 var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
@@ -82,7 +93,7 @@ function blank() {
   return {
     v: 2, xp: 0, day: today(), xpDay: 0, streak: 0, lastDay: null, best: 0,
     hearts: HEART_MAX, heartTs: Date.now(),
-    goal: 50, sound: true, theme: 'auto', unlimited: false, hl: true,
+    goal: 50, contestDate: CONTEST_DATE, planStart: '2026-09-10', sound: true, theme: 'auto', unlimited: false, hl: true,
     units: {}, srs: {}, exams: [], hist: {}, seen: {}
   };
 }
@@ -232,15 +243,43 @@ function docPct(d) {
 }
 function docStarted(d) { return d.units.some(function (u, i) { return ust(d.id, i).runs > 0 || ust(d.id, i).lesson; }); }
 function planInfo() {
-  var left = Math.max(0, dayDiff(today(), CONTEST_DATE)), remaining = 0, total = 0, done = 0;
+  var contestDate = /^\d{4}-\d{2}-\d{2}$/.test(S.contestDate || '') ? S.contestDate : CONTEST_DATE;
+  var rawLeft = dayDiff(today(), contestDate), left = Math.max(0, rawLeft), remaining = 0, total = 0, done = 0;
   DOCS.forEach(function (d) { d.units.forEach(function (u, i) { total++; if (ust(d.id, i).crowns >= CROWN_MAX) done++; else remaining++; }); });
   var perDay = left ? Math.ceil(remaining / left) : remaining;
-  var elapsed = Math.min(30, Math.max(0, 30 - left));
-  var targetDone = Math.floor(total * elapsed / 30);
+  var start = /^\d{4}-\d{2}-\d{2}$/.test(S.planStart || '') ? S.planStart : today();
+  var duration = Math.max(1, dayDiff(start, contestDate));
+  var elapsed = Math.min(duration, Math.max(0, dayDiff(start, today())));
+  var targetDone = Math.floor(total * elapsed / duration);
   var delta = done - targetDone;
-  return { left: left, remaining: remaining, total: total, done: done, perDay: perDay,
+  return { date: contestDate, expired: rawLeft < 0, left: left, remaining: remaining, total: total, done: done, perDay: perDay,
     targetDone: targetDone, delta: delta, ahead: delta >= 0,
     status: delta > 0 ? 'En avance' : delta < 0 ? 'En retard' : 'Dans le rythme' };
+}
+function dateFr(s) {
+  var p = String(s || '').split('-');
+  if (p.length !== 3) return s;
+  return +p[2] + ' ' + ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'][+p[1] - 1] + ' ' + p[0];
+}
+function readinessInfo() {
+  var totalUnits = 0, crownUnits = 0, ok = 0, ko = 0;
+  DOCS.forEach(function (d) { d.units.forEach(function (u, i) {
+    var s = ust(d.id, i); totalUnits++; crownUnits += s.crowns / CROWN_MAX; ok += s.ok || 0; ko += s.ko || 0;
+  }); });
+  var mastery = totalUnits ? crownUnits / totalUnits : 0;
+  var seen = coverage();
+  var accuracy = ok + ko ? ok / (ok + ko) : 0;
+  var due = dueList().length, tracked = Object.keys(S.srs).length;
+  var revision = tracked ? Math.max(0, 1 - due / Math.max(10, tracked)) : 0;
+  var score = Math.round((mastery * .35 + seen * .30 + accuracy * .25 + revision * .10) * 100);
+  var label = score >= 80 ? 'Prêt pour l’épreuve' : score >= 60 ? 'Bonne progression' : score >= 35 ? 'Base en construction' : 'Démarrage';
+  return { score: score, label: label, mastery: Math.round(mastery * 100), coverage: Math.round(seen * 100), accuracy: Math.round(accuracy * 100), revision: Math.round(revision * 100) };
+}
+function weeklyInfo() {
+  var total = 0, active = 0;
+  for (var i = 0; i < 7; i++) { var day = dayShift(today(), -i), xp = day === today() ? S.xpDay : (S.hist[day] || 0); total += xp; if (xp > 0) active++; }
+  var target = (S.goal || 50) * 7;
+  return { total: total, target: target, active: active, pct: Math.min(100, Math.round(total / Math.max(1, target) * 100)) };
 }
 function requestNotifications() {
   if (!('Notification' in window)) { toast('Notifications non disponibles dans ce navigateur'); return; }
@@ -696,6 +735,8 @@ function vConcours() {
 function vHome() {
   var due = dueList().length;
   var plan = planInfo();
+  var ready = readinessInfo();
+  var week = weeklyInfo();
   var totQ = 0; DOCS.forEach(function (d) { d.units.forEach(function (u) { totQ += u.qs.length; }); });
   var nextU = firstUnfinished();
   var g = Math.min(1, S.xpDay / (S.goal || 50));
@@ -719,7 +760,13 @@ function vHome() {
   h += '<div class="wrap">';
   var paceLabel = plan.delta > 0 ? plan.delta + ' unité' + (plan.delta > 1 ? 's' : '') + ' d’avance' :
     plan.delta < 0 ? Math.abs(plan.delta) + ' unité' + (plan.delta < -1 ? 's' : '') + ' de retard' : 'dans le rythme prévu';
-  h += '<div class="card" style="border-color:' + (plan.ahead ? 'var(--green)' : 'var(--orange)') + '"><div class="row"><div style="font-size:28px">🗓️</div><div style="flex:1"><b>Objectif concours · 10 octobre 2026</b><div class="sub">' + plan.left + ' jours restants · ' + plan.remaining + ' unités à valider</div></div><span class="badge ' + (plan.ahead ? 'ok' : 'hot') + '">' + plan.status + '</span></div><div class="progress" style="margin:12px 0 6px"><div style="width:' + Math.round(plan.done / Math.max(1, plan.total) * 100) + '%"></div></div><div class="pace-summary"><b>' + paceLabel + '</b> · ' + plan.done + ' faites · cible au rythme 30 jours : ' + plan.targetDone + '</div><div class="sub">Pour finir à temps : ' + plan.perDay + ' unité' + (plan.perDay > 1 ? 's' : '') + '/jour · aujourd’hui ' + due + ' révision' + (due > 1 ? 's' : '') + ' à faire</div></div>';
+  h += '<div class="card" style="border-color:' + (plan.ahead ? 'var(--green)' : 'var(--orange)') + '"><div class="row"><div style="font-size:28px">🗓️</div><div style="flex:1"><b>Objectif concours · ' + esc(dateFr(plan.date)) + '</b><div class="sub">' + (plan.expired ? 'Date dépassée · choisis une nouvelle date dans Réglages' : plan.left + ' jours restants') + ' · ' + plan.remaining + ' unités à valider</div></div><span class="badge ' + (plan.ahead ? 'ok' : 'hot') + '">' + plan.status + '</span></div><div class="progress" style="margin:12px 0 6px"><div style="width:' + Math.round(plan.done / Math.max(1, plan.total) * 100) + '%"></div></div><div class="pace-summary"><b>' + paceLabel + '</b> · ' + plan.done + ' faites · cible au rythme 30 jours : ' + plan.targetDone + '</div><div class="sub">Pour finir à temps : ' + plan.perDay + ' unité' + (plan.perDay > 1 ? 's' : '') + '/jour · aujourd’hui ' + due + ' révision' + (due > 1 ? 's' : '') + ' à faire</div></div>';
+  h += '<div class="card readiness-card"><div class="readiness-head"><div><b>🎯 Niveau de préparation</b><div class="sub">' + ready.label + '</div></div><div class="readiness-score">' + ready.score + '<small>/100</small></div></div><div class="progress readiness-progress"><div style="width:' + ready.score + '%"></div></div><div class="readiness-grid"><span><b>' + ready.mastery + '%</b> maîtrise</span><span><b>' + ready.coverage + '%</b> banque vue</span><span><b>' + ready.accuracy + '%</b> réussite</span></div><div class="sub readiness-help">Le score combine les unités maîtrisées, les questions déjà vues, la réussite et les révisions à jour.</div></div>';
+  h += '<div class="card weekly-card"><div class="row"><div style="flex:1"><b>📅 Rythme de la semaine</b><div class="sub">' + week.active + '/7 jours actifs · ' + week.total + ' / ' + week.target + ' XP</div></div><span class="badge ' + (week.pct >= 70 ? 'ok' : 'hot') + '">' + week.pct + '%</span></div><div class="progress" style="margin-top:10px"><div style="width:' + week.pct + '%"></div></div><div class="sub weekly-tip">' + (week.pct >= 100 ? 'Objectif hebdomadaire atteint — garde ce rythme !' : 'Encore ' + Math.max(0, week.target - week.total) + ' XP pour atteindre ta cible de la semaine.') + '</div></div>';
+  h += '<h2>✅ Priorités du jour</h2><div class="daily-plan">' +
+    '<button class="daily-step" data-go="review"><span class="daily-num">1</span><span><b>Consolider</b><small>' + (due ? due + ' révision' + (due > 1 ? 's' : '') + ' à faire' : 'Révisions à jour') + '</small></span><strong>›</strong></button>' +
+    (nextU ? '<button class="daily-step" data-go="lesson/' + nextU.d + '/' + nextU.u + '"><span class="daily-num">2</span><span><b>Apprendre</b><small>Prochaine unité du chemin</small></span><strong>›</strong></button>' : '') +
+    '<button class="daily-step" data-go="exam"><span class="daily-num">3</span><span><b>Se tester</b><small>Examen blanc chronométré</small></span><strong>›</strong></button></div>';
   if (nextU) {
     var d0 = doc(nextU.d), u0 = unit(nextU.d, nextU.u);
     h += '<div class="card" style="border-color:var(--green)">' +
@@ -744,7 +791,7 @@ function vHome() {
   h += '<div class="qa-grid">' +
     '<div class="qa" data-go="review"><div class="ic">🔁</div><div class="t">Révision</div><div class="d">' + (due ? due + ' à revoir' : 'à jour ✅') + '</div></div>' +
     '<div class="qa" data-go="exam"><div class="ic">📝</div><div class="t">Examen blanc</div><div class="d">chronométré</div></div>' +
-    '</div><div class="spacer"></div>' +
+    '</div><div class="card quick-card"><div class="row"><div class="quick-icon">⚡</div><div style="flex:1"><b>Séance express · 10 questions</b><div class="sub">Révise l’essentiel en quelques minutes, selon tes besoins.</div></div></div><div class="spacer"></div><button class="btn purple sm" data-act="quick">Commencer maintenant</button></div><div class="spacer"></div>' +
     '<input class="search" id="q" placeholder="🔎 Chercher une notion, une loi, un chiffre…">' +
     '<h2>Modules</h2>';
 
@@ -1186,6 +1233,18 @@ function vStats() {
     '<div class="stat"><div class="v">' + okQ + '</div><div class="l">justes</div></div>' +
     '<div class="stat"><div class="v">' + koQ + '</div><div class="l">fausses</div></div>' +
     '<div class="stat"><div class="v">' + (okQ + koQ ? Math.round(okQ / (okQ + koQ) * 100) : 0) + '%</div><div class="l">réussite</div></div></div>';
+  var modWeak = [];
+  DOCS.forEach(function (d) {
+    var mok = 0, mko = 0, started = false;
+    d.units.forEach(function (u, i) { var s = ust(d.id, i); mok += s.ok || 0; mko += s.ko || 0; started = started || s.runs > 0; });
+    if (started) modWeak.push({ d: d, r: mok + mko ? mok / (mok + mko) : 0, n: mok + mko });
+  });
+  modWeak.sort(function (a, b) { return a.r - b.r; });
+  h += '<h2>Modules à prioriser</h2><div class="sub" style="margin:-4px 0 10px">Classement basé sur tes réponses. Reprends les premiers modules avant de relancer un examen blanc.</div>';
+  if (!modWeak.length) h += '<div class="card sub">Commence un quiz pour obtenir un classement personnalisé.</div>';
+  modWeak.slice(0, 6).forEach(function (m) {
+    h += '<div class="mod" data-go="doc/' + m.d.id + '"><div class="bub">' + m.d.icon + '</div><div class="info"><div class="t">' + esc(m.d.code + '. ' + m.d.title) + '</div><div class="p">' + m.n + ' réponse' + (m.n > 1 ? 's' : '') + '</div><div class="progress thin" style="margin-top:6px"><div style="width:' + Math.round(m.r * 100) + '%"></div></div></div><span class="badge ' + (m.r < .6 ? 'hot' : 'ok') + '">' + Math.round(m.r * 100) + '%</span></div>';
+  });
   h += '<h2>Points faibles</h2>';
   var weak = [];
   DOCS.forEach(function (d) {
@@ -1212,6 +1271,7 @@ function vStats() {
 /* ---------------------------------------------------------- vue RÉGLAGES */
 function vSettings() {
   var h = bar('Réglages', '') + '<div class="wrap">';
+  h += '<div class="card"><b>🗓️ Date de mon concours</b><div class="sub">Le rythme quotidien et le compte à rebours s’adaptent automatiquement.</div><div class="spacer"></div><label class="date-field"><span>Date prévue</span><input type="date" id="contestDate" value="' + esc(S.contestDate || CONTEST_DATE) + '"></label></div>';
   h += '<div class="card"><b>Objectif quotidien</b><div class="sub">XP à gagner chaque jour pour garder ta série</div>' +
     '<div class="spacer"></div><div class="row3">' +
     [20, 50, 100].map(function (g) { return '<button class="btn ' + (S.goal === g ? '' : 'ghost') + ' sm" data-goal="' + g + '">' + g + ' XP</button>'; }).join('') +
@@ -1298,6 +1358,10 @@ function bind() {
   var snd = el('snd'); if (snd) snd.onchange = function () { S.sound = snd.checked; save(); if (snd.checked) beep('ok'); };
   var unl = el('unl'); if (unl) unl.onchange = function () { S.unlimited = unl.checked; save(); toast(unl.checked ? '♾️ Cœurs illimités' : '❤️ Cœurs activés'); render(); };
   var hlx = el('hlx'); if (hlx) hlx.onchange = function () { S.hl = hlx.checked; save(); toast(hlx.checked ? '🖍️ Mise en forme activée' : 'Mise en forme désactivée'); };
+  var contestDate = el('contestDate'); if (contestDate) contestDate.onchange = function () {
+    if (!contestDate.value) return;
+    S.contestDate = contestDate.value; S.planStart = today(); save(); toast('🗓️ Date du concours enregistrée'); render();
+  };
   var q = el('q'); if (q) q.onkeyup = function (e) { if (q.value.length >= 2 && (e.key === 'Enter' || q.value.length > 2)) { SQ = q.value; go('/search'); } };
   var q2 = el('q2'); if (q2) { q2.oninput = function () { SQ = q2.value; clearTimeout(q2._t); q2._t = setTimeout(function () { var p = q2.selectionStart; render(); var n = el('q2'); if (n) { n.focus(); n.setSelectionRange(p, p); } }, 350); }; q2.focus(); }
   var flip = el('flip'); if (flip) flip.onclick = function () { doFlip(); };
@@ -1339,6 +1403,11 @@ function act(a, b) {
     case 'freeplay': {
       var pool = allQuestions(null);
       RUN = { mode: 'review', items: shuffle(pool).slice(0, 15), i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [], t0: Date.now(), back: '', did: null, ui: null };
+      ROOT.innerHTML = quizFrame() + navBar('review'); bind(); break;
+    }
+    case 'quick': {
+      var quick = quickQuestions();
+      RUN = { mode: 'review', items: quick, i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [], t0: Date.now(), back: '', did: null, ui: null };
       ROOT.innerHTML = quizFrame() + navBar('review'); bind(); break;
     }
     case 'export': {

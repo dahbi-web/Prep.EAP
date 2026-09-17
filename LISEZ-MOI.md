@@ -1,4 +1,4 @@
-# Concours de santé — application de révision (v2.3 · jour 2 + charte du document source + cartes par unité)
+# Concours de santé — application de révision (v2.7)
 
 Application type **Duolingo** pour préparer le concours : leçons courtes, QCM avec explications,
 flashcards, **cœurs**, **objectif quotidien**, **série (streak)**, **couronnes**, **révision espacée**
@@ -79,6 +79,12 @@ Pour l'installer comme une vraie application (icône, fenêtre sans barre d'adre
 - **Examen blanc (onglet 📝)** : 20 / 40 / 60 questions, chronomètre 45 s par question, correction
   détaillée de chaque erreur et historique des tentatives.
 - **Stats** : XP des 7 derniers jours, taux de réussite, **points faibles** classés, items à réviser.
+- **Plan personnalisé** : date du concours modifiable dans Réglages, compte à rebours et rythme quotidien recalculés automatiquement.
+- **Niveau de préparation** : score sur 100 fondé sur la maîtrise, la couverture de la banque, la réussite et les révisions à jour.
+- **Priorités du jour** : accès direct aux trois étapes utiles — consolider, apprendre, se tester.
+- **Séance express** : 10 questions ciblées sur les révisions dues, les erreurs et les notions jamais vues pour réviser même avec peu de temps.
+- **Rythme hebdomadaire** : suivi des 7 derniers jours et cible XP adaptée à l’objectif quotidien.
+- **Modules à prioriser** : classement automatique des modules selon le taux de réussite aux QCM.
 - **Mise en forme des leçons** : les leçons reprennent la charte de `Doc1_SNS_Maroc_p1-14.html` — 💡 **définition** en jaune, 📅 **date** en bleu, 🔢 **chiffre clé** en vert, ⚖️ **loi / article** en rose, avec la légende en haut de chaque leçon ; **une émoji thématique sur chaque titre et chaque item de liste**, les énumérations en pastilles 1️⃣2️⃣3️⃣, les définitions en bloc citation et les pièges en encadré orange. Désactivable dans Réglages.
 - **Réglages** : objectif quotidien, thème clair/sombre/auto, sons, **cœurs illimités**, **surlignage des leçons**,
   **export / import** de la progression (pour passer du PC au téléphone).
