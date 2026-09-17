@@ -1,7 +1,7 @@
 {
-  "version": "2.8.0",
+  "version": "2.9.0",
   "date": "2026-09-16",
-  "cache": "cnc-anass-v17",
+  "cache": "cnc-anass-v18",
   "modules": 11,
   "nouveautes": [
     "Plan de préparation personnalisé : date du concours modifiable et rythme quotidien recalculé",
@@ -10,6 +10,7 @@
     "Séance express de 10 questions ciblée sur les révisions dues, les erreurs et les notions jamais vues",
     "Suivi du rythme hebdomadaire sur 7 jours avec cible XP personnalisée",
     "Classement des modules à prioriser selon la réussite réelle aux QCM",
+    "Examen blanc ciblé accessible depuis chaque module",
     "Logo Concours de santé original en haute qualité",
     "Détection des mises à jour avec une notification affichée une seule fois par version",
     "Service worker : l’application demande avant d’activer une mise à jour",

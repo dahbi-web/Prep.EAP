@@ -78,7 +78,7 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '2.8.0';
+var APP_VERSION = '2.9.0';
 var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
 var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
 var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
@@ -626,7 +626,7 @@ function render() {
     case 'cards': html = vCardsStart(r[1], r[2]); break;
     case 'review': html = vReview(); break;
     case 'concours': html = vConcours(); break;
-    case 'exam': html = vExamSetup(); break;
+    case 'exam': html = vExamSetup(r[1]); break;
     case 'stats': html = vStats(); break;
     case 'set': html = vSettings(); break;
     case 'search': html = vSearch(); break;
@@ -854,7 +854,8 @@ function vDoc(id) {
   h += '<div class="row" style="margin:12px 0 4px"><div class="progress"><div style="width:' + docPct(d) + '%"></div></div>' +
     '<b style="font-size:13px">' + docPct(d) + '%</b></div>';
   h += '<div class="row2" style="margin:12px 0"><button class="btn blue sm" data-go="cards/' + d.id + '">🃏 Flashcards</button>' +
-    '<button class="btn gold sm" data-go="quiz/' + d.id + '/all">⚡ Quiz du module</button></div>';
+    '<button class="btn gold sm" data-go="quiz/' + d.id + '/all">⚡ Quiz du module</button></div>' +
+    '<button class="btn purple sm" data-go="exam/' + d.id + '">📝 Examen blanc ciblé sur ce module</button>';
   h += '<div class="path">';
   d.units.forEach(function (u, i) {
     var s = ust(d.id, i);
@@ -1131,12 +1132,12 @@ function vCardsStart(did, ui) {
 }
 
 /* ------------------------------------------------------------ vue EXAMEN */
-function vExamSetup() {
+function vExamSetup(scopeId) {
   var h = bar('Examen blanc', '') + '<div class="wrap">';
   h += '<h1>📝 Examen blanc</h1><div class="sub">Conditions du concours : QCM chronométrés, correction détaillée à la fin.</div>';
   h += '<div class="card"><b>Périmètre</b><div class="spacer"></div><select id="scope" class="search">' +
     '<option value="0">Tous les modules</option>' +
-    DOCS.map(function (d) { return '<option value="' + d.id + '">' + esc(d.code + '. ' + d.title) + '</option>'; }).join('') +
+    DOCS.map(function (d) { return '<option value="' + d.id + '"' + (+scopeId === d.id ? ' selected' : '') + '>' + esc(d.code + '. ' + d.title) + '</option>'; }).join('') +
     '</select><div class="spacer"></div><b>Nombre de questions</b><div class="spacer"></div>' +
     '<div class="row3"><button class="btn ghost sm nsel" data-n="20">20</button><button class="btn ghost sm nsel" data-n="40">40</button><button class="btn ghost sm nsel" data-n="60">60</button></div>' +
     '<div class="spacer"></div><label class="row"><input type="checkbox" id="chrono" checked> <span>Chronomètre (45 s / question)</span></label>' +
