@@ -1,9 +1,10 @@
 {
-  "version": "3.2.5",
+  "version": "3.3.0",
   "date": "2026-09-19",
-  "cache": "cnc-anass-v26",
+  "cache": "cnc-anass-v27",
   "modules": 31,
   "nouveautes": [
+    "Nouvel écran de célébration quand l’objectif quotidien est atteint, avec série et calendrier des 7 jours",
     "Plan de préparation personnalisé : date du concours modifiable et rythme quotidien recalculé",
     "Score de préparation sur 100 avec maîtrise, couverture de la banque et taux de réussite",
     "Priorités du jour en trois actions : consolider, apprendre et se tester",

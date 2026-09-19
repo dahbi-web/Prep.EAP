@@ -92,7 +92,7 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.2.3';
+var APP_VERSION = '3.3.0';
 var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
 var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
 var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
@@ -300,6 +300,7 @@ function rollDay() {
 }
 function addXP(n) {
   rollDay();
+  var before = S.xpDay;
   S.xp += n; S.xpDay += n;
   if (S.lastDay !== S.day) {
     if (S.lastDay && dayDiff(S.lastDay, S.day) === 1) S.streak++; else S.streak = 1;
@@ -307,7 +308,49 @@ function addXP(n) {
     if (S.streak > S.best) S.best = S.streak;
     toast('🔥 Série : ' + S.streak + ' jour' + (S.streak > 1 ? 's' : ''));
   }
+  if (before < (S.goal || 50) && S.xpDay >= (S.goal || 50) && S.streakCelebratedDay !== S.day) {
+    S.streakCelebratedDay = S.day;
+    setTimeout(showStreakCelebration, 220);
+  }
   save();
+}
+
+function streakDays() {
+  var labels = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+  var out = [];
+  for (var i = -2; i <= 4; i++) {
+    var date = dayShift(S.day, i);
+    var parts = date.split('-');
+    var dow = new Date(+parts[0], +parts[1] - 1, +parts[2]).getDay();
+    var active = date === S.day ? S.xpDay >= (S.goal || 50) : +(S.hist[date] || 0) >= (S.goal || 50);
+    out.push({ label: labels[dow], active: active, today: date === S.day });
+  }
+  return out;
+}
+function showStreakCelebration() {
+  if (document.querySelector('.streak-celebration')) return;
+  var days = streakDays();
+  var next = (S.streak || 0) + 1;
+  var layer = document.createElement('div');
+  layer.className = 'streak-celebration';
+  layer.setAttribute('role', 'dialog');
+  layer.setAttribute('aria-modal', 'true');
+  layer.setAttribute('aria-labelledby', 'streak-title');
+  layer.innerHTML = '<div class="streak-top"><span class="streak-mini">🔥 ' + S.streak + '</span></div>' +
+    '<div class="streak-flame" aria-hidden="true"><span></span></div>' +
+    '<div class="streak-week">' + days.map(function (d) {
+      return '<div class="streak-day' + (d.today ? ' today' : '') + '"><b>' + d.label + '</b><span class="' + (d.active ? 'done' : '') + '">' + (d.active ? '✓' : '') + '</span></div>';
+    }).join('') + '</div>' +
+    '<div class="streak-copy"><h1 id="streak-title">Série de ' + S.streak + ' jour' + (S.streak > 1 ? 's' : '') + ' !</h1>' +
+    '<p>Objectif quotidien atteint. Plus qu’un jour pour une série de ' + next + ' jours.</p></div>' +
+    '<button class="btn blue streak-continue" type="button">Continuer</button>';
+  document.body.appendChild(layer);
+  requestAnimationFrame(function () { layer.classList.add('show'); });
+  layer.querySelector('.streak-continue').onclick = function () {
+    layer.classList.remove('show');
+    setTimeout(function () { layer.remove(); }, 220);
+  };
+  layer.querySelector('.streak-continue').focus();
 }
 /* --- cœurs --- */
 function hearts() {
