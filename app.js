@@ -8,6 +8,20 @@
 
 /* ------------------------------------------------------------------ data */
 var DOCS = (window.CNC_DATA && window.CNC_DATA.docs) || [];
+// Doc 1 : afficher précisément la couverture réellement disponible.
+var SNS_DOC = DOCS.find(function (x) { return x.id === 1; });
+if (SNS_DOC) {
+  SNS_DOC.sub = 'Système National de Santé — Doc 1 complet (p.2-101)';
+  if (!SNS_DOC.units.some(function (u) { return u.pages === 'p.48-76'; })) {
+    SNS_DOC.units.push(
+      {t:'V. Organisation de l’offre de soins au Maroc',ic:'🏥',pages:'p.48-76',lesson:'<h3>🏥 Organisation de l’offre de soins</h3><p>L’offre de soins est <b>pyramidale, intégrée, hiérarchisée</b> et fondée sur les soins de santé primaires. Elle repose sur la gradation des soins et sur la référence/contre-référence.</p><p>En mode fixe, le secteur public comprend quatre réseaux : <b>RH</b> réseau hospitalier, <b>RESSP</b> établissements de soins de santé primaires, <b>RISUM</b> soins d’urgence médicale et <b>REMS</b> établissements médico-sociaux.</p><h3>🩺 Réseaux à retenir</h3><p>Le RH assure les soins hospitaliers, la formation, la recherche, la permanence et l’aide médicale urgente. Le RESSP comprend notamment dispensaires ruraux, CSR1/CSR2, CSU1/CSU2 et structures spécialisées d’appui. Le RISUM organise les urgences et leur régulation. Le REMS prend en charge des personnes à besoins spécifiques : santé-jeunes, addictologie, rééducation, soins palliatifs.</p>',qs:[{q:'Quels sont les quatre réseaux publics de l’offre de soins en mode fixe ?',o:['RH, RESSP, RISUM et REMS','DRS, DMS, SRES et CHU','AMO, CNOPS, CNSS et RAMED','CSR1, CSR2, CSU1 et CSU2'],c:0,e:'Les quatre réseaux sont RH, RESSP, RISUM et REMS.'},{q:'Sur quels principes repose l’offre de soins ?',o:['Gradation et référence/contre-référence','Uniquement l’hospitalisation','Uniquement le secteur privé','Absence de hiérarchie'],c:0,e:'La gradation des soins et la référence/contre-référence organisent le parcours hors urgence.'}],cards:[{f:'Les 4 réseaux publics de soins','b':'RH · RESSP · RISUM · REMS'},{f:'Modèle marocain de l’offre de soins','b':'Pyramidal, intégré, hiérarchisé, fondé sur les SSP'}]},
+      {t:'VI. La couverture sanitaire',ic:'🗺️',pages:'p.76-84',lesson:'<h3>🗺️ Couverture sanitaire</h3><p>Le découpage sanitaire s’organise en circonscriptions sanitaires, préfectures/provinces, régions et interrégions. La couverture peut être <b>fixe</b>, <b>mobile</b> ou <b>participative</b>.</p><p>Le mode mobile comprend les visites à domicile, les équipes mobiles, les caravanes médicales et les hôpitaux mobiles. La participation communautaire mobilise la population et des dispositifs comme Dar Al Oumouma, le SAMU obstétrical rural, l’éducation parentale et la classe des mères.</p>',qs:[{q:'Quels sont les trois modes de couverture sanitaire ?',o:['Fixe, mobile et participatif','Public, privé et informel','Rural, urbain et régional','Préventif, curatif et palliatif'],c:0,e:'La couverture sanitaire est organisée selon les modes fixe, mobile et participatif.'}],cards:[{f:'Mode mobile','b':'Visites à domicile · équipes mobiles · caravanes médicales · hôpitaux mobiles'},{f:'Mode participatif','b':'Participation communautaire, Dar Al Oumouma, SAMU obstétrical rural, éducation parentale'}]},
+      {t:'VII. Circuit du malade et filière de soins',ic:'🔄',pages:'p.85-90',lesson:'<h3>🔄 Parcours de soins</h3><p>La filière de soins est une organisation coordonnée de la prise en charge. Le réseau coordonné relie les établissements et facilite le parcours du patient.</p><p>Hors urgence, l’accès suit les règles de référence vers le spécialiste, l’hospitalisation ou le plateau technique. La <b>référence</b> oriente le patient vers un niveau adapté ; la <b>contre-référence</b> assure son retour et la continuité du suivi.</p><h3>🤰 Filières spécifiques</h3><p>Les filières peuvent être adaptées à des situations particulières, notamment l’accouchement et les soins obstétricaux.</p>',qs:[{q:'Que signifie la contre-référence ?',o:['Le retour d’information et du patient vers le niveau d’origine','Une admission directe aux urgences','Une suppression du suivi','Une consultation sans dossier'],c:0,e:'La contre-référence assure le retour vers le niveau d’origine et la continuité de la prise en charge.'}],cards:[{f:'Référence / contre-référence','b':'Orientation vers un niveau adapté, puis retour organisé avec continuité du suivi'},{f:'But de la filière de soins','b':'Coordonner la prise en charge et faciliter le parcours du malade'}]},
+      {t:'VIII. Les programmes de santé',ic:'📋',pages:'p.90-93',lesson:'<h3>📋 Programmes de santé</h3><p>Un programme de santé définit une intervention organisée à partir d’objectifs, de populations cibles, d’activités, de ressources, d’indicateurs et d’une évaluation.</p><p>Le document regroupe les programmes de santé de la mère et de l’enfant, des populations à besoins spécifiques, de lutte contre les maladies transmissibles et non transmissibles, ainsi que les programmes de santé-environnement et les stratégies nationales.</p>',qs:[{q:'Quels éléments structurent un programme de santé ?',o:['Objectifs, activités, ressources, indicateurs et évaluation','Uniquement un budget','Uniquement une campagne','Un diagnostic sans suivi'],c:0,e:'Un programme associe objectifs, activités, moyens, indicateurs et évaluation.'}],cards:[{f:'Programmes de santé','b':'Mère-enfant · besoins spécifiques · maladies transmissibles/non transmissibles · santé-environnement'}]},
+      {t:'IX. Ressources humaines du Ministère de la Santé',ic:'👥',pages:'p.93-101',lesson:'<h3>👥 Ressources humaines</h3><p>Les ressources humaines comprennent le personnel médical, paramédical, administratif et les autres catégories nécessaires au fonctionnement du système.</p><h3>🎓 Formation</h3><p>Le document présente la formation médicale, pharmaceutique et dentaire, la formation paramédicale et son évolution vers les <b>ISPITS</b> selon le système LMD, la formation des techniciens de santé dans les IFTS, ainsi que l’<b>ENSP</b> et ses filières de spécialisation.</p><p>La gestion des ressources humaines couvre le recrutement, l’affectation, la formation continue, le recyclage, la promotion et l’adéquation entre compétences et besoins du Ministère.</p>',qs:[{q:'Quelles sont les grandes catégories de personnel citées ?',o:['Médical, paramédical, administratif et autres','Uniquement médical et infirmier','Uniquement administratif','Bénévoles seulement'],c:0,e:'Le document distingue le personnel médical, paramédical, administratif et les autres catégories.'},{q:'Quel établissement porte les Instituts Supérieurs des Professions Infirmières et Techniques de Santé ?',o:['ISPITS','SRES','RISUM','CNTSH'],c:0,e:'Les ISPITS assurent la formation supérieure des professions infirmières et techniques de santé.'}],cards:[{f:'Formation et structures','b':'ISPITS (cycles LMD) · IFTS · ENSP · formations médicale, pharmaceutique et dentaire'},{f:'Gestion des RH','b':'Recrutement · affectation · formation continue · recyclage · promotion · adéquation aux besoins'}]}
+    );
+  }
+}
 DOCS.sort(function (a, b) { return a.id - b.id; });
 
 // index rapide
@@ -78,11 +92,79 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.2.1';
+var APP_VERSION = '3.2.3';
 var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
 var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
 var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
 var UPDATE_DOWNLOAD_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/CNC_ANASS_App_MOBILE.html';
+
+/* ---------------------------------------------------------------- sources
+   Provenance contrôlée : uniquement les documents présents dans le dossier
+   local « CNC 26 ANASS ». Les sujets de concours sont référencés dans la
+   section Concours depuis le corpus local « concours commun ». */
+var DOC_SOURCES = {
+  1: [{label:'Dossier local — 01- SNS Maroc.pdf', local:true}],
+  2: [{label:'Dossier local — 02- Réglement Intérieur des Hôpitaux.pdf', local:true, file:'../CNC 26 ANASS/02- Réglement Intérieur des Hôpitaux.pdf'}],
+  3: [{label:'Dossier local — 03- La Loi 08-22 GST.pdf', local:true}],
+  4: [{label:'Dossier local — 04- Economie de la Santé.pdf', local:true}],
+  5: [{label:'Dossier local — 05- Indicateurs de la Santé.pdf', local:true}],
+  6: [{label:'Dossier local — 06- La Loi-Cadre 06-22.pdf', local:true}],
+  7: [{label:'Dossier local — 07- Epidémiologie.pdf', local:true}],
+  8: [{label:'Dossier local — 08- La loi 43-13 Exercice des professions infermière.pdf', local:true}],
+  9: [{label:'Dossier local — 09- OMD et ODD.pdf', local:true}],
+  10: [{label:'Dossier local — 10- Accident Exposition Au Sang.pdf', local:true}],
+  11: [{label:'Dossier local — 11- Comptes Nationaux de la Santé 2022.pdf', local:true}],
+  12: [{label:'Dossier local — 12- Comptes Nationaux de la Santé 2018.pdf', local:true}],
+  13: [{label:'Dossier local — 13- Lavage Des Mains.pdf', local:true}],
+  14: [{label:'Dossier local — 14- Maladies à Déclaration Obligatoire.pdf', local:true}],
+  15: [{label:'Dossier local — 15- Jours internationaux et Fériés.pdf', local:true}],
+  16: [{label:'Dossier local — 16- Couverture Médicale de Base.pdf', local:true}],
+  17: [{label:'Dossier local — 17- Projet d_Etablissement Hospitalier.pdf', local:true}],
+  18: [{label:'Dossier local — 18- Planification Stratégique.pdf', local:true}],
+  19: [{label:'Dossier local — 19- Gestion et Management de la qualité.pdf', local:true}],
+  20: [{label:'Dossier local — 20- Santé en chiffres 2018-2023.pdf', local:true}],
+  21: [{label:'Dossier local — 21- Stratégie Sectorielle 2012-2016.pdf', local:true}],
+  22: [{label:'Dossier local — 22- Les ALDs et Les ALCs.pdf', local:true}],
+  23: [{label:'Dossier local — 23- La Loi Cadre 43-09.pdf', local:true}],
+  24: [{label:'Dossier local — 24- La Loi 28-00 La Gestion Des Déchets.pdf', local:true}],
+  25: [{label:'Dossier local — 25- La Loi 09-21 La Protection Sociale.pdf', local:true}],
+  26: [{label:'Dossier local — 26- Le Plan Santé 2025.pdf', local:true}],
+  27: [{label:'Dossier local — 27- Présentation Des Lois.pdf', local:true}],
+  28: [{label:'Dossier local — 28- La Lois 07-22 Haute Autorité de la Santé.pdf', local:true}],
+  29: [{label:'Dossier local — 29- La loi 10-22 Agence Des Médicaments.pdf', local:true}],
+  30: [{label:'Dossier local — 30- La Loi 11-22 Agence du Sang et Ses Dérivés.pdf', local:true}],
+  31: [{label:'Dossier local — 31- CS. SROS. CSN. CSR.pdf', local:true}]
+};
+function sourcePageLabel(pages) {
+  if (!pages) return '';
+  return /\bp\.?\s*\d/i.test(String(pages)) ? String(pages).replace(/\bp\.?\s*/i, 'p. ') : 'section ' + String(pages);
+}
+function sourceLocator(pages) {
+  if (!pages) return 'Repère de page non renseigné';
+  return /\bp\.?\s*\d/i.test(String(pages)) ? 'Pages du support : ' + sourcePageLabel(pages) : 'Repère dans le support : section ' + String(pages) + ' (ce n’est pas un numéro de page)';
+}
+function sourceLabel(did, pages) {
+  var list = DOC_SOURCES[+did] || [];
+  var base = list.length ? list[0].label : 'Support pédagogique fourni';
+  var page = sourcePageLabel(pages);
+  return base + (page ? ' — ' + page : '');
+}
+function sourceBox(did, ui) {
+  var list = DOC_SOURCES[+did] || [{label:'Support pédagogique fourni — vérification avec le texte original recommandée', local:true}];
+  var u = ui === undefined || ui === null ? null : unit(did, ui);
+  var h = '<aside class="card lesson-sources"><h3>📚 Référence du cours</h3>';
+  h += '<div class="source-course"><b>Module ' + esc(doc(did).code) + ' — ' + esc(doc(did).title) + '</b>' +
+    (doc(did).sub ? '<span>' + esc(doc(did).sub) + '</span>' : '') +
+    (u ? '<span>' + esc(sourceLocator(u.pages)) + '</span>' : '') + '</div>';
+  h += '<p class="sub">Les leçons synthétisent le support fourni. Les réponses et explications pédagogiques ne remplacent pas le texte officiel.</p><ul>';
+  list.forEach(function (s) {
+    var tag = s.url ? '<span class="source-badge source-official">Source officielle</span>' : s.local ? '<span class="source-badge source-doc">Support fourni</span>' : '<span class="source-badge source-pending">Point à dater</span>';
+    var label = esc(s.label + (u && u.pages ? ' — ' + sourcePageLabel(u.pages) : ''));
+    var href = s.url || s.file;
+    h += '<li>' + tag + ' ' + (href ? '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">' + label + '</a>' : label) + '</li>';
+  });
+  return h + '</ul></aside>';
+}
 
 function today() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
 function pad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -818,7 +900,13 @@ function vHome() {
     if (targets.length > 6) h += '<div class="sub">+' + (targets.length - 6) + ' autres cours à revoir</div>';
   }
   } else {
-    h += '<div class="card auto-action"><div class="auto-action-icon">✨</div><b>PrepMe te conseille</b><div class="auto-action-title">' + nextAction.title + '</div><div class="sub">' + nextAction.detail + '</div><div class="auto-meta"><span>🎯 ' + nextAction.why + '</span><span>⏱️ ' + nextAction.time + '</span></div><div class="spacer"></div><button class="btn" data-go="' + nextAction.go + '">' + nextAction.title + '</button></div>';
+    var autoLearnGo = nextU ? 'lesson/' + nextU.d + '/' + nextU.u : 'doc/1';
+    var autoLearnText = nextU ? 'Prochaine unité du chemin' : 'Revoir un module déjà parcouru';
+    h += '<div class="card auto-action"><div class="auto-action-icon">✨</div><b>PrepMe te conseille</b><div class="auto-action-title">' + nextAction.title + '</div><div class="sub">' + nextAction.detail + '</div><div class="auto-meta"><span>🎯 ' + nextAction.why + '</span><span>⏱️ ' + nextAction.time + '</span></div><div class="spacer"></div><button class="btn" data-go="' + nextAction.go + '">' + nextAction.title + '</button></div>' +
+      '<h2>✅ Priorités du jour</h2><div class="sub daily-intro">Voici tout ce que tu peux faire aujourd’hui. PrepMe choisit automatiquement la prochaine leçon.</div><div class="daily-plan">' +
+      '<button class="daily-step" data-go="review" aria-label="Consolider les révisions"><span class="daily-num">1</span><span><b>Consolider</b><small>' + (due ? due + ' révision' + (due > 1 ? 's' : '') + ' à faire' : 'Révisions à jour') + '</small></span><strong>›</strong></button>' +
+      '<button class="daily-step" data-go="' + autoLearnGo + '" aria-label="Apprendre la prochaine unité"><span class="daily-num">2</span><span><b>Apprendre</b><small>' + autoLearnText + '</small></span><strong>›</strong></button>' +
+      '<button class="daily-step" data-go="exam" aria-label="Se tester avec un examen blanc"><span class="daily-num">3</span><span><b>Se tester</b><small>Examen blanc chronométré</small></span><strong>›</strong></button></div>';
   }
   if (!autoMode) {
   h += '<div class="qa-grid">' +
@@ -898,6 +986,7 @@ function vDoc(id) {
       '<div class="circ">' + (u.ic || '📘') + '</div>' +
       '<div class="info" style="flex:1"><div class="t">' + esc(u.t) + '</div>' +
       '<div class="d">' + u.qs.length + ' QCM · ' + u.cards.length + ' cartes' + (u.pages ? ' · ' + u.pages : '') + '</div>' +
+      '<div class="unit-source">📄 ' + esc(sourceLabel(d.id, u.pages)) + '</div>' +
       '<div class="crowns">' + '👑'.repeat(s.crowns) + '<span style="opacity:.25">' + '👑'.repeat(CROWN_MAX - s.crowns) + '</span>' +
       (s.best ? ' <span class="badge ok">' + s.best + '%</span>' : '') + '</div></div>' +
       '<button class="cardbtn" title="Flashcards de cette unité" data-go="cards/' + d.id + '/' + i + '">🃏</button></div>';
@@ -910,7 +999,8 @@ function vDoc(id) {
 function vLesson(did, ui) {
   var d = doc(did), u = unit(did, ui); if (!u) return vHome();
   var s = ust(d.id, ui); s.lesson = 1; save();
-  return bar(u.t, 'doc/' + d.id) + '<div class="wrap">' + legendHL() + '<div class="card lesson">' +
+  return bar(u.t, 'doc/' + d.id) + '<div class="wrap">' + legendHL() +
+    sourceBox(d.id, ui) + '<div class="card lesson">' +
     rich(decorate(u.lesson) || '<p class="muted">Pas de leçon pour cette unité.</p>') + '</div>' +
     '<button class="btn" data-go="quiz/' + d.id + '/' + ui + '">Passer au quiz →</button>' +
     '<div class="spacer"></div>' +
@@ -952,6 +1042,13 @@ function vNoHearts() {
 function quizFrame() {
   var R = RUN, it = R.items[R.i];
   if (!it) return quizEnd();
+  // Garde-fou : une séance ne doit jamais planter si une donnée incomplète
+  // arrive dans le moteur. Les cartes sont affichées par reviewFrame().
+  if (!it.q) {
+    if (R.mode === 'review') return reviewFrame();
+    R.i++;
+    return quizFrame();
+  }
   var q = it.q;
   var pct = R.i / R.items.length * 100;
   var opts = q._sh || (q._sh = shuffle(q.o.map(function (t, i) { return { t: t, i: i }; })));
@@ -1010,7 +1107,11 @@ function answer(chosen) {
   el('next').onclick = function () {
     fb.remove(); RUN.i++;
     if (!S.unlimited && RUN.mode === 'lesson' && S.hearts <= 0 && RUN.i < RUN.items.length) { ROOT.innerHTML = vNoHearts() + navBar(''); bind(); return; }
-    ROOT.innerHTML = quizFrame() + navBar(''); bind();
+    // Une séance de révision peut contenir des QCM et des flashcards.
+    // Après un QCM, il faut conserver le moteur de révision pour que le
+    // prochain item (éventuellement une carte) ne soit pas lu comme une question.
+    ROOT.innerHTML = RUN.mode === 'review' ? reviewFrame() : quizFrame();
+    ROOT.innerHTML += navBar(''); bind();
   };
   /* Sur téléphone, éviter le focus forcé : certains navigateurs recomposent mal
      le panneau de correction animé. Le raccourci Entrée reste disponible au PC. */
@@ -1111,6 +1212,11 @@ function reviewFrame() {
     // réutilise l'affichage quiz
     R.items[R.i] = { q: it.q, k: it.k, d: it.d, u: it.u, type: 'q' };
     return quizFrame();
+  }
+  // Ignore proprement un élément incomplet au lieu de bloquer la session.
+  if (!it.c || !it.c.f || !it.c.b) {
+    R.i++;
+    return reviewFrame();
   }
   var pct = R.i / R.items.length * 100;
   var h = '<div class="qbar"><button class="iconbtn" data-act="quit">✕</button>' +
