@@ -1,8 +1,8 @@
 {
-  "version": "3.2.3",
+  "version": "3.2.5",
   "date": "2026-09-19",
   "cache": "cnc-anass-v26",
-  "modules": 11,
+  "modules": 31,
   "nouveautes": [
     "Plan de préparation personnalisé : date du concours modifiable et rythme quotidien recalculé",
     "Score de préparation sur 100 avec maîtrise, couverture de la banque et taux de réussite",
