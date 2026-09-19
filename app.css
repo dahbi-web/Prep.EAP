@@ -256,6 +256,7 @@ html[data-theme="dark"] .pace-summary{color:var(--green)}
 .readiness-grid span{background:var(--card2);border-radius:10px;padding:7px 3px}.readiness-grid b{display:block;color:var(--ink);font-size:14px}
 .readiness-help{margin-top:9px}
 .daily-plan{display:grid;gap:8px;margin-bottom:14px}
+.daily-intro{margin:-6px 0 10px}
 .daily-step{width:100%;display:flex;align-items:center;gap:11px;text-align:left;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:14px;padding:11px 12px;cursor:pointer}
 .daily-step:active{transform:scale(.985)}.daily-step>span:nth-child(2){display:flex;flex:1;flex-direction:column}.daily-step small{color:var(--sub);font-size:11.5px}.daily-step strong{font-size:24px;color:var(--green)}
 .daily-num{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:var(--green-bg);color:var(--green-dk);font-weight:900}
@@ -319,6 +320,18 @@ html[data-theme="dark"] .lesson .timeline .y{color:var(--green)}
 html[data-theme="dark"] .lesson .fiche>b.title{color:var(--green)}
 .lesson .fiche h5{color:var(--green-dk);font-size:13px;margin:13px 0 6px;text-transform:uppercase;letter-spacing:.3px}
 .lesson .fiche h5:first-of-type{margin-top:0}
+.lesson-sources{margin:14px 0;border-color:var(--blue);background:var(--card2)}
+.lesson-sources h3{margin:0 0 7px;color:var(--blue-dk);font-size:16px}
+.source-course{display:grid;gap:3px;margin:8px 0 10px;padding:10px 12px;border-left:4px solid var(--blue);border-radius:10px;background:var(--card)}
+.source-course b{font-size:14px;color:var(--ink)}
+.source-course span{font-size:12px;color:var(--ink2);line-height:1.4}
+.lesson-sources ul{margin:10px 0 0;padding-left:20px}
+.lesson-sources li{margin:8px 0;line-height:1.45}
+.lesson-sources a{color:var(--blue-dk);font-weight:700;text-decoration:underline}
+.unit-source{margin-top:4px;color:var(--ink2);font-size:11px;line-height:1.35}
+.source-official{background:var(--green-bg);color:var(--green-dk)}
+html[data-theme="dark"] .lesson-sources h3,html[data-theme="dark"] .lesson-sources a{color:var(--blue)}
+html[data-theme="dark"] .source-official{color:var(--green)}
 .lesson table.fiche-tbl{width:100%;border-collapse:collapse;font-size:13.2px;background:var(--card);border-radius:8px;overflow:hidden}
 .lesson table.fiche-tbl th{background:var(--green-dk);color:#fff;text-align:left;padding:7px 9px;font-size:12.4px}
 .lesson table.fiche-tbl td{padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
