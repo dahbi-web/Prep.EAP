@@ -343,6 +343,7 @@ html[data-theme="dark"] .lesson .fiche>b.title{color:var(--green)}
 .lesson-sources ul{margin:10px 0 0;padding-left:20px}
 .lesson-sources li{margin:8px 0;line-height:1.45}
 .lesson-sources a{color:var(--blue-dk);font-weight:700;text-decoration:underline}
+.lesson-sources .source-direct-link{display:inline-flex;flex-wrap:wrap;align-items:center;gap:5px 10px}.lesson-sources .source-direct-link>span{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--blue-bg);color:var(--blue-dk);font-size:11px;font-weight:900;text-decoration:none}
 .unit-source{margin-top:4px;color:var(--ink2);font-size:11px;line-height:1.35}
 .source-official{background:var(--green-bg);color:var(--green-dk)}
 html[data-theme="dark"] .lesson-sources h3,html[data-theme="dark"] .lesson-sources a{color:var(--blue)}

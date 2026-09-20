@@ -95,7 +95,7 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.5.2';
+var APP_VERSION = '3.5.3';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -155,6 +155,16 @@ function sourceLabel(did, pages) {
   var page = sourcePageLabel(pages);
   return base + (page ? ' — ' + page : '');
 }
+function sourceStartPage(pages) {
+  var m = String(pages || '').match(/\d+/);
+  return m ? Math.max(1, +m[0]) : 1;
+}
+function coursePdfIndex(did) {
+  var code = doc(did) && String(doc(did).code).padStart(2, '0');
+  var list = window.PREP_PDFS || [];
+  for (var i = 0; i < list.length; i++) if (String(list[i][0]).padStart(2, '0') === code) return i;
+  return -1;
+}
 function sourceBox(did, ui) {
   var list = DOC_SOURCES[+did] || [{label:'Support pédagogique fourni — vérification avec le texte original recommandée', local:true}];
   var u = ui === undefined || ui === null ? null : unit(did, ui);
@@ -166,8 +176,10 @@ function sourceBox(did, ui) {
   list.forEach(function (s) {
     var tag = s.url ? '<span class="source-badge source-official">Source officielle</span>' : s.local ? '<span class="source-badge source-doc">Support fourni</span>' : '<span class="source-badge source-pending">Point à dater</span>';
     var label = esc(s.label + (u && u.pages ? ' — ' + sourcePageLabel(u.pages) : ''));
-    var href = s.url || s.file;
-    h += '<li>' + tag + ' ' + (href ? '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">' + label + '</a>' : label) + '</li>';
+    var href = s.url || s.file, pdfIndex = coursePdfIndex(did);
+    var page = sourceStartPage(u && u.pages);
+    var internalRoute = pdfIndex >= 0 ? '#/pdfview/' + pdfIndex + '/' + page + '/' + did + '/' + ui : '';
+    h += '<li>' + tag + ' ' + (internalRoute ? '<a class="source-direct-link" href="' + internalRoute + '">' + label + '<span>Ouvrir à la page ' + page + ' →</span></a>' : href ? '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">' + label + '</a>' : label) + '</li>';
   });
   return h + '</ul></aside>';
 }
@@ -779,7 +791,7 @@ function render() {
     case 'concours': html = vConcours(); break;
     case 'concourspdf': html = vConcoursPdfView(r[1]); break;
     case 'pdf': html = vPdfs(); break;
-    case 'pdfview': html = vPdfView(r[1]); break;
+    case 'pdfview': html = vPdfView(r[1], r[2], r[3], r[4]); break;
     case 'exam': html = vExamSetup(r[1]); break;
     case 'stats': html = vStats(); break;
     case 'set': html = vSettings(); break;
@@ -827,11 +839,12 @@ function vPdfs() {
   });
   return h + '</div>';
 }
-function vPdfView(index) {
+function vPdfView(index, startPage, backDid, backUi) {
   var p = (window.PREP_PDFS || [])[+index];
   if (!p) return vPdfs();
   var href = 'cours-pdf/' + encodeURIComponent(p[2]);
-  return bar(p[1], 'pdf') + '<div class="pdf-reader" data-pdf-src="' + href + '">' +
+  var back = backDid !== undefined && backUi !== undefined ? 'lesson/' + backDid + '/' + backUi : 'pdf';
+  return bar(p[1], back) + '<div class="pdf-reader" data-pdf-src="' + href + '" data-pdf-page="' + Math.max(1, +(startPage || 1)) + '">' +
     '<div class="pdf-toolbar"><button class="pdf-tool" id="pdfPrev">←</button><span id="pdfPage">Page…</span><button class="pdf-tool" id="pdfNext">→</button><button class="pdf-tool" id="pdfZoomOut">−</button><span id="pdfZoom">100%</span><button class="pdf-tool" id="pdfZoomIn">+</button></div>' +
     '<div class="pdf-status" id="pdfStatus">Chargement du PDF…</div><div class="pdf-canvas-wrap"><canvas id="pdfCanvas"></canvas></div>' +
     '<div class="pdf-download"><a class="btn ghost sm" download href="' + href + '">⬇️ Télécharger le PDF</a></div></div>';
@@ -844,9 +857,10 @@ function initPdfReader() {
   var status = el('pdfStatus');
   if (!window.pdfjsLib) { status.textContent = 'Lecteur PDF indisponible.'; return; }
   window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
-  PDF_READER = { doc: null, page: 1, scale: 1.15, rendering: false, pending: null };
+  var requestedPage = Math.max(1, +(box.getAttribute('data-pdf-page') || 1));
+  PDF_READER = { doc: null, page: requestedPage, scale: 1.15, rendering: false, pending: null };
   window.pdfjsLib.getDocument(box.getAttribute('data-pdf-src')).promise.then(function (doc) {
-    PDF_READER.doc = doc; status.style.display = 'none'; renderPdfPage(1);
+    PDF_READER.doc = doc; status.style.display = 'none'; renderPdfPage(Math.min(requestedPage, doc.numPages));
   }).catch(function () { status.textContent = 'Impossible d’afficher ce PDF. Utilisez Télécharger pour le sauvegarder.'; });
   el('pdfPrev').onclick = function () { if (PDF_READER.page > 1) renderPdfPage(PDF_READER.page - 1); };
   el('pdfNext').onclick = function () { if (PDF_READER.doc && PDF_READER.page < PDF_READER.doc.numPages) renderPdfPage(PDF_READER.page + 1); };
