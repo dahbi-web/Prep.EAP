@@ -95,7 +95,7 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.5.1';
+var APP_VERSION = '3.5.2';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -1747,6 +1747,26 @@ function act(a, b) {
   }
 }
 
+/* Invitation affichée une fois à chaque ouverture de l'application. */
+function showContributionWelcome() {
+  if (el('contributionWelcome')) return;
+  var overlay = document.createElement('div');
+  overlay.id = 'contributionWelcome';
+  overlay.className = 'contribution-overlay';
+  overlay.innerHTML = '<section class="contribution-dialog" role="dialog" aria-modal="true" aria-labelledby="contributionTitle">' +
+    '<button class="contribution-close" type="button" aria-label="Fermer">×</button>' +
+    '<div class="contribution-icon">🤝</div><h2 id="contributionTitle">Ensemble, améliorons PrepMe</h2>' +
+    '<p>Ton avis compte ! Signale un problème, propose une amélioration ou partage des sujets, corrigés et documents pour aider toute la communauté.</p>' +
+    '<a class="btn green" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">💬 Contribuer sur WhatsApp</a>' +
+    '<button class="btn ghost contribution-later" type="button">Continuer dans l’application</button>' +
+    '<small>WhatsApp · ' + esc(WHATSAPP_CONTACT_DISPLAY) + '</small></section>';
+  function closeWelcome() { overlay.remove(); }
+  overlay.querySelector('.contribution-close').onclick = closeWelcome;
+  overlay.querySelector('.contribution-later').onclick = closeWelcome;
+  overlay.onclick = function (e) { if (e.target === overlay) closeWelcome(); };
+  document.body.appendChild(overlay);
+}
+
 /* ------------------------------------------------------- fin de session */
 var _endWrap = quizEnd;
 function quizEndRouter() { return RUN && RUN.mode === 'exam' ? examEnd() : RUN && RUN.mode === 'review' ? reviewEnd() : _endWrap(); }
@@ -1768,6 +1788,7 @@ function boot() {
   applyTheme();
   if (!DOCS.length) { ROOT.innerHTML = '<div class="wrap"><div class="card">Aucune donnée chargée. Vérifie que les fichiers du dossier <b>data/</b> sont bien présents à côté de index.html.</div></div>'; return; }
   render();
+  showContributionWelcome();
   dailyReminder();
   setInterval(function () { if ((route()[0] || '') === '' ) { /* rafraîchit les cœurs sur l'accueil */ if (!S.unlimited && S.hearts < HEART_MAX) render(); } }, 60000);
   watchAppUpdates();

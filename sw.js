@@ -1,6 +1,6 @@
 /* Service worker — mise en cache complète pour usage hors-ligne */
-var CACHE = 'cnc-anass-v41';
-  var APP_VERSION = '3.5.1';
+var CACHE = 'cnc-anass-v42';
+  var APP_VERSION = '3.5.2';
 var ASSETS = [
   './', './index.html', './privacy-policy.html', './app.css', './app.js', './manifest.webmanifest',
   './pdfs.js', './vendor/pdf.min.js', './vendor/pdf.worker.min.js',

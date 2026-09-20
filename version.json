@@ -1,9 +1,10 @@
 {
-  "version": "3.5.1",
+  "version": "3.5.2",
   "date": "2026-09-20",
-  "cache": "cnc-anass-v41",
+  "cache": "cnc-anass-v42",
   "modules": 31,
   "nouveautes": [
+    "Message d’accueil à chaque ouverture pour encourager les avis, les améliorations et le partage de documents par WhatsApp",
     "Contact WhatsApp 0710 71 37 72 pour signaler un problème, proposer une amélioration ou envoyer des documents",
     "Nouvel écran de célébration quand l’objectif quotidien est atteint, avec série et calendrier des 7 jours",
     "Plan de préparation personnalisé : date du concours modifiable et rythme quotidien recalculé",
