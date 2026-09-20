@@ -344,6 +344,7 @@ html[data-theme="dark"] .lesson .fiche>b.title{color:var(--green)}
 .lesson-sources li{margin:8px 0;line-height:1.45}
 .lesson-sources a{color:var(--blue-dk);font-weight:700;text-decoration:underline}
 .lesson-sources .source-direct-link{display:inline-flex;flex-wrap:wrap;align-items:center;gap:5px 10px}.lesson-sources .source-direct-link>span{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--blue-bg);color:var(--blue-dk);font-size:11px;font-weight:900;text-decoration:none}
+.abbreviation-box{margin:14px 0;border-color:var(--purple);background:var(--card2)}.abbreviation-box h3{margin:0 0 10px;color:var(--purple);font-size:16px}.abbreviation-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}.abbreviation-grid>div{display:grid;grid-template-columns:auto 1fr;align-items:start;gap:8px;padding:8px 10px;border-radius:10px;background:var(--card)}.abbreviation-grid b{min-width:48px;color:var(--purple);font-size:12.5px}.abbreviation-grid span{color:var(--ink2);font-size:12px;line-height:1.4}@media(max-width:520px){.abbreviation-grid{grid-template-columns:1fr}}
 .unit-source{margin-top:4px;color:var(--ink2);font-size:11px;line-height:1.35}
 .source-official{background:var(--green-bg);color:var(--green-dk)}
 html[data-theme="dark"] .lesson-sources h3,html[data-theme="dark"] .lesson-sources a{color:var(--blue)}

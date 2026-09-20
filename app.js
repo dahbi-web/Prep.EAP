@@ -97,7 +97,7 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.5.6';
+var APP_VERSION = '3.5.7';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -145,6 +145,20 @@ var DOC_SOURCES = {
   30: [{label:'Dossier local — 30- La Loi 11-22 Agence du Sang et Ses Dérivés.pdf', local:true}],
   31: [{label:'Dossier local — 31- CS. SROS. CSN. CSR.pdf', local:true}]
 };
+var ABBREVIATIONS = {
+  'SNS':'Système National de Santé','OMS':'Organisation Mondiale de la Santé','MSPS':'Ministère de la Santé et de la Protection Sociale','GST':'Groupement Sanitaire Territorial','HAS':'Haute Autorité de Santé','CHU':'Centre Hospitalier Universitaire','ESSP':'Établissements de Soins de Santé Primaires','RESSP':'Réseau des Établissements de Soins de Santé Primaires','RH':'Réseau Hospitalier','RISUM':'Réseau Intégré des Soins d’Urgence Médicale','REMS':'Réseau des Établissements Médico-Sociaux','SROS':'Schéma Régional de l’Offre de Soins','SRES':'Service du Réseau des Établissements Sanitaires','DRS':'Direction Régionale de la Santé','DPRF':'Direction de la Planification et des Ressources Financières','DRH':'Direction des Ressources Humaines','DELM':'Direction de l’Épidémiologie et de la Lutte contre les Maladies','DMP':'Direction du Médicament et de la Pharmacie','DHSA':'Direction des Hôpitaux et des Soins Ambulatoires','DEM':'Direction des Équipements et de la Maintenance','INH':'Institut National d’Hygiène','CNTSH':'Centre National de Transfusion Sanguine et d’Hématologie','CAPM':'Centre Anti Poison et de Pharmacovigilance du Maroc','LNCM':'Laboratoire National de Contrôle des Médicaments','ENSP':'École Nationale de Santé Publique','ISPITS':'Instituts Supérieurs des Professions Infirmières et Techniques de Santé','CMDP':'Conseil des Médecins, Dentistes et Pharmaciens','PEH':'Projet d’Établissement Hospitalier','PMR':'Projet Médical Régional','AMO':'Assurance Maladie Obligatoire','CNSS':'Caisse Nationale de Sécurité Sociale','CNOPS':'Caisse Nationale des Organismes de Prévoyance Sociale','ANAM':'Agence Nationale de l’Assurance Maladie','RAMED':'Régime d’Assistance Médicale','CMB':'Couverture Médicale de Base','RSU':'Registre Social Unifié','AMO-TNS':'AMO des Travailleurs Non-Salariés','AMO-TADAMON':'AMO destinée aux personnes incapables d’acquitter les cotisations','ALD':'Affection de Longue Durée','ALC':'Affection Lourde et Coûteuse','AES':'Accident d’Exposition au Sang','MDO':'Maladie à Déclaration Obligatoire','VIH':'Virus de l’Immunodéficience Humaine','SIDA':'Syndrome d’Immunodéficience Acquise','VHB':'Virus de l’Hépatite B','VHC':'Virus de l’Hépatite C','HBV':'Hepatitis B Virus','HIV':'Human Immunodeficiency Virus','HPV':'Papillomavirus Humain','SRAS':'Syndrome Respiratoire Aigu Sévère','TIAC':'Toxi-Infection Alimentaire Collective','PNI':'Programme National d’Immunisation','HTA':'Hypertension Artérielle','BPCO':'Bronchopneumopathie Chronique Obstructive','AVC':'Accident Vasculaire Cérébral','IVG':'Interruption Volontaire de Grossesse','SAMU':'Service d’Aide Médicale Urgente','PEC':'Prise En Charge','IEC':'Information, Éducation et Communication','PIB':'Produit Intérieur Brut','PNB':'Produit National Brut','IDH':'Indice de Développement Humain','HCP':'Haut-Commissariat au Plan','ODD':'Objectifs de Développement Durable','OMD':'Objectifs du Millénaire pour le Développement','OIT':'Organisation Internationale du Travail','OCDE':'Organisation de Coopération et de Développement Économiques','ONG':'Organisation Non Gouvernementale','PPP':'Partenariat Public-Privé','TNR':'Tarif National de Référence','TNS':'Travailleur Non-Salarié','PDCA':'Planifier, Déployer, Contrôler, Agir','ISO':'Organisation Internationale de Normalisation','QCM':'Questionnaire à Choix Multiple','CSU':'Centre de Santé Urbain','CSR':'Centre de Santé Rural','CSN':'Carte Sanitaire Nationale','PAA':'Plan d’Action Annuel','PA':'Plan d’Action','EIG':'Événement Indésirable Grave'
+};
+function abbreviationBox(u) {
+  var text = stripTags([u.t, u.lesson].concat((u.qs || []).map(function (q) { return q.q + ' ' + q.o.join(' '); }), (u.cards || []).map(function (c) { return c.f + ' ' + c.b; })).join(' '));
+  var found = Object.keys(ABBREVIATIONS).filter(function (abbr) {
+    var rx = new RegExp('(^|[^A-ZÀ-ÖØ-Þ0-9-])' + abbr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=$|[^A-ZÀ-ÖØ-Þ0-9-])');
+    return rx.test(text);
+  });
+  if (!found.length) return '';
+  return '<aside class="card abbreviation-box"><h3>🔤 Abréviations à connaître</h3><div class="abbreviation-grid">' + found.map(function (abbr) {
+    return '<div><b>' + esc(abbr) + '</b><span>' + esc(ABBREVIATIONS[abbr]) + '</span></div>';
+  }).join('') + '</div></aside>';
+}
 function sourcePageLabel(pages) {
   if (!pages) return '';
   return /\bp\.?\s*\d/i.test(String(pages)) ? String(pages).replace(/\bp\.?\s*/i, 'p. ') : 'section ' + String(pages);
@@ -1178,7 +1192,7 @@ function vLesson(did, ui) {
   window.PREP_SPEAK_TEXT = (u.lesson || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   var s = ust(d.id, ui); s.lesson = 1; save();
   return bar(u.t, 'doc/' + d.id) + '<div class="wrap">' + legendHL() +
-    sourceBox(d.id, ui) + '<div class="card lesson">' +
+    abbreviationBox(u) + sourceBox(d.id, ui) + '<div class="card lesson">' +
     rich(decorate(u.lesson) || '<p class="muted">Pas de leçon pour cette unité.</p>') + '</div>' +
     '<button class="btn" data-go="quiz/' + d.id + '/' + ui + '">Passer au quiz →</button>' +
     '<div class="spacer"></div>' +
