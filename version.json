@@ -1,9 +1,10 @@
 {
-  "version": "3.5.5",
+  "version": "3.5.6",
   "date": "2026-09-20",
-  "cache": "cnc-anass-v45",
+  "cache": "cnc-anass-v46",
   "modules": 31,
   "nouveautes": [
+    "Les 31 PDF de cours sont intégrés dans le fichier autonome et s’ouvrent directement à la page demandée",
     "Lecteur PDF corrigé : repli automatique vers la source GitHub quand le fichier local est absent",
     "Module SNS complété : pages 30 à 47 restaurées avec directions centrales, DRS, délégations et SRES",
     "Références cliquables dans toutes les leçons : ouverture directe du PDF source à la première page indiquée",

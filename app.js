@@ -97,7 +97,7 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.5.5';
+var APP_VERSION = '3.5.6';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -866,13 +866,18 @@ function vPdfView(index, startPage, backDid, backUi) {
   var href = 'cours-pdf/' + encodeURIComponent(p[2]);
   var fallback = githubRawFile('cours-pdf', p[2]);
   var back = backDid !== undefined && backUi !== undefined ? 'lesson/' + backDid + '/' + backUi : 'pdf';
-  return bar(p[1], back) + '<div class="pdf-reader" data-pdf-src="' + href + '" data-pdf-fallback="' + esc(fallback) + '" data-pdf-page="' + Math.max(1, +(startPage || 1)) + '">' +
+  return bar(p[1], back) + '<div class="pdf-reader" data-pdf-src="' + href + '" data-pdf-embedded="' + esc(p[2]) + '" data-pdf-fallback="' + esc(fallback) + '" data-pdf-page="' + Math.max(1, +(startPage || 1)) + '">' +
     '<div class="pdf-toolbar"><button class="pdf-tool" id="pdfPrev">←</button><span id="pdfPage">Page…</span><button class="pdf-tool" id="pdfNext">→</button><button class="pdf-tool" id="pdfZoomOut">−</button><span id="pdfZoom">100%</span><button class="pdf-tool" id="pdfZoomIn">+</button></div>' +
     '<div class="pdf-status" id="pdfStatus">Chargement du PDF…</div><div class="pdf-canvas-wrap"><canvas id="pdfCanvas"></canvas></div>' +
     '<div class="pdf-download"><a class="btn ghost sm" download href="' + href + '">⬇️ Télécharger le PDF</a></div></div>';
 }
 
 var PDF_READER = { doc: null, page: 1, scale: 1.15, rendering: false, pending: null };
+function pdfBase64Bytes(value) {
+  var raw = atob(value), bytes = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+  return bytes;
+}
 function initPdfReader() {
   var box = ROOT.querySelector('[data-pdf-src]');
   if (!box) return;
@@ -882,6 +887,8 @@ function initPdfReader() {
   var requestedPage = Math.max(1, +(box.getAttribute('data-pdf-page') || 1));
   PDF_READER = { doc: null, page: requestedPage, scale: 1.15, rendering: false, pending: null };
   var fallbackSrc = box.getAttribute('data-pdf-fallback');
+  var embeddedName = box.getAttribute('data-pdf-embedded');
+  var embeddedB64 = embeddedName && window.PREP_COURSE_PDFS_B64 && window.PREP_COURSE_PDFS_B64[embeddedName];
   function loadPdf(src, usingFallback) {
     window.pdfjsLib.getDocument(src).promise.then(function (doc) {
       PDF_READER.doc = doc; status.style.display = 'none';
@@ -892,7 +899,12 @@ function initPdfReader() {
       else status.textContent = 'Impossible d’afficher ce PDF. Vérifiez la connexion ou utilisez Télécharger.';
     });
   }
-  loadPdf(box.getAttribute('data-pdf-src'), false);
+  if (embeddedB64) {
+    status.textContent = 'Ouverture de la page ' + requestedPage + '…';
+    window.pdfjsLib.getDocument({ data: pdfBase64Bytes(embeddedB64) }).promise.then(function (doc) {
+      PDF_READER.doc = doc; status.style.display = 'none'; renderPdfPage(Math.min(requestedPage, doc.numPages));
+    }).catch(function () { status.textContent = 'Impossible d’ouvrir le PDF intégré.'; });
+  } else loadPdf(box.getAttribute('data-pdf-src'), false);
   el('pdfPrev').onclick = function () { if (PDF_READER.page > 1) renderPdfPage(PDF_READER.page - 1); };
   el('pdfNext').onclick = function () { if (PDF_READER.doc && PDF_READER.page < PDF_READER.doc.numPages) renderPdfPage(PDF_READER.page + 1); };
   el('pdfZoomOut').onclick = function () { PDF_READER.scale = Math.max(.65, PDF_READER.scale - .15); renderPdfPage(PDF_READER.page); };

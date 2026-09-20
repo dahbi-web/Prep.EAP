@@ -37,8 +37,14 @@ def inline(match):
             page.name: base64.b64encode(page.read_bytes()).decode("ascii")
             for page in sorted((BASE / "concours-commun").glob("sujet-*.html"))
         }
-        payload = json.dumps(viewers, ensure_ascii=False).replace("</", "<\\/")
-        embedded = "<script>window.CNC_CONCOURS_VIEWERS_B64=" + payload + ";</script>\n"
+        course_pdfs = {
+            page.name: base64.b64encode(page.read_bytes()).decode("ascii")
+            for page in sorted((BASE / "cours-pdf").glob("*.pdf"))
+        }
+        viewer_payload = json.dumps(viewers, ensure_ascii=False).replace("</", "<\\/")
+        pdf_payload = json.dumps(course_pdfs, ensure_ascii=False).replace("</", "<\\/")
+        embedded = ("<script>window.CNC_CONCOURS_VIEWERS_B64=" + viewer_payload +
+                    ";window.PREP_COURSE_PDFS_B64=" + pdf_payload + ";</script>\n")
     return embedded + "<script>\n" + code + "\n</script>"
 
 html = re.sub(r'<script src="([^"]+)"></script>', inline, html)
