@@ -24,6 +24,50 @@ if (SNS_DOC) {
     );
   }
 }
+
+/* Complément exhaustif du support SNS, pages 30 à 39. */
+if (SNS_DOC) {
+  var centralUnit = SNS_DOC.units.find(function (u) { return u.pages === 'p.30-39'; });
+  if (centralUnit) {
+    centralUnit.lesson += '<h3>📋 Attributions détaillées à connaître</h3>' +
+      '<p><b>DPRF - Direction de la planification et des ressources financières :</b> élabore les plans et programmes sanitaires, conduit les études, prépare et suit la <b>carte sanitaire</b>, coordonne le budget et la comptabilité, développe l’économie de la santé et assure la coopération.</p>' +
+      '<p><b>DRH - Direction des ressources humaines :</b> évalue les besoins en personnel, assure le recrutement, l’affectation, la gestion administrative et des carrières, la formation initiale et continue, les postes, les congés de maladie et les œuvres sociales.</p>' +
+      '<p><b>DELM - Direction de l’épidémiologie et de la lutte contre les maladies :</b> exploite la surveillance épidémiologique, prépare les programmes de prévention et de lutte contre les maladies, protège le milieu, contrôle l’hygiène et la sécurité sanitaire des denrées alimentaires et suit la radioprotection.</p>' +
+      '<p><b>DMP - Direction du médicament et de la pharmacie :</b> prépare la politique pharmaceutique ; fixe les normes, encadre les prix et la liste des médicaments essentiels ; contrôle la qualité, la sécurité et l’usage des médicaments ; instruit les visas, autorisations et inspections.</p>' +
+      '<p><b>Direction de la population :</b> met en œuvre les programmes de planification familiale, santé maternelle et infantile, santé scolaire et universitaire, nutrition, réhabilitation, gériatrie, ainsi que l’information, l’éducation et la communication (IEC).</p>' +
+      '<p><b>DHSA - Direction des hôpitaux et des soins ambulatoires :</b> organise et coordonne les activités hospitalières, les soins ambulatoires, les urgences, l’assistance médicale et la transfusion sanguine.</p>' +
+      '<p><b>DEM - Direction des équipements et de la maintenance :</b> programme et suit les bâtiments et investissements, les équipements biomédicaux, leur maintenance et le patrimoine du Ministère.</p>' +
+      '<p><b>Direction de la réglementation et du contentieux :</b> élabore et suit les textes juridiques, instruit les litiges et contentieux, et veille à l’encadrement des professions réglementées.</p>' +
+      '<p><b>Directions et divisions complémentaires :</b> la direction de l’approvisionnement en médicaments et produits de santé organise les besoins, l’acquisition, le stockage et la distribution ; la direction de la protection sociale des travailleurs traite la santé et la protection sociale au travail. Les divisions citées concernent le parc auto et les affaires générales, l’approvisionnement, ainsi que l’informatique et les méthodes.</p>' +
+      '<h3>🔬 Services assimilés à des services centraux</h3>' +
+      '<p>À retenir sans les confondre avec les directions régionales ou les délégations : <b>INH</b> (Institut national d’hygiène), <b>CNTSH</b> (Centre national de transfusion sanguine et d’hématologie), <b>Centre national de radioprotection</b>, <b>ENSP</b> (École nationale de santé publique), <b>CAPM</b> (Centre antipoison et de pharmacovigilance du Maroc), <b>LNCM</b> (Laboratoire national de contrôle des médicaments), <b>Institut Pasteur du Maroc</b> et <b>Laboratoire national de virologie</b>.</p>' +
+      '<div class="warn">⚠️ À ne pas confondre : la DMP réglemente et contrôle le médicament ; la direction de l’approvisionnement assure sa disponibilité. La DELM surveille les maladies ; l’INH est un service assimilé.</div>';
+
+    centralUnit.qs = centralUnit.qs.concat([
+      {q:'Quelle direction prépare et suit la carte sanitaire ?',o:['La DPRF','La DHSA','La DELM','La DMP'],c:0,e:'La DPRF conduit les études et la planification, notamment la carte sanitaire.'},
+      {q:'La gestion des carrières, des postes et des congés de maladie relève de :',o:['La DRH','La DEM','La Direction de la population','La DPRF'],c:0,e:'Ces attributions font partie de la gestion administrative du personnel par la DRH.'},
+      {q:'Le contrôle sanitaire des denrées alimentaires est une attribution de :',o:['La DELM','La DMP','La DHSA','La DEM'],c:0,e:'La DELM intervient dans la protection du milieu, l’hygiène et le contrôle sanitaire des denrées.'},
+      {q:'Quelle direction instruit notamment les visas, autorisations et inspections pharmaceutiques ?',o:['La DMP','La DELM','La DPRF','La Direction de la population'],c:0,e:'La DMP encadre la réglementation, la qualité et le contrôle du médicament.'},
+      {q:'La santé scolaire et universitaire relève principalement de :',o:['La Direction de la population','La DHSA','La DRH','La Direction de la réglementation'],c:0,e:'Elle figure parmi les programmes portés par la Direction de la population.'},
+      {q:'La disponibilité par achat, stockage et distribution des médicaments relève de :',o:['La Direction de l’approvisionnement en médicaments et produits de santé','La DMP seule','La DEM','Le CNTSH'],c:0,e:'Cette direction assure la chaîne d’approvisionnement ; elle est distincte de la DMP.'},
+      {q:'Le CAPM est :',o:['Le Centre antipoison et de pharmacovigilance du Maroc','Une direction régionale','Un service hospitalier','Une division de la DPRF'],c:0,e:'Le CAPM est un service assimilé à un service central.'},
+      {q:'Le LNCM a pour mission centrale le contrôle des :',o:['Médicaments','Bâtiments hospitaliers','Ressources humaines','Budgets régionaux'],c:0,e:'LNCM signifie Laboratoire national de contrôle des médicaments.'},
+      {q:'Quel organisme est un service assimilé et non une direction centrale ?',o:['L’Institut Pasteur du Maroc','La Direction de la population','La Direction des équipements et de la maintenance','La DPRF'],c:0,e:'L’Institut Pasteur du Maroc figure parmi les services assimilés.'},
+      {q:'Quel couple est correctement associé ?',o:['DHSA : hôpitaux, soins ambulatoires et urgences','DEM : recrutement et formation','DRH : qualité des médicaments','DMP : maintenance biomédicale'],c:0,e:'La DHSA coordonne les activités hospitalières, ambulatoires, les urgences et l’assistance.'}
+    ]);
+    centralUnit.cards = centralUnit.cards.concat([
+      {f:'DPRF - rôle détaillé',b:'Plans et programmes · études · carte sanitaire · budget/comptabilité · économie de la santé · coopération'},
+      {f:'DRH - rôle détaillé',b:'Besoins · recrutement · affectation · carrières · formation · postes · congés maladie · œuvres sociales'},
+      {f:'DELM - rôle détaillé',b:'Surveillance épidémiologique · programmes de lutte · protection du milieu · denrées alimentaires · radioprotection'},
+      {f:'DMP - rôle détaillé',b:'Politique pharmaceutique · normes · prix · médicaments essentiels · qualité · visas/autorisations · inspection'},
+      {f:'Direction de la population',b:'Planification familiale · mère-enfant · scolaire/universitaire · nutrition · réhabilitation · gériatrie · IEC'},
+      {f:'Réglementation et contentieux',b:'Textes juridiques · litiges · contentieux · professions réglementées'},
+      {f:'Approvisionnement en médicaments',b:'Besoins · acquisition · stockage · distribution des médicaments et produits de santé'},
+      {f:'Services assimilés - liste complète',b:'INH · CNTSH · Centre national de radioprotection · ENSP · CAPM · LNCM · Institut Pasteur Maroc · Laboratoire national de virologie'}
+    ]);
+  }
+}
+if (window.CNC_APPLY_CONTENT_REVIEW) window.CNC_APPLY_CONTENT_REVIEW(DOCS);
 DOCS.sort(function (a, b) { return a.id - b.id; });
 
 // index rapide
@@ -322,11 +366,17 @@ function load() {
   try {
     var raw = localStorage.getItem(KEY);
     if (!raw) return blank();
-    var s = JSON.parse(raw); var b = blank();
+    var s = JSON.parse(raw); if (!isValidProgress(s)) return blank();
+    var b = blank();
     for (var k in b) if (!(k in s)) s[k] = b[k];
     migrateSns3047Progress(s);
     return s;
   } catch (e) { return blank(); }
+}
+function isValidProgress(s) {
+  return !!(s && typeof s === 'object' && (s.v === 2 || typeof s.v === 'number') &&
+    s.units && typeof s.units === 'object' && s.srs && typeof s.srs === 'object' &&
+    s.hist && typeof s.hist === 'object' && s.seen && typeof s.seen === 'object');
 }
 function migrateSns3047Progress(s) {
   if (!s || s.sns3047Migrated) return;
@@ -345,7 +395,12 @@ function migrateSns3047Progress(s) {
   s.sns3047Migrated = true;
 }
 var saveT = null;
-function save() { clearTimeout(saveT); saveT = setTimeout(function () { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }, 120); }
+function save() { clearTimeout(saveT); saveT = setTimeout(function () {
+  try {
+    if (!isValidProgress(S)) throw new Error('invalid-progress');
+    localStorage.setItem(KEY, JSON.stringify(S));
+  } catch (e) { toast('⚠️ Progression non enregistrée : stockage indisponible'); }
+}, 120); }
 
 function rollDay() {
   var t = today();
@@ -1806,7 +1861,14 @@ function act(a, b) {
         var f = inp.files[0]; if (!f) return;
         var rd = new FileReader();
         rd.onload = function () {
-          try { var o = JSON.parse(rd.result); if (o && o.v) { S = o; save(); toast('Progression importée'); render(); } else toast('Fichier invalide'); }
+          try {
+            var o = JSON.parse(rd.result);
+            if (!isValidProgress(o)) { toast('Fichier invalide ou incompatible'); return; }
+            if (!confirm('Importer cette progression et remplacer celle de cet appareil ?')) return;
+            try { localStorage.setItem(KEY + '_before_import', JSON.stringify(S)); } catch (backupErr) { }
+            var b = blank(); for (var k in b) if (!(k in o)) o[k] = b[k];
+            migrateSns3047Progress(o); S = o; save(); toast('Progression importée · sauvegarde précédente conservée'); render();
+          }
           catch (e) { toast('Fichier illisible'); }
         };
         rd.readAsText(f);

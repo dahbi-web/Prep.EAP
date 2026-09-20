@@ -1,9 +1,11 @@
 {
-  "version": "3.5.7",
+  "version": "3.5.10",
   "date": "2026-09-20",
-  "cache": "cnc-anass-v47",
+  "cache": "cnc-anass-v50",
   "modules": 31,
   "nouveautes": [
+    "Sauvegardes renforcées : validation des imports, confirmation avant remplacement et copie locale de la progression précédente",
+    "Unité SNS p.30-39 complétée : attributions détaillées des directions, services assimilés, QCM et flashcards",
     "Encadré automatique des abréviations en haut de chaque leçon, adapté au contenu de l’unité",
     "Les 31 PDF de cours sont intégrés dans le fichier autonome et s’ouvrent directement à la page demandée",
     "Lecteur PDF corrigé : repli automatique vers la source GitHub quand le fichier local est absent",

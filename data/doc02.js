@@ -4,7 +4,7 @@ id:2,code:"02",title:"Règlement intérieur des hôpitaux",sub:"Arrêté 456-11 
 units:[
 
 /* U1 */
-{t:`Le directeur et l'organisation administrative`,ic:`🧑‍💼`,pages:`I`,
+{t:`Le directeur et l'organisation administrative`,ic:`🧑‍💼`,pages:`p.2-3`,
 lesson:`<h3>📜 Le texte</h3>
 <p><b>Arrêté de la ministre de la Santé n° 456-11</b> du <b>23 Rejeb 1431 (6 juillet 2010)</b> portant règlement intérieur des hôpitaux, pris conformément au <b>décret n° 2-06-656</b>.</p>
 <h3>🧑‍💼 Le directeur</h3>
@@ -31,7 +31,7 @@ cards:[
 ]},
 
 /* U2 */
-{t:`Les 3 pôles de gestion`,ic:`🏗️`,pages:`II`,
+{t:`Les 3 pôles de gestion`,ic:`🏗️`,pages:`p.4-7`,
 lesson:`<h3>🏗️ Chaque hôpital est organisé en 3 pôles</h3>
 <p><b>1. Pôle des affaires médicales (PAM)</b> — sous la responsabilité d'un <b>médecin</b><br>
 <b>2. Pôle des soins infirmiers (PSI)</b> — sous la responsabilité d'un <b>cadre titulaire du diplôme d'État d'infirmier</b><br>
@@ -61,7 +61,7 @@ cards:[
 ]},
 
 /* U3 */
-{t:`Les chefs de pôle`,ic:`👔`,pages:`II`,
+{t:`Les chefs de pôle`,ic:`👔`,pages:`p.5-7`,
 lesson:`<h3>🩺 Le chef du pôle des affaires médicales</h3>
 <p>Sous l'autorité du directeur, il assure la gestion du pôle et <b>coordonne l'activité professionnelle et scientifique</b> de l'établissement. Il est chargé de :</p>
 <p>• mettre en place des mécanismes favorisant la <b>promotion des bonnes pratiques de soins</b><br>
@@ -96,7 +96,7 @@ cards:[
 ]},
 
 /* U4 */
-{t:`Comité d'établissement et comité de suivi`,ic:`🏛️`,pages:`III`,
+{t:`Comité d'établissement et comité de suivi`,ic:`🏛️`,pages:`p.7-9`,
 lesson:`<h3>📋 Les 6 instances de concertation et d'appui</h3>
 <p>1. Le <b>comité d'établissement</b> · 2. Le <b>comité de suivi et d'évaluation</b> · 3. Le <b>CMDP</b> (conseil des médecins, dentistes et pharmaciens) · 4. Le <b>CII</b> (conseil des infirmiers et infirmières) · 5. Le <b>CLIN</b> (comité de lutte contre les infections nosocomiales) · 6. Le <b>comité de gestion du centre hospitalier</b>.</p>
 <h3>1️⃣ Le comité d'établissement</h3>
@@ -125,7 +125,7 @@ cards:[
 ]},
 
 /* U5 */
-{t:`Le CMDP et le CII`,ic:`👥`,pages:`III`,
+{t:`Le CMDP et le CII`,ic:`👥`,pages:`p.10-11`,
 lesson:`<h3>3️⃣ Le conseil des médecins, des dentistes et des pharmaciens (CMDP)</h3>
 <p><b>Composition</b> : des <b>représentants élus</b> des médecins, médecins dentistes et pharmaciens en fonction à l'hôpital, à raison de <b>deux représentants par département ou service clinique ou médico-technique</b>, et <b>deux représentants des autres services</b> ne relevant pas des départements. Le <b>directeur</b> et le <b>chef du PAM</b> en font partie <b>d'office</b>.</p>
 <p>Les membres élisent parmi eux un <b>président sur la base de sa notoriété clinique</b>.</p>
@@ -156,7 +156,7 @@ cards:[
 ]},
 
 /* U6 */
-{t:`Le CLIN et le comité de gestion`,ic:`🦠`,pages:`III`,
+{t:`Le CLIN et le comité de gestion`,ic:`🦠`,pages:`p.11-14`,
 lesson:`<h3>5️⃣ Le comité de lutte contre les infections nosocomiales (CLIN)</h3>
 <p><b>Composition</b> : outre le <b>directeur</b> et les <b>chefs de pôles</b> — le <b>président du CMDP</b> · les responsables du <b>laboratoire</b> et de la <b>pharmacie hospitalière</b> · <b>un médecin de chacune des spécialités</b> disponibles · l'<b>épidémiologiste</b> en fonction à l'hôpital lorsqu'il existe · un <b>ingénieur biomédical</b> · le représentant de l'<b>équipe opérationnelle d'hygiène</b>.</p>
 <p><b>Le président est désigné par et parmi les membres du comité.</b> Réunion : <b>au moins une fois par trimestre</b>. <b>Secrétariat : le chef du pôle des affaires médicales.</b></p>
@@ -183,7 +183,7 @@ cards:[
 ]},
 
 /* U7 */
-{t:`Organisation des soins selon la capacité litière`,ic:`🛏️`,pages:`IV`,
+{t:`Organisation des soins selon la capacité litière`,ic:`🛏️`,pages:`p.15-16`,
 lesson:`<h3>🏗️ Départements et services</h3>
 <p>Le <b>département ou service médical</b> réunit les unités de soins et de services d'une <b>même spécialité ou de spécialités différentes</b> qui partagent le <b>même plateau technique</b>, s'adressent à la <b>même population cible</b>, ou nécessitent une <b>organisation commune</b>.</p>
 <p>Un service médical peut être <b>médical</b>, <b>chirurgical</b> ou <b>médico-technique</b>. Les unités de soins sont créées <b>sur proposition du comité d'établissement</b>.</p>
@@ -212,7 +212,7 @@ cards:[
 ]},
 
 /* U8 */
-{t:`Chefs de département, pharmacie et SAA`,ic:`💊`,pages:`IV`,
+{t:`Chefs de département, pharmacie et SAA`,ic:`💊`,pages:`p.17-20`,
 lesson:`<h3>🩺 Le chef de département</h3>
 <p>Chaque département est placé sous l'autorité d'un <b>médecin chef assisté par un infirmier chef</b>. Il organise le fonctionnement de la structure <b>dans le respect de la responsabilité médicale de chaque praticien</b> : planifier et gérer les ressources · coordonner l'élaboration <b>multidisciplinaire</b> de la programmation · assurer la <b>présence des ressources médicales</b> et établir les <b>listes de garde et d'astreinte</b> · veiller aux règles d'<b>éthique et de déontologie</b> · <b>encadrer les étudiants et stagiaires</b>.</p>
 <p><b>Conjointement</b> avec l'infirmier chef de département et les chefs d'unités : <b>évaluer périodiquement la qualité</b> des soins · évaluer les <b>besoins de formation continue</b> · s'assurer du respect des règles d'<b>hygiène et d'asepsie</b> · élaborer les <b>protocoles cliniques généraux</b> et les <b>chemins thérapeutiques</b>.</p>
@@ -242,7 +242,7 @@ cards:[
 ]},
 
 /* U9 */
-{t:`L'admission ordinaire`,ic:`🚪`,pages:`V`,
+{t:`L'admission ordinaire`,ic:`🚪`,pages:`p.20-22`,
 lesson:`<h3>🚪 Les 5 modes d'utilisation des prestations</h3>
 <p>1. L'<b>hospitalisation</b>, y compris l'<b>hôpital de jour</b>, en admission <b>ordinaire</b> ou en <b>urgence</b><br>
 2. Les prestations et services de <b>diagnostic</b> rendus à titre externe<br>
@@ -279,7 +279,7 @@ cards:[
 ]},
 
 /* U10 */
-{t:`L'admission en urgence et les mineurs`,ic:`🚨`,pages:`V`,
+{t:`L'admission en urgence et les mineurs`,ic:`🚨`,pages:`p.22-26`,
 lesson:`<h3>🚨 L'admission en urgence</h3>
 <p>Tout patient, blessé ou parturiente se présentant en situation d'urgence <b>doit être reçu, examiné et admis</b> en hospitalisation si son état l'exige, <b>même en cas d'indisponibilité de lits</b>. <b>La procédure de facturation n'est entamée qu'après engagement de la prise en charge médicale.</b></p>
 <p>Si l'état n'est <b>pas jugé médicalement urgent</b> : référence vers la structure appropriée, ou prise en charge directe <b>sous réserve de s'acquitter préalablement des frais</b>. Le patient admis aux urgences dont l'état n'exige pas l'hospitalisation doit, <b>avant sa sortie</b>, s'acquitter des frais auprès du SAA.</p>
@@ -316,7 +316,7 @@ cards:[
 ]},
 
 /* U11 */
-{t:`Les admissions particulières et le consentement`,ic:`⚖️`,pages:`V`,
+{t:`Les admissions particulières et le consentement`,ic:`⚖️`,pages:`p.26-30`,
 lesson:`<h3>🧠 Les malades mentaux</h3>
 <p>Hospitalisation <b>à leur demande ou à la demande de toute autre personne</b> publique ou privée, ou <b>mise en observation</b>. Lorsqu'elle est demandée par un tiers, la demande doit être faite <b>par écrit au directeur</b>.</p>
 <p>Dans tous les cas, l'hospitalisation ne peut être décidée qu'<b>au vu d'un certificat délivré par un médecin psychiatre</b>. Ce certificat <b>ne peut être délivré par un médecin parent ou allié</b> du malade ni par la personne qui demande l'hospitalisation.</p>
@@ -353,7 +353,7 @@ cards:[
 ]},
 
 /* U12 */
-{t:`Le dossier d'hospitalisation et les transferts`,ic:`📁`,pages:`VI`,
+{t:`Le dossier d'hospitalisation et les transferts`,ic:`📁`,pages:`p.30-32`,
 lesson:`<h3>📁 Le dossier d'hospitalisation</h3>
 <p>Constitué <b>pour chaque patient hospitalisé</b>, il est la <b>propriété de l'hôpital</b>, qui en assure la conservation. <b>Dès la sortie</b>, il est transmis au <b>service en charge des archives médicales</b> ; le directeur peut accorder un <b>délai supplémentaire</b> de conservation dans les unités de soins selon les besoins du service.</p>
 <p>Sous la responsabilité du <b>chef de département ou de service</b> et du <b>chef d'unité</b>, <b>praticiens et infirmiers</b> sont tenus de le remplir <b>au quotidien, exhaustivement et lisiblement</b>. Le personnel doit sauvegarder le <b>caractère confidentiel</b> des renseignements.</p>
@@ -388,7 +388,7 @@ cards:[
 ]},
 
 /* U13 */
-{t:`Les sorties`,ic:`🚶`,pages:`VII`,
+{t:`Les sorties`,ic:`🚶`,pages:`p.33-36`,
 lesson:`<h3>🚶 Les motifs de sortie</h3>
 <p>Le patient peut quitter l'hôpital <b>sur indication du médecin traitant</b>, lors d'un <b>transfert médicalement motivé</b>, ou <b>à sa demande</b>.</p>
 <h3>1️⃣ Sortie pour fin de traitement</h3>
