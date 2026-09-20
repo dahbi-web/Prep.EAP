@@ -371,6 +371,7 @@ html[data-theme="dark"] .node .cardbtn{color:var(--blue)}
 .source-ai{background:var(--purple-bg);color:var(--purple-dk)}
 .concours-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .concours-actions .btn{flex:1 1 150px;text-align:center;white-space:normal}
+.concours-actions-main{display:grid;grid-template-columns:1.25fr .75fr}.concours-actions-main .btn{width:100%}.concours-sheet-link{display:block;text-align:center;margin-top:14px;color:var(--sub);font-size:12px;font-weight:800;text-decoration:underline;text-underline-offset:3px}
 .q-explanation{margin:10px 0;line-height:1.55}
 .why-btn{margin-top:10px}
 .remember{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--gold-bg);color:var(--ink)}
@@ -382,3 +383,42 @@ html[data-theme="dark"] .node .cardbtn{color:var(--blue)}
 .update-copy{flex:1;min-width:0}.update-copy b,.update-copy span{display:block}.update-copy b{font-size:15px}.update-copy span{margin-top:3px;color:var(--sub);font-size:13px;line-height:1.4}
 .update-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}.update-notice .update-primary{width:auto;display:inline-flex;justify-content:center;align-items:center;margin:0;padding:9px 13px;text-transform:none;letter-spacing:0;white-space:nowrap;text-decoration:none}.update-later{border:0;background:transparent;color:var(--sub);font:inherit;font-weight:800;padding:9px;cursor:pointer;white-space:nowrap}
 @media(max-width:560px){.update-notice{align-items:stretch;flex-direction:column;gap:10px;padding:13px}.update-actions{display:grid;grid-template-columns:1fr 1fr}.update-notice .update-primary,.update-later{width:100%;box-sizing:border-box}.update-copy b{font-size:14px}}
+.focus-mode nav,.focus-mode .bottom-nav,.focus-mode header{display:none!important}.focus-mode .wrap{max-width:760px;padding-top:28px}.focus-mode .card{box-shadow:0 10px 30px #00000012}
+@media print{nav,.bottom-nav,header,button,.btn,.spacer{display:none!important}body{background:#fff!important;color:#111!important}.card{border:1px solid #bbb;box-shadow:none;break-inside:avoid}.wrap{max-width:none!important}}
+.pdf-viewer{height:calc(100vh - 170px);min-height:520px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#222}.pdf-viewer iframe{width:100%;height:100%;border:0;background:#fff}
+.pdf-reader{padding-bottom:110px;background:#20242b;min-height:calc(100vh - 70px)}
+.pdf-toolbar{position:sticky;top:58px;z-index:8;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:rgba(20,27,35,.96);color:#fff;border-bottom:1px solid #3a4653;font-weight:800}
+.pdf-tool{min-width:38px;height:38px;border:1px solid #536171;border-radius:10px;background:#293442;color:#fff;font-size:20px;font-weight:900}
+.pdf-toolbar span{font-size:12px;white-space:nowrap}.pdf-status{text-align:center;color:#fff;padding:40px 16px}.pdf-canvas-wrap{overflow:auto;padding:8px;min-height:65vh;text-align:center}.pdf-canvas-wrap canvas{display:inline-block;background:#fff;box-shadow:0 3px 15px #0008}.pdf-download{padding:12px 16px}.pdf-download .btn{max-width:420px;margin:auto}
+@media(max-width:380px){.pdf-toolbar{gap:4px;padding:8px 4px}.pdf-tool{min-width:34px;width:34px}.pdf-toolbar span{font-size:11px}}
+
+/* ---------- finition UI/UX mobile 3.4.2 ---------- */
+:root{--radius:20px;--shadow:0 8px 24px rgba(31,41,55,.06)}
+body{letter-spacing:.01em;background:radial-gradient(circle at 50% -180px,var(--green-bg),transparent 420px),var(--bg)}
+.app{max-width:680px;padding-bottom:calc(78px + var(--safe-b))}
+.wrap{padding:18px clamp(14px,4vw,24px)}
+h1{font-size:clamp(23px,6vw,30px);line-height:1.18;margin-bottom:6px}
+h2{font-size:18px;margin-top:24px}.sub{line-height:1.5}
+.topbar{min-height:58px;padding:10px clamp(12px,4vw,22px);box-shadow:0 1px 0 rgba(0,0,0,.03)}
+.topbar .ttl{font-size:16px}.iconbtn{min-width:42px;min-height:42px}
+.card,.mod,.node,.qa,.daily-step{box-shadow:var(--shadow);border-width:1px}
+.card{padding:18px;margin-bottom:14px}.mod,.node{padding:13px 14px;margin-bottom:12px}
+.btn{min-height:46px;text-transform:none;letter-spacing:.1px;font-size:14px;border-radius:14px;padding:12px 14px}
+.btn.sm{min-height:44px;padding:11px 12px;font-size:13px}
+.hero{padding:20px clamp(16px,4vw,24px) 26px;border-radius:0 0 30px 30px;box-shadow:0 12px 30px rgba(70,163,2,.16)}
+.hero h1{font-size:clamp(24px,6.2vw,32px);line-height:1.12}.goal-ring{padding:14px;border:1px solid rgba(255,255,255,.18)}
+.mode-switch{gap:10px}.mode-switch button{min-height:62px;padding:11px 12px;border-width:1px;box-shadow:var(--shadow)}
+.daily-step{min-height:64px;padding:13px 14px}.daily-num{width:34px;height:34px;flex:0 0 34px}
+.search{min-height:48px;border-width:1px;box-shadow:var(--shadow)}
+.nav{border-top:1px solid var(--line);box-shadow:0 -8px 28px rgba(15,23,42,.09)}
+.nav .in{max-width:680px;grid-template-columns:repeat(7,minmax(0,1fr))}
+.nav button{min-height:72px;padding:9px 2px 7px;font-size:9px}.nav button .ic{font-size:21px;margin-bottom:3px}.nav-label{overflow-wrap:normal;line-height:1.05}
+.pdf-course{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;overflow:hidden}
+.pdf-course-main{display:flex;align-items:center;gap:13px;min-width:0}.pdf-course-icon{display:grid;place-items:center;width:48px;height:48px;flex:0 0 48px;border-radius:15px;background:var(--blue-bg);font-size:25px}.pdf-course-copy{min-width:0}.pdf-course-copy b{display:block;font-size:15px;line-height:1.35}.pdf-course-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:236px}
+.pdf-toolbar{top:58px;min-height:58px;box-shadow:0 5px 20px #0005}.pdf-tool{min-width:42px;height:42px;cursor:pointer}.pdf-download{position:sticky;bottom:calc(76px + var(--safe-b));background:linear-gradient(transparent,#20242b 25%);padding:24px 16px 16px}
+@media(max-width:560px){.pdf-course{grid-template-columns:1fr}.pdf-course-actions{min-width:0}.row2{gap:8px}.card{padding:16px}}
+@media(max-width:390px){.wrap{padding-left:12px;padding-right:12px}.nav button{font-size:8px}.nav button .ic{font-size:19px}.pdf-course-actions{grid-template-columns:1fr}.readiness-grid{grid-template-columns:1fr}.hero .pill{font-size:11px;padding:4px 7px}}
+@media(min-width:700px){.app{border-left:1px solid var(--line);border-right:1px solid var(--line);box-shadow:0 0 50px rgba(15,23,42,.08)}}
+.settings-link{width:100%;display:flex;align-items:center;gap:14px;text-align:left;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0;box-shadow:var(--shadow);cursor:pointer}.settings-link span{display:flex;flex:1;flex-direction:column}.settings-link small{color:var(--sub);margin-top:3px;line-height:1.4}.settings-link strong{font-size:26px;color:var(--green)}
+.app-signature{display:flex;align-items:center;justify-content:center;gap:11px;padding:20px 8px 10px;color:var(--sub)}.app-signature-mark,.about-logo{display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,var(--green),var(--green-dk));font-weight:900;box-shadow:0 5px 14px rgba(70,163,2,.25)}.app-signature-mark{width:38px;height:38px;border-radius:11px}.app-signature b,.app-signature span{display:block}.app-signature span{font-size:11px;margin-top:1px}
+.legal-page{padding-bottom:110px}.about-hero{display:flex;align-items:center;gap:16px;padding:18px 4px 24px}.about-logo{width:72px;height:72px;border-radius:20px;font-size:34px}.about-hero h1{margin:0}.about-hero p{margin:2px 0;color:var(--sub)}.about-hero span{display:inline-block;background:var(--green-bg);color:var(--green-dk);border-radius:999px;padding:3px 9px;font-size:11px;font-weight:800}.legal-page .card h2{margin:0 0 10px}.legal-page .card p{font-size:14px;line-height:1.65;margin:8px 0;color:var(--ink2)}.legal-placeholder{padding:12px;border:1px dashed var(--orange);border-radius:12px;background:var(--gold-bg);color:var(--orange-dk);font-size:13px;font-weight:800}.legal-updated{text-align:center;color:var(--sub);font-size:12px}

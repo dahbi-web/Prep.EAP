@@ -1,9 +1,10 @@
 {
-  "version": "3.3.0",
-  "date": "2026-09-19",
-  "cache": "cnc-anass-v27",
+  "version": "3.5.1",
+  "date": "2026-09-20",
+  "cache": "cnc-anass-v41",
   "modules": 31,
   "nouveautes": [
+    "Contact WhatsApp 0710 71 37 72 pour signaler un problème, proposer une amélioration ou envoyer des documents",
     "Nouvel écran de célébration quand l’objectif quotidien est atteint, avec série et calendrier des 7 jours",
     "Plan de préparation personnalisé : date du concours modifiable et rythme quotidien recalculé",
     "Score de préparation sur 100 avec maîtrise, couverture de la banque et taux de réussite",
@@ -27,6 +28,7 @@
     "Charte du document source : emojis sur les titres et les listes, pastilles, citations, pieges",
     "Surlignage definition/date/chiffre/loi + legende",
     "Personnalisation de la terminologie (Le chemin, Évaluation intelligente, concours, Cartes, Statistiques, Mode diurne, Le son est activé)",
-    "Section Concours : 32 sujets et corrigés PDF intégrés"
+    "Section Concours : 32 sujets et corrigés PDF intégrés",
+    "Diagnostic hors ligne dans Réglages : version, connexion, stockage et progression"
   ]
 }

@@ -1,4 +1,4 @@
-# PrepMe — application de préparation aux concours (v3.0)
+# PrepMe — application de préparation aux concours (v3.3.0)
 
 Application type **Duolingo** pour préparer le concours : leçons courtes, QCM avec explications,
 flashcards, **cœurs**, **objectif quotidien**, **série (streak)**, **couronnes**, **révision espacée**
@@ -56,8 +56,10 @@ Pour l'installer comme une vraie application (icône, fenêtre sans barre d'adre
 3. Sur le téléphone, ouvre `http://192.168.1.20:8080` puis **Ajouter à l'écran d'accueil**.
    L'app est alors mise en cache : elle marche ensuite **sans Wi-Fi**.
 
-> APK Android : possible dans un second temps (empaquetage Capacitor). La PWA installée se comporte
-> déjà comme une application (icône, plein écran, hors ligne) sans passer par un fichier .apk.
+> **PWA et APK :** la PWA reste la version principale, installable depuis le navigateur. Une
+> version APK Android peut être distribuée en complément pour une installation hors ligne rapide.
+> Chaque mise à jour native nécessite un nouvel APK et une réinstallation manuelle ; la PWA peut
+> être mise à jour depuis le navigateur.
 
 ---
 
@@ -110,12 +112,17 @@ icons/                        icônes de l'application
 data/doc01.js … doc31.js      contenu : un fichier par module
 build_single.py               reconstruit CNC_ANASS_App_MOBILE.html après une modification
 MES_PREFERENCES.md            ⭐ comment je veux les choses (à relire avant toute modification)
-version.json                  numéro de version (à régénérer après tout ajout de contenu)
+version.json                  version 3.3.0 et cache `cnc-anass-v27`
 CNC_ANASS_App_MOBILE.html     ⭐ version autonome en un seul fichier (PC + téléphone)
 ```
 
 Pour ajouter un module plus tard : déposer `data/docXX.js` dans `data/`, ajouter la ligne
 `<script src="data/docXX.js"></script>` dans `index.html`, puis relancer `python build_single.py`.
+
+Après une mise à jour, faire **Ctrl+F5** au premier chargement pour récupérer la nouvelle version.
+
+Pour l’APK, vérifier le numéro de version dans Réglages avant installation et exporter la
+progression avant chaque mise à jour.
 
 La progression est enregistrée dans le navigateur (localStorage) : elle reste sur l'appareil.
 Utilise **Réglages → Exporter** pour la transférer d'un appareil à l'autre.

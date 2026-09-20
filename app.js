@@ -76,6 +76,9 @@ function quickQuestions() {
   shuffle(all).forEach(function (it) { if (!S.srs[it.k]) add(it); });
   return picked.length ? picked : shuffle(all).slice(0, 10);
 }
+function diagnosticQuestions() {
+  return shuffle(allQuestions(null)).slice(0, 20);
+}
 function allCards(filterDocId) {
   var out = [];
   DOCS.forEach(function (d) {
@@ -92,7 +95,10 @@ var KEY = 'cnc_anass_v2';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.3.0';
+var APP_VERSION = '3.5.1';
+var WHATSAPP_CONTACT_NUMBER = '212710713772';
+var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
+var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
 var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
 var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
 var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
@@ -771,14 +777,19 @@ function render() {
     case 'cards': html = vCardsStart(r[1], r[2]); break;
     case 'review': html = vReview(); break;
     case 'concours': html = vConcours(); break;
+    case 'concourspdf': html = vConcoursPdfView(r[1]); break;
+    case 'pdf': html = vPdfs(); break;
+    case 'pdfview': html = vPdfView(r[1]); break;
     case 'exam': html = vExamSetup(r[1]); break;
     case 'stats': html = vStats(); break;
     case 'set': html = vSettings(); break;
+    case 'about': html = vAbout(); break;
     case 'search': html = vSearch(); break;
     default: html = vHome();
   }
   ROOT.innerHTML = html + navBar(v);
   bind();
+  if (v === 'pdfview' || v === 'concourspdf') initPdfReader();
 }
 
 /* ------------------------------------------------------------ composants */
@@ -795,6 +806,7 @@ function navBar(v) {
     ['', '🏠', 'Accueil'],
     ['review', '🧠', 'Évaluation intelligente'],
     ['concours', '📝', 'concours'],
+    ['pdf', '📚', 'Cours PDF'],
     ['cards', '🃏', 'Cartes'],
     ['stats', '📊', 'Statistiques'],
     ['set', '⚙️', 'Réglages']
@@ -805,6 +817,59 @@ function navBar(v) {
     var label = it[2] === 'Évaluation intelligente' ? 'Évaluation<br>intelligente' : it[2];
     return '<button class="' + on.trim() + '" data-go="' + it[0] + '"><span class="ic">' + it[1] + '</span><span class="nav-label">' + label + '</span>' + dot + '</button>';
   }).join('') + '</div></div>';
+}
+function vPdfs() {
+  var list = window.PREP_PDFS || [];
+  var h = bar('Cours PDF', '') + '<div class="wrap"><h1>📚 Cours PDF</h1><div class="sub">Les documents sources des modules sont disponibles hors ligne dans la version PWA et l’APK.</div><div class="spacer"></div>';
+  list.forEach(function (p, i) {
+    var href = 'cours-pdf/' + encodeURIComponent(p[2]);
+    h += '<article class="card pdf-course"><div class="pdf-course-main"><div class="pdf-course-icon">📄</div><div class="pdf-course-copy"><b>' + esc(p[0] + '. ' + p[1]) + '</b><div class="sub">Lecture dans PrepMe · disponible hors ligne</div></div></div><div class="pdf-course-actions"><button class="btn blue sm" data-go="pdfview/' + i + '">👁️ Visualiser</button><a class="btn ghost sm" download href="' + href + '">⬇️ Télécharger</a></div></article>';
+  });
+  return h + '</div>';
+}
+function vPdfView(index) {
+  var p = (window.PREP_PDFS || [])[+index];
+  if (!p) return vPdfs();
+  var href = 'cours-pdf/' + encodeURIComponent(p[2]);
+  return bar(p[1], 'pdf') + '<div class="pdf-reader" data-pdf-src="' + href + '">' +
+    '<div class="pdf-toolbar"><button class="pdf-tool" id="pdfPrev">←</button><span id="pdfPage">Page…</span><button class="pdf-tool" id="pdfNext">→</button><button class="pdf-tool" id="pdfZoomOut">−</button><span id="pdfZoom">100%</span><button class="pdf-tool" id="pdfZoomIn">+</button></div>' +
+    '<div class="pdf-status" id="pdfStatus">Chargement du PDF…</div><div class="pdf-canvas-wrap"><canvas id="pdfCanvas"></canvas></div>' +
+    '<div class="pdf-download"><a class="btn ghost sm" download href="' + href + '">⬇️ Télécharger le PDF</a></div></div>';
+}
+
+var PDF_READER = { doc: null, page: 1, scale: 1.15, rendering: false, pending: null };
+function initPdfReader() {
+  var box = ROOT.querySelector('[data-pdf-src]');
+  if (!box) return;
+  var status = el('pdfStatus');
+  if (!window.pdfjsLib) { status.textContent = 'Lecteur PDF indisponible.'; return; }
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
+  PDF_READER = { doc: null, page: 1, scale: 1.15, rendering: false, pending: null };
+  window.pdfjsLib.getDocument(box.getAttribute('data-pdf-src')).promise.then(function (doc) {
+    PDF_READER.doc = doc; status.style.display = 'none'; renderPdfPage(1);
+  }).catch(function () { status.textContent = 'Impossible d’afficher ce PDF. Utilisez Télécharger pour le sauvegarder.'; });
+  el('pdfPrev').onclick = function () { if (PDF_READER.page > 1) renderPdfPage(PDF_READER.page - 1); };
+  el('pdfNext').onclick = function () { if (PDF_READER.doc && PDF_READER.page < PDF_READER.doc.numPages) renderPdfPage(PDF_READER.page + 1); };
+  el('pdfZoomOut').onclick = function () { PDF_READER.scale = Math.max(.65, PDF_READER.scale - .15); renderPdfPage(PDF_READER.page); };
+  el('pdfZoomIn').onclick = function () { PDF_READER.scale = Math.min(2.5, PDF_READER.scale + .15); renderPdfPage(PDF_READER.page); };
+}
+function renderPdfPage(number) {
+  if (!PDF_READER.doc) return;
+  if (PDF_READER.rendering) { PDF_READER.pending = number; return; }
+  PDF_READER.rendering = true;
+  PDF_READER.doc.getPage(number).then(function (page) {
+    var canvas = el('pdfCanvas'), wrap = canvas.parentNode, raw = page.getViewport({ scale: 1 });
+    var fit = Math.max(.25, (wrap.clientWidth - 16) / raw.width), viewport = page.getViewport({ scale: fit * PDF_READER.scale });
+    var ratio = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(viewport.width * ratio); canvas.height = Math.floor(viewport.height * ratio);
+    canvas.style.width = Math.floor(viewport.width) + 'px'; canvas.style.height = Math.floor(viewport.height) + 'px';
+    return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport, transform: ratio === 1 ? null : [ratio, 0, 0, ratio, 0, 0] }).promise;
+  }).then(function () {
+    PDF_READER.page = number; PDF_READER.rendering = false;
+    el('pdfPage').textContent = 'Page ' + number + ' / ' + PDF_READER.doc.numPages;
+    el('pdfZoom').textContent = Math.round(PDF_READER.scale * 100) + '%';
+    if (PDF_READER.pending !== null) { var next = PDF_READER.pending; PDF_READER.pending = null; renderPdfPage(next); }
+  }).catch(function () { PDF_READER.rendering = false; el('pdfStatus').style.display = 'block'; el('pdfStatus').textContent = 'Erreur pendant l’affichage de cette page.'; });
 }
 function ring(pct) {
   var r = 24, c = 2 * Math.PI * r, o = c * (1 - Math.min(1, pct));
@@ -865,15 +930,26 @@ function vConcours() {
   h += '<h1>📝 Concours</h1><div class="sub">Sujets et corrigés du dossier Concours commun</div>';
   h += '<div class="card" style="border-color:var(--green)"><b>Examen blanc</b><div class="sub">Teste-toi avec les QCM de préparation, en conditions chronométrées.</div><div class="spacer"></div><button class="btn gold" data-go="exam">Lancer un examen blanc</button></div>';
   h += '<div class="card concours-note"><b>ℹ️ À propos des corrections</b><div class="sub">Les fiches ci-dessous transcrivent les sujets. Une transcription seule ne confirme pas les réponses : consulte le document original. Les explications des QCM d’entraînement sont pédagogiques et ne remplacent pas une source officielle.</div><div class="concours-badges"><span class="source-badge source-doc">Document pédagogique</span><span class="source-badge source-old">Ancien concours</span><span class="source-badge source-ai">Explication pédagogique</span></div></div>';
+  h += '<div class="card" style="border-color:#25d366"><b>💬 Contribuer par WhatsApp</b><div class="sub">Signaler un problème, proposer une amélioration ou envoyer des sujets, corrigés et autres documents.</div><div class="spacer"></div><a class="btn green sm" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">Ouvrir WhatsApp · ' + esc(WHATSAPP_CONTACT_DISPLAY) + '</a></div>';
   h += '<h2>Sujets disponibles <span class="sub">(' + CONCOURS_DOCS.length + ' PDF)</span></h2>';
   CONCOURS_DOCS.forEach(function (p, i) {
     var htmlFile = 'sujet-' + String(i + 1).padStart(2, '0') + '.html';
     var pdfUrl = 'concours-commun/' + encodeURIComponent(p[0]).replace(/%2F/g, '/');
     var correction = /justification|corrig|correction/i.test(p[0]);
     var year = (p[0].match(/20\d{2}/g) || []).map(Number).filter(function (y) { return y <= 2025; })[0];
-    h += '<div class="card concours-item"><div class="concours-item-head"><div class="concours-file">📄</div><div class="concours-item-info"><b>' + esc(p[1]) + '</b><div class="concours-badges"><span class="source-badge source-doc">Document pédagogique</span>' + (year ? '<span class="source-badge source-old">Ancien concours · ' + year + '</span>' : '') + (correction ? '<span class="source-badge source-correction">Corrigé fourni · à vérifier</span>' : '<span class="source-badge source-pending">Réponse non vérifiée</span>') + '</div></div></div><div class="concours-actions"><a class="btn blue sm" href="' + esc(concoursViewerUrl(htmlFile)) + '" target="_blank" rel="noopener">Ouvrir la fiche</a><a class="btn ghost sm" href="' + esc(pdfUrl) + '" target="_blank" rel="noopener">🔎 Voir la source originale</a></div></div>';
+    h += '<div class="card concours-item"><div class="concours-item-head"><div class="concours-file">📄</div><div class="concours-item-info"><b>' + esc(p[1]) + '</b><div class="concours-badges"><span class="source-badge source-doc">Document pédagogique</span>' + (year ? '<span class="source-badge source-old">Ancien concours · ' + year + '</span>' : '') + (correction ? '<span class="source-badge source-correction">Corrigé fourni · à vérifier</span>' : '<span class="source-badge source-pending">Réponse non vérifiée</span>') + '</div></div></div><div class="concours-actions concours-actions-main"><button class="btn blue sm" data-go="concourspdf/' + i + '">👁️ Visualiser le PDF</button><a class="btn ghost sm" download href="' + esc(pdfUrl) + '">⬇️ Télécharger</a></div><a class="concours-sheet-link" href="' + esc(concoursViewerUrl(htmlFile)) + '" target="_blank" rel="noopener">📝 Ouvrir la fiche pédagogique</a></div>';
   });
   return h + '</div>';
+}
+
+function vConcoursPdfView(index) {
+  var p = CONCOURS_DOCS[+index];
+  if (!p) return vConcours();
+  var href = 'concours-commun/' + encodeURIComponent(p[0]).replace(/%2F/g, '/');
+  return bar(p[1], 'concours') + '<div class="pdf-reader" data-pdf-src="' + href + '">' +
+    '<div class="pdf-toolbar"><button class="pdf-tool" id="pdfPrev">←</button><span id="pdfPage">Page…</span><button class="pdf-tool" id="pdfNext">→</button><button class="pdf-tool" id="pdfZoomOut">−</button><span id="pdfZoom">100%</span><button class="pdf-tool" id="pdfZoomIn">+</button></div>' +
+    '<div class="pdf-status" id="pdfStatus">Chargement du PDF…</div><div class="pdf-canvas-wrap"><canvas id="pdfCanvas"></canvas></div>' +
+    '<div class="pdf-download"><a class="btn ghost sm" download href="' + href + '">⬇️ Télécharger le PDF</a></div></div>';
 }
 
 /* ------------------------------------------------------------ vue ACCUEIL */
@@ -955,7 +1031,7 @@ function vHome() {
   h += '<div class="qa-grid">' +
     '<div class="qa" data-go="review"><div class="ic">🔁</div><div class="t">Révision</div><div class="d">' + (due ? due + ' à revoir' : 'à jour ✅') + '</div></div>' +
     '<div class="qa" data-go="exam"><div class="ic">📝</div><div class="t">Examen blanc</div><div class="d">chronométré</div></div>' +
-    '</div><div class="card quick-card"><div class="row"><div class="quick-icon">⚡</div><div style="flex:1"><b>Séance express · 10 questions</b><div class="sub">Révise l’essentiel en quelques minutes, selon tes besoins.</div></div></div><div class="spacer"></div><button class="btn purple sm" data-act="quick">Commencer maintenant</button></div><div class="spacer"></div>' +
+    '</div><div class="card quick-card"><div class="row"><div class="quick-icon">⚡</div><div style="flex:1"><b>Séance express</b><div class="sub">5 questions en 5 minutes, ou 10 questions pour une révision complète.</div></div></div><div class="spacer"></div><div class="row2"><button class="btn purple sm" data-act="quick5">⏱️ 5 minutes</button><button class="btn ghost sm" data-act="quick">10 questions</button></div></div><div class="spacer"></div>' +
     '<input class="search" id="q" placeholder="🔎 Chercher une notion, une loi, un chiffre…">' +
     '<h2>Modules</h2>';
 
@@ -965,7 +1041,7 @@ function vHome() {
     h += '<div class="mod' + (p >= 100 ? ' done' : st ? ' started' : '') + '" data-go="doc/' + d.id + '">' +
       '<div class="bub">' + d.icon + '</div>' +
       '<div class="info"><div class="t">' + esc(d.code + '. ' + d.title) + '</div>' +
-      '<div class="p">' + d.units.length + ' unités · ' + nq + ' QCM</div>' +
+      '<div class="p">' + d.units.length + ' unités · ' + nq + ' QCM · ≈ ' + Math.max(5, Math.round(nq * 0.8 + d.units.length * 2)) + ' min</div>' +
       '<div class="progress thin" style="margin-top:6px"><div style="width:' + p + '%"></div></div></div>' +
       '<div class="pct">' + p + '%</div></div>';
   });
@@ -1041,6 +1117,7 @@ function vDoc(id) {
 /* ------------------------------------------------------------ vue LEÇON */
 function vLesson(did, ui) {
   var d = doc(did), u = unit(did, ui); if (!u) return vHome();
+  window.PREP_SPEAK_TEXT = (u.lesson || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   var s = ust(d.id, ui); s.lesson = 1; save();
   return bar(u.t, 'doc/' + d.id) + '<div class="wrap">' + legendHL() +
     sourceBox(d.id, ui) + '<div class="card lesson">' +
@@ -1048,6 +1125,7 @@ function vLesson(did, ui) {
     '<button class="btn" data-go="quiz/' + d.id + '/' + ui + '">Passer au quiz →</button>' +
     '<div class="spacer"></div>' +
     '<div class="row2">' +
+    '<button class="btn ghost sm" data-act="speak">🔊 Écouter</button>' +
     '<button class="btn blue sm" data-go="cards/' + d.id + '/' + ui + '">🃏 Cartes de cette unité (' +
     Math.max(u.cards.length, Math.min(8, u.cards.length + u.qs.length)) + ')</button>' +
     '<button class="btn ghost sm" data-go="cards/' + d.id + '">🃏 Cartes du module</button></div>' +
@@ -1450,6 +1528,7 @@ function vStats() {
     '<div class="sub">' + tot + ' items suivis · ' + Math.round(coverage() * 100) + ' % de la banque vue' +
     (stub ? ' · 🔥 ' + stub + ' têtue(s)' : '') + '</div></div>' +
     '<button class="btn blue sm" style="width:auto;padding:10px 16px" data-go="review">Réviser</button></div></div>';
+  h += '<div class="row2"><button class="btn ghost sm" data-act="focus">🎯 Mode concentration</button><button class="btn ghost sm" data-act="report">🖨️ Rapport PDF</button></div>';
   h += '</div>';
   return h;
 }
@@ -1457,6 +1536,9 @@ function vStats() {
 /* ---------------------------------------------------------- vue RÉGLAGES */
 function vSettings() {
   var h = bar('Réglages', '') + '<div class="wrap">';
+  var storageState = '✅ Stockage local disponible';
+  try { localStorage.setItem('__prepme_diag__', '1'); localStorage.removeItem('__prepme_diag__'); } catch (e) { storageState = '⚠️ Stockage local indisponible'; }
+  var networkState = navigator.onLine ? '🌐 Connexion disponible' : '📴 Fonctionnement hors ligne';
   h += '<div class="card"><b>🗓️ Date de mon concours</b><div class="sub">Le rythme quotidien et le compte à rebours s’adaptent automatiquement.</div><div class="spacer"></div><label class="date-field"><span>Date prévue</span><input type="date" id="contestDate" value="' + esc(S.contestDate || CONTEST_DATE) + '"></label></div>';
   h += '<div class="card"><b>Objectif quotidien</b><div class="sub">XP à gagner chaque jour pour garder ta série</div>' +
     '<div class="spacer"></div><div class="row3">' +
@@ -1475,14 +1557,28 @@ function vSettings() {
   h += '<div class="card"><b>🔔 Rappels du concours</b><div class="sub">Autoriser les rappels de l’application sur cet appareil.</div><div class="spacer"></div><button class="btn blue sm" data-act="notify">' + (S.notify ? '✅ Rappels activés' : 'Activer les notifications') + '</button></div>';
   h += '<div class="card"><b>📲 Installation hors ligne</b><div class="sub">Si le bouton ne s’ouvre pas : menu du navigateur → « Ajouter à l’écran d’accueil ».</div><div class="spacer"></div><button class="btn blue sm" data-act="install">⬇️ Installer l’application</button></div>';
   h += '<div class="card"><b>🔄 Mises à jour</b><div class="sub">Version ' + APP_VERSION + ' · vérification automatique quand Internet est disponible. Une alerte s’affiche seulement lorsqu’une nouvelle version est publiée.</div></div>';
+  h += '<div class="card"><b>🛠️ Diagnostic hors ligne</b><div class="sub">Version installée : <b>' + APP_VERSION + '</b><br>' + networkState + '<br>' + storageState + '<br>Progression : clé protégée <b>cnc_anass_v2</b><br>Pour corriger un affichage après mise à jour : faire <b>Ctrl+F5</b> sur PC.</div></div>';
+  h += '<div class="card"><b>🧭 Test diagnostic</b><div class="sub">20 questions mélangées pour évaluer ton niveau de départ. Le test utilise la banque existante et ne réinitialise aucune progression.</div><div class="spacer"></div><button class="btn purple sm" data-act="diagnostic">🧭 Commencer le diagnostic</button></div>';
+  h += '<div class="card"><b>💬 Contact WhatsApp</b><div class="sub">Pour déclarer un problème, suggérer une amélioration ou déposer des documents de concours.</div><div class="spacer"></div><a class="btn green sm" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">WhatsApp · ' + esc(WHATSAPP_CONTACT_DISPLAY) + '</a></div>';
   h += '<div class="card"><b>Sauvegarde</b><div class="sub">Ta progression est stockée sur cet appareil. Exporte-la pour la transférer sur un autre (PC ↔ téléphone).</div>' +
     '<div class="spacer"></div><div class="row2"><button class="btn blue sm" data-act="export">⬇️ Exporter</button>' +
     '<button class="btn ghost sm" data-act="import">⬆️ Importer</button></div>' +
     '<div class="spacer"></div><button class="btn red sm" data-act="reset">🗑️ Réinitialiser la progression</button></div>';
   var nq = 0, nc = 0; DOCS.forEach(function (d) { d.units.forEach(function (u) { nq += u.qs.length; nc += u.cards.length; }); });
-  h += '<div class="card sub center">PrepMe · ' + DOCS.length + ' modules · ' + nq + ' QCM · ' + nc + ' flashcards<br>Contenu généré à partir des résumés « Prépare mon concours » (ANASS SLIT).</div>';
+  h += '<button class="settings-link" data-go="about"><span><b>🛡️ À propos et confidentialité</b><small>Informations légales, données et avertissement pédagogique</small></span><strong>›</strong></button>';
+  h += '<div class="app-signature"><div class="app-signature-mark">P</div><div><b>PrepMe</b><span>Version ' + APP_VERSION + ' · ' + DOCS.length + ' modules · ' + nq + ' QCM · ' + nc + ' flashcards</span></div></div>';
   h += '</div>';
   return h;
+}
+
+function vAbout() {
+  return bar('À propos', 'set') + '<main class="wrap legal-page">' +
+    '<section class="about-hero"><div class="about-logo">P</div><div><h1>PrepMe</h1><p>Préparation structurée aux concours de santé</p><span>Version ' + APP_VERSION + '</span></div></section>' +
+    '<section class="card"><h2>🎓 Finalité pédagogique</h2><p>PrepMe est un outil indépendant de révision et d’entraînement. Il ne représente aucune administration, aucun établissement de santé ni aucun organisateur de concours.</p><p>Les cours, QCM et explications doivent être vérifiés avec les textes officiels et les documents sources. Ils ne constituent ni un avis médical, ni une décision administrative.</p></section>' +
+    '<section class="card"><h2>🛡️ Confidentialité</h2><p><b>Données enregistrées :</b> progression, réponses, préférences et planning sont conservés localement sur votre appareil.</p><p><b>Aucun compte requis :</b> PrepMe n’intègre ni publicité, ni outil d’analyse comportementale, ni vente de données.</p><p><b>Connexion facultative :</b> l’application fonctionne hors ligne. Lorsqu’Internet est disponible, une requête peut être envoyée à GitHub pour vérifier l’existence d’une nouvelle version. Le contact WhatsApp ne s’ouvre que lorsque vous appuyez sur son bouton.</p><p><b>Contrôle utilisateur :</b> la sauvegarde peut être exportée ou importée depuis Réglages. La réinitialisation efface les données locales de progression.</p></section>' +
+    '<section class="card"><h2>📚 Contenus et sources</h2><p>Les documents PDF intégrés restent accessibles séparément afin de permettre la consultation des sources. Les marques, institutions et titres cités appartiennent à leurs propriétaires respectifs.</p></section>' +
+    '<section class="card"><h2>💬 Assistance et contribution</h2><p>Pour signaler un problème, proposer une amélioration ou envoyer des sujets, corrigés et autres documents, contactez PrepMe sur WhatsApp.</p><a class="btn green sm" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">WhatsApp · ' + esc(WHATSAPP_CONTACT_DISPLAY) + '</a></section>' +
+    '<p class="legal-updated">Dernière mise à jour : 20 septembre 2026</p></main>';
 }
 
 /* ---------------------------------------------------------- vue RECHERCHE */
@@ -1578,6 +1674,13 @@ function anchorSave(text, name) {
 }
 function act(a, b) {
   switch (a) {
+    case 'speak':
+      if ('speechSynthesis' in window) { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(window.PREP_SPEAK_TEXT || 'Aucun texte à lire.'); u.lang = 'fr-FR'; speechSynthesis.speak(u); toast('🔊 Lecture en cours'); } else toast('Lecture audio non disponible');
+      break;
+    case 'focus':
+      document.body.classList.toggle('focus-mode'); toast(document.body.classList.contains('focus-mode') ? '🎯 Mode concentration activé' : 'Mode concentration désactivé'); break;
+    case 'report':
+      window.print(); break;
     case 'quit':
       clearInterval(EXTIMER);
       if (RUN && RUN.xp > 0) { addXP(RUN.xp); toast('+' + RUN.xp + ' XP conservés'); }
@@ -1598,6 +1701,16 @@ function act(a, b) {
       var quick = quickQuestions();
       RUN = { mode: 'review', items: quick, i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [], t0: Date.now(), back: '', did: null, ui: null };
       ROOT.innerHTML = quizFrame() + navBar('review'); bind(); break;
+    }
+    case 'quick5': {
+      var quick5 = quickQuestions().slice(0, 5);
+      RUN = { mode: 'review', items: quick5, i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [], t0: Date.now(), back: '', did: null, ui: null };
+      ROOT.innerHTML = quizFrame() + navBar('review'); bind(); break;
+    }
+    case 'diagnostic': {
+      var diagnostic = diagnosticQuestions();
+      RUN = { mode: 'review', diagnostic: true, items: diagnostic, i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [], t0: Date.now(), back: 'settings', did: null, ui: null };
+      ROOT.innerHTML = quizFrame() + navBar('settings'); bind(); break;
     }
     case 'export': {
       var json = JSON.stringify(S), name = 'cnc-anass-progression-' + today() + '.json';

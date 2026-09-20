@@ -1,8 +1,9 @@
 /* Service worker — mise en cache complète pour usage hors-ligne */
-var CACHE = 'cnc-anass-v27';
-  var APP_VERSION = '3.3.0';
+var CACHE = 'cnc-anass-v41';
+  var APP_VERSION = '3.5.1';
 var ASSETS = [
-  './', './index.html', './app.css', './app.js', './manifest.webmanifest',
+  './', './index.html', './privacy-policy.html', './app.css', './app.js', './manifest.webmanifest',
+  './pdfs.js', './vendor/pdf.min.js', './vendor/pdf.worker.min.js',
   './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png',
   './data/doc01_concours.js',
   './data/doc01.js', './data/doc02.js', './data/doc03.js', './data/doc04.js',
