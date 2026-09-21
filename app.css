@@ -56,6 +56,11 @@ a{color:var(--blue);text-decoration:none}
 
 /* ---------- layout ---------- */
 .app{max-width:520px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:calc(76px + var(--safe-b))}
+.welcome-strip{display:flex;align-items:center;gap:12px;margin:14px 16px 0;padding:14px 16px;background:var(--blue-bg);border:1px solid color-mix(in srgb,var(--blue) 35%,var(--line));border-radius:16px}.welcome-strip>span{font-size:26px}.welcome-strip b{font-size:15px}
+.filter-row{display:grid;grid-template-columns:1.2fr 1fr 1.3fr;gap:8px;margin-top:10px}.filter-row .search{font-size:12px;padding:10px 8px}.concours-filters{padding:12px}
+.prep-hero{text-align:center;padding:12px 0 18px}.prep-icon{font-size:42px}.prep-hero h1{margin:4px 0}.prep-summary{display:grid;gap:12px}.prep-summary>div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:10px}.prep-summary>div:last-child{border:0;padding-bottom:0}.prep-summary span{color:var(--sub);text-align:right}
+@media (min-width: 900px){body{background:linear-gradient(135deg,var(--bg),var(--card2))}.app{max-width:1180px;display:grid;grid-template-columns:230px minmax(0,1fr);padding:0 0 28px;box-shadow:0 0 40px rgba(0,0,0,.06)}.topbar{grid-column:2;position:sticky}.app>.nav{grid-column:1;grid-row:1 / span 20;position:sticky;top:0;height:100vh;align-self:start;padding:18px 12px;background:var(--card);border-right:1px solid var(--line)}.app>.nav .in{display:flex;flex-direction:column;gap:8px}.app>.nav button{width:100%;justify-content:flex-start;padding:12px 14px;border-radius:12px}.app>.nav .nav-label{font-size:13px}.app>.wrap,.app>.hero,.app>.welcome-strip{grid-column:2;max-width:920px;width:100%;margin-left:auto;margin-right:auto}.app>.hero{border-radius:0 0 24px 24px}.wrap{padding:22px 28px}.qa-grid{grid-template-columns:repeat(4,1fr)}.concours-item{display:inline-flex;width:calc(50% - 7px);vertical-align:top;flex-direction:column;margin-right:10px}.row3{grid-template-columns:repeat(3,1fr)}}
+@media (max-width: 600px){.filter-row{grid-template-columns:1fr 1fr}.filter-row .search:last-child{grid-column:1/-1}}
 .wrap{padding:14px 16px}
 .screen{animation:fadeUp .22s ease both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}

@@ -152,7 +152,8 @@ var BACKUP_KEY = KEY + '_backup';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.5.35';
+/* Source unique de vérité : version.json est généré avec cette même valeur. */
+var APP_VERSION = window.PREPME_VERSION || '3.5.35';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -266,11 +267,43 @@ function blank() {
   return {
     v: 2, xp: 0, day: today(), xpDay: 0, streak: 0, lastDay: null, best: 0,
     hearts: HEART_MAX, heartTs: Date.now(),
-    goal: 50, contestDate: CONTEST_DATE, planStart: '2026-09-10', homeMode: 'auto', sound: true, theme: 'auto', fontScale: 'normal', unlimited: false, hl: true,
+    goal: 50, contestDate: CONTEST_DATE, planStart: '2026-09-10', homeMode: 'auto', sound: true, theme: 'auto', fontScale: 'normal', unlimited: false, hl: true, analytics: false,
     units: {}, srs: {}, exams: [], sessions: [], lastRoute: '', hist: {}, seen: {}
   };
 }
 var S = load();
+/* GA4 est chargé seulement après consentement. Les événements ne contiennent
+   ni réponses, ni texte des cours, ni recherches, ni identifiant utilisateur. */
+var ANALYTICS_CONFIG = window.PREPME_ANALYTICS_CONFIG || {};
+var ANALYTICS_ID = String(ANALYTICS_CONFIG.measurementId || '').trim();
+var analyticsLoaded = false;
+function analyticsReady() { return /^G-[A-Z0-9]+$/i.test(ANALYTICS_ID); }
+function analyticsSetEnabled(enabled) {
+  if (!analyticsReady()) return;
+  window['ga-disable-' + ANALYTICS_ID] = !enabled;
+  if (!enabled) {
+    if (window.gtag) window.gtag('consent', 'update', { analytics_storage: 'denied' });
+    return;
+  }
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+  window.gtag('consent', 'default', { analytics_storage: 'granted' });
+  if (!analyticsLoaded) {
+    analyticsLoaded = true;
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(ANALYTICS_ID);
+    document.head.appendChild(script);
+    window.gtag('js', new Date());
+    window.gtag('config', ANALYTICS_ID, { send_page_view: false });
+  }
+}
+function analytics(name, params) {
+  if (!S.analytics || !analyticsReady()) return;
+  analyticsSetEnabled(true);
+  if (window.gtag) window.gtag('event', name, params || {});
+}
+function trackScreen(screen) { analytics('screen_view', { screen_name: String(screen || 'home').slice(0, 40) }); }
 var INSTALL_PROMPT = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); INSTALL_PROMPT = e; render(); });
 window.addEventListener('appinstalled', function () { INSTALL_PROMPT = null; toast('✅ Application installée hors ligne'); render(); });
@@ -922,6 +955,7 @@ function render() {
   }
   ROOT.innerHTML = html + navBar(v);
   bind();
+  trackScreen(v || 'home');
   if (v === 'pdfview' || v === 'concourspdf') initPdfReader();
 }
 
@@ -1088,12 +1122,15 @@ function vConcours() {
   h += '<div class="card" style="border-color:var(--green)"><b>Examen blanc</b><div class="sub">Teste-toi avec les QCM de préparation, en conditions chronométrées.</div><div class="spacer"></div><button class="btn gold" data-go="exam">Lancer un examen blanc</button></div>';
   h += '<div class="card concours-note"><b>ℹ️ À propos des corrections</b><div class="sub">Les fiches ci-dessous transcrivent les sujets. Une transcription seule ne confirme pas les réponses : consulte le document original. Les explications des QCM d’entraînement sont pédagogiques et ne remplacent pas une source officielle.</div><div class="concours-badges"><span class="source-badge source-doc">Document pédagogique</span><span class="source-badge source-old">Ancien concours</span><span class="source-badge source-ai">Explication pédagogique</span></div></div>';
   h += '<div class="card" style="border-color:#25d366"><b>💬 Contribuer par WhatsApp</b><div class="sub">Signaler un problème, proposer une amélioration ou envoyer des sujets, corrigés et autres documents.</div><div class="spacer"></div><a class="btn green sm" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">Ouvrir WhatsApp · ' + esc(WHATSAPP_CONTACT_DISPLAY) + '</a></div>';
-  h += '<h2>Sujets disponibles <span class="sub">(' + CONCOURS_DOCS.length + ' PDF)</span></h2>';
-  CONCOURS_DOCS.forEach(function (p, i) {
+  h += '<div class="card concours-filters"><div class="row"><input class="search" id="concoursSearch" placeholder="🔎 Rechercher une ville, une année, un métier…" value="' + esc(window.CONCOURS_QUERY || '') + '"></div><div class="filter-row"><select class="search" id="concoursCategory"><option value="">Tous les métiers</option><option>Infirmier</option><option>Technicien de santé</option><option>Administration</option></select><select class="search" id="concoursYear"><option value="">Toutes les années</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option><option>2021</option><option>2020</option><option>2019</option><option>2018</option></select><select class="search" id="concoursStatus"><option value="">Tous les statuts</option><option value="verified">Corrigés vérifiés</option><option value="pending">Réponses à vérifier</option></select></div><div class="sub">Recherche instantanée · tri du plus récent au plus ancien</div></div>';
+  var query = String(window.CONCOURS_QUERY || '').toLowerCase().trim(), categoryFilter = window.CONCOURS_CATEGORY || '', yearFilter = window.CONCOURS_YEAR || '', statusFilter = window.CONCOURS_STATUS || '';
+  var visible = CONCOURS_DOCS.map(function (p, i) { return {p:p, i:i, year:(p[0].match(/20\d{2}/g)||[]).map(Number).filter(function(y){return y<=2026;}).sort(function(a,b){return b-a;})[0]||0, correction:/justification|corrig|correction/i.test(p[0])}; }).filter(function(x){ var text=(x.p[0]+' '+x.p[1]).toLowerCase(); return (!query||text.indexOf(query)>=0)&&(!categoryFilter||text.indexOf(categoryFilter.toLowerCase())>=0)&&(!yearFilter||String(x.year)===yearFilter)&&(!statusFilter||(statusFilter==='verified'?x.correction:!x.correction)); }).sort(function(a,b){return b.year-a.year||a.p[1].localeCompare(b.p[1]); });
+  h += '<h2>Sujets disponibles <span class="sub">(' + visible.length + '/' + CONCOURS_DOCS.length + ' PDF)</span></h2>';
+  visible.forEach(function (x) { var p=x.p, i=x.i;
     var htmlFile = 'sujet-' + String(i + 1).padStart(2, '0') + '.html';
     var pdfUrl = 'concours-commun/' + encodeURIComponent(p[0]).replace(/%2F/g, '/');
     var correction = /justification|corrig|correction/i.test(p[0]);
-    var year = (p[0].match(/20\d{2}/g) || []).map(Number).filter(function (y) { return y <= 2025; })[0];
+    var year = x.year;
     h += '<div class="card concours-item"><div class="concours-item-head"><div class="concours-file">📄</div><div class="concours-item-info"><b>' + esc(p[1]) + '</b><div class="concours-badges"><span class="source-badge source-doc">Document pédagogique</span>' + (year ? '<span class="source-badge source-old">Ancien concours · ' + year + '</span>' : '') + (correction ? '<span class="source-badge source-correction">Corrigé fourni · à vérifier</span>' : '<span class="source-badge source-pending">Réponse non vérifiée</span>') + '</div></div></div><div class="concours-actions concours-actions-main"><button class="btn blue sm" data-go="concourspdf/' + i + '">👁️ Visualiser le PDF</button><a class="btn ghost sm" download href="' + esc(pdfUrl) + '">⬇️ Télécharger</a></div><a class="concours-sheet-link" href="' + esc(concoursViewerUrl(htmlFile)) + '" target="_blank" rel="noopener">📝 Ouvrir la fiche pédagogique</a></div>';
   });
   return h + '</div>';
@@ -1130,7 +1167,7 @@ function vHome() {
   var resume = S.lastRoute && /^(?:lesson|quiz|review|exam|cards)(?:\/|$)/.test(S.lastRoute) ? S.lastRoute : '';
   var resumeLabel = resume ? (resume.indexOf('lesson/') === 0 ? 'Reprendre la leçon' : resume.indexOf('quiz/') === 0 ? 'Reprendre le quiz' : resume.indexOf('review') === 0 ? 'Reprendre les révisions' : resume.indexOf('exam') === 0 ? 'Reprendre l’examen' : 'Reprendre les cartes') : '';
 
-  var h = '<div class="card"><b>📲 Utiliser hors ligne</b><div class="sub">Installe l’application pour réviser sans Internet.</div><div class="spacer"></div><button class="btn blue sm" data-act="install">⬇️ Télécharger / installer</button></div>' +
+  var h = '<div class="welcome-strip"><span>👋</span><div><b>Bienvenue dans PrepMe</b><div class="sub">Commence par ton diagnostic, puis avance à ton rythme.</div></div></div>' +
     '<div class="hero">' +
     '<div class="row" style="justify-content:space-between">' +
     '<span class="pill">🔥 ' + S.streak + '</span>' +
@@ -1310,13 +1347,16 @@ function vQuizStart(did, ui) {
   else { var u = unit(did, ui); if (!u) return vHome(); pool = u.qs.map(function (q, qi) { return { q: q, k: qKey(d.id, ui, qi), d: d.id, u: +ui }; }); }
   if (!pool.length) { return bar('Quiz', 'doc/' + d.id) + '<div class="wrap"><div class="card">Aucune question ici.</div></div>'; }
   var n = ui === 'all' ? Math.min(20, pool.length) : pool.length;
-  RUN = {
-    mode: 'lesson', items: shuffle(pool).slice(0, n), i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0,
-    xp: 0, back: ui === 'all' ? 'doc/' + d.id : 'doc/' + d.id, title: ui === 'all' ? d.title : unit(did, ui).t,
-    did: d.id, ui: ui === 'all' ? null : +ui, wrong: [], t0: Date.now()
-  };
-  if (!S.unlimited && hearts() <= 0) return vNoHearts();
-  return quizFrame();
+  var title = ui === 'all' ? d.title : unit(did, ui).t;
+  return bar('Préparer la session', 'doc/' + d.id) + '<div class="wrap"><div class="prep-hero"><div class="prep-icon">🎯</div><h1>Préparer ton quiz</h1><div class="sub">' + esc(title) + '</div></div><div class="card prep-summary"><div><b>📚 Sujet</b><span>' + esc(title) + '</span></div><div><b>❓ Questions</b><span>' + n + ' QCM</span></div><div><b>⏱️ Durée estimée</b><span>≈ ' + Math.max(3, Math.round(n * 0.6)) + ' min</span></div><div><b>🧠 Mode</b><span>Entraînement avec correction immédiate</span></div></div><button class="btn" data-act="startquiz" data-did="' + d.id + '" data-ui="' + esc(ui) + '">Commencer</button><div class="spacer"></div><button class="btn ghost" data-go="doc/' + d.id + '">Modifier le sujet</button></div>';
+}
+function startQuiz(did, ui) {
+  var d = doc(did), pool = ui === 'all' ? allQuestions(d.id) : unit(did, ui).qs.map(function(q,qi){return {q:q,k:qKey(d.id,ui,qi),d:d.id,u:+ui};});
+  var n = ui === 'all' ? Math.min(20,pool.length) : pool.length;
+  if (!S.unlimited && hearts() <= 0) { ROOT.innerHTML = vNoHearts() + navBar('review'); bind(); return; }
+  RUN = {mode:'lesson',items:shuffle(pool).slice(0,n),i:0,ok:0,ko:0,combo:0,maxCombo:0,xp:0,back:'doc/'+d.id,title:ui==='all'?d.title:unit(did,ui).t,did:d.id,ui:ui==='all'?null:+ui,wrong:[],t0:Date.now()};
+  analytics('quiz_started', { module_id: d.id, scope: ui === 'all' ? 'module' : 'unit', question_count: n });
+  ROOT.innerHTML = quizFrame() + navBar('review'); bind();
 }
 function vNoHearts() {
   return bar('Plus de cœurs', '') + '<div class="wrap center">' +
@@ -1361,6 +1401,7 @@ function quizFrame() {
 function answer(chosen) {
   var R = RUN, it = R.items[R.i], q = it.q;
   var correct = (+chosen === q.c);
+  analytics('quiz_answered', { mode: R.mode || 'lesson', is_correct: correct ? 1 : 0, question_index: R.i + 1 });
   var btns = ROOT.querySelectorAll('.opt');
   Array.prototype.forEach.call(btns, function (b) {
     b.disabled = true;
@@ -1409,6 +1450,7 @@ function answer(chosen) {
 }
 function quizEnd() {
   var R = RUN, tot = R.items.length, pct = tot ? Math.round(R.ok / tot * 100) : 0;
+  analytics('quiz_completed', { mode: R.mode || 'lesson', question_count: tot, correct_count: R.ok, score_percent: pct });
   addXP(R.xp + (R.mode === 'lesson' ? 10 : 0) + (pct === 100 ? 5 : 0));
   if (R.mode === 'lesson' && R.ui != null) {
     var s = ust(R.did, R.ui);
@@ -1529,6 +1571,7 @@ function cardGrade(g) {
 }
 function reviewEnd() {
   var R = RUN;
+  analytics('review_completed', { item_count: R.items.length, correct_count: R.ok });
   recordSession('revision', R.ok, R.items.length, (Date.now() - R.t0) / 1000, 'Révision espacée');
   addXP(R.xp + 5);
   if (!S.unlimited && S.hearts < HEART_MAX && R.items.length >= 5) { gainHeart(1); }
@@ -1556,13 +1599,13 @@ function vCardsStart(did, ui) {
   var pool = one ? unitCards(d.id, +ui) : allCards(d ? d.id : null);
   var back = one ? 'lesson/' + d.id + '/' + ui : (d ? 'doc/' + d.id : '');
   if (!pool.length) return bar('Cartes', back) + '<div class="wrap"><div class="card">Aucune carte.</div></div>';
-  RUN = {
-    mode: 'review',
-    items: shuffle(pool).map(function (p) { return { type: 'c', c: p.c, k: p.k, d: p.d, u: p.u }; }).slice(0, one ? 20 : 30),
-    i: 0, ok: 0, ko: 0, xp: 0, combo: 0, maxCombo: 0, wrong: [], t0: Date.now(),
-    back: back, did: d ? d.id : null, ui: one ? +ui : null
-  };
-  return reviewFrame();
+  var count = Math.min(one ? 20 : 30, pool.length);
+  return bar('Préparer les cartes', back) + '<div class="wrap"><div class="prep-hero"><div class="prep-icon">🃏</div><h1>Préparer les cartes</h1><div class="sub">Révision active, sans lancer automatiquement une carte</div></div><div class="card prep-summary"><div><b>📚 Sujet</b><span>' + esc(one ? unit(d.id,+ui).t : (d ? d.title : 'Tous les modules')) + '</span></div><div><b>🃏 Cartes</b><span>' + count + ' cartes</span></div><div><b>⏱️ Durée estimée</b><span>≈ ' + Math.max(3,Math.round(count * .4)) + ' min</span></div><div><b>🎯 Objectif</b><span>Consolider les notions importantes</span></div></div><button class="btn blue" data-act="startcards" data-did="' + (d ? d.id : '') + '" data-ui="' + esc(ui == null ? '' : ui) + '">Commencer</button></div>';
+}
+function startCards(did, ui) {
+  var d=did?doc(did):null, one=ui!==''&&ui!=='all', pool=one?unitCards(d.id,+ui):allCards(d?d.id:null), back=one?'lesson/'+d.id+'/'+ui:(d?'doc/'+d.id:'');
+  RUN={mode:'review',items:shuffle(pool).map(function(p){return {type:'c',c:p.c,k:p.k,d:p.d,u:p.u};}).slice(0,one?20:30),i:0,ok:0,ko:0,xp:0,combo:0,maxCombo:0,wrong:[],t0:Date.now(),back:back,did:d?d.id:null,ui:one?+ui:null};
+  ROOT.innerHTML=reviewFrame()+navBar('cards'); bind();
 }
 
 /* ------------------------------------------------------------ vue EXAMEN */
@@ -1600,6 +1643,7 @@ function startExam() {
     scope: scope ? doc(scope).code + '. ' + doc(scope).title : 'Tous les modules',
     end: chrono ? Date.now() + n * 45000 : 0
   };
+  analytics('exam_started', { scope: scope ? 'module' : 'all_modules', question_count: n, timed: chrono ? 1 : 0 });
   ROOT.innerHTML = quizFrame() + navBar('exam'); bind(); tickExam();
 }
 function tickExam() {
@@ -1618,6 +1662,7 @@ function examEnd() {
   clearInterval(EXTIMER);
   var R = RUN, tot = R.items.length, pct = tot ? Math.round(R.ok / tot * 100) : 0;
   var secs = Math.round((Date.now() - R.t0) / 1000);
+  analytics('exam_completed', { question_count: tot, correct_count: R.ok, score_percent: pct, duration_seconds: secs });
   recordSession('examen', R.ok, tot, secs, R.scope);
   addXP(R.xp + 25);
   S.exams.push({ date: today(), n: tot, pct: pct, secs: secs, scope: R.scope });
@@ -1755,6 +1800,8 @@ function vSettings() {
     '<input type="checkbox" id="unl"' + (S.unlimited ? ' checked' : '') + ' style="width:22px;height:22px"></label>' +
     '<div class="hr"></div><label class="row" style="justify-content:space-between"><span><b>Mise en forme des leçons</b><div class="sub">Couleurs (définition, date, chiffre, loi) et émojis comme les documents source</div></span>' +
     '<input type="checkbox" id="hlx"' + (S.hl ? ' checked' : '') + ' style="width:22px;height:22px"></label></div>';
+  h += '<div class="card"><label class="row" style="justify-content:space-between"><span><b>📈 Aider à améliorer PrepMe</b><div class="sub">Partager des statistiques d’usage anonymisées : écrans, navigation et résultats agrégés. Jamais les réponses, recherches ou données personnelles.</div></span>' +
+    '<input type="checkbox" id="analytics"' + (S.analytics ? ' checked' : '') + ' style="width:22px;height:22px"></label></div>';
   h += '<div class="card"><b>🔔 Rappels du concours</b><div class="sub">Autoriser les rappels de l’application sur cet appareil.</div><div class="spacer"></div><button class="btn blue sm" data-act="notify">' + (S.notify ? '✅ Rappels activés' : 'Activer les notifications') + '</button></div>';
   h += '<div class="card"><b>📲 Installation hors ligne</b><div class="sub">Si le bouton ne s’ouvre pas : menu du navigateur → « Ajouter à l’écran d’accueil ».</div><div class="spacer"></div><button class="btn blue sm" data-act="install">⬇️ Installer l’application</button></div>';
   h += '<div class="card"><b>🔄 Mises à jour</b><div class="sub">Version ' + APP_VERSION + ' · vérification automatique quand Internet est disponible. Une alerte s’affiche seulement lorsqu’une nouvelle version est publiée.</div></div>';
@@ -1776,7 +1823,7 @@ function vAbout() {
   return bar('À propos', 'set') + '<main class="wrap legal-page">' +
     '<section class="about-hero"><div class="about-logo">P</div><div><h1>PrepMe</h1><p>Préparation structurée aux concours de santé</p><span>Version ' + APP_VERSION + '</span></div></section>' +
     '<section class="card"><h2>🎓 Finalité pédagogique</h2><p>PrepMe est un outil indépendant de révision et d’entraînement. Il ne représente aucune administration, aucun établissement de santé ni aucun organisateur de concours.</p><p>Les cours, QCM et explications doivent être vérifiés avec les textes officiels et les documents sources. Ils ne constituent ni un avis médical, ni une décision administrative.</p></section>' +
-    '<section class="card"><h2>🛡️ Confidentialité</h2><p><b>Données enregistrées :</b> progression, réponses, préférences et planning sont conservés localement sur votre appareil.</p><p><b>Aucun compte requis :</b> PrepMe n’intègre ni publicité, ni outil d’analyse comportementale, ni vente de données.</p><p><b>Connexion facultative :</b> l’application fonctionne hors ligne. Lorsqu’Internet est disponible, une requête peut être envoyée à GitHub pour vérifier l’existence d’une nouvelle version. Le contact WhatsApp ne s’ouvre que lorsque vous appuyez sur son bouton.</p><p><b>Contrôle utilisateur :</b> la sauvegarde peut être exportée ou importée depuis Réglages. La réinitialisation efface les données locales de progression.</p></section>' +
+    '<section class="card"><h2>🛡️ Confidentialité</h2><p><b>Données enregistrées :</b> progression, réponses, préférences et planning sont conservés localement sur votre appareil.</p><p><b>Mesure d’usage facultative :</b> si vous activez « Aider à améliorer PrepMe », Google Analytics 4 reçoit des statistiques anonymisées sur les écrans, la navigation et les résultats agrégés des sessions. Les réponses, recherches, textes de cours et données personnelles ne sont pas envoyés. Cette option est désactivée par défaut et peut être retirée à tout moment dans Réglages.</p><p><b>Connexion facultative :</b> l’application fonctionne hors ligne. Lorsqu’Internet est disponible, une requête peut être envoyée à GitHub pour vérifier l’existence d’une nouvelle version. Le contact WhatsApp ne s’ouvre que lorsque vous appuyez sur son bouton.</p><p><b>Contrôle utilisateur :</b> la sauvegarde peut être exportée ou importée depuis Réglages. La réinitialisation efface les données locales de progression.</p></section>' +
     '<section class="card"><h2>📚 Contenus et sources</h2><p>Les documents PDF intégrés restent accessibles séparément afin de permettre la consultation des sources. Les marques, institutions et titres cités appartiennent à leurs propriétaires respectifs.</p></section>' +
     '<section class="card"><h2>💬 Assistance et contribution</h2><p>Pour signaler un problème, proposer une amélioration ou envoyer des sujets, corrigés et autres documents, contactez PrepMe sur WhatsApp.</p><a class="btn green sm" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">WhatsApp · ' + esc(WHATSAPP_CONTACT_DISPLAY) + '</a></section>' +
     '<p class="legal-updated">Dernière mise à jour : 20 septembre 2026</p></main>';
@@ -1816,7 +1863,7 @@ function vSearch() {
 /* ------------------------------------------------------------- bindings */
 function bind() {
   Array.prototype.forEach.call(ROOT.querySelectorAll('[data-go]'), function (b) {
-    b.onclick = function (ev) { if (ev && ev.stopPropagation) ev.stopPropagation(); clearInterval(EXTIMER); go('/' + b.getAttribute('data-go')); };
+    b.onclick = function (ev) { if (ev && ev.stopPropagation) ev.stopPropagation(); analytics('select_content', { content_type: 'navigation', item_id: String(b.getAttribute('data-go') || 'home').slice(0, 40) }); clearInterval(EXTIMER); go('/' + b.getAttribute('data-go')); };
     var tag = (b.tagName || '').toLowerCase();
     if (tag !== 'a' && tag !== 'button' && tag !== 'input' && tag !== 'select' && tag !== 'textarea') {
       b.setAttribute('role', 'button');
@@ -1856,12 +1903,17 @@ function bind() {
   var snd = el('snd'); if (snd) snd.onchange = function () { S.sound = snd.checked; save(); if (snd.checked) beep('ok'); };
   var unl = el('unl'); if (unl) unl.onchange = function () { S.unlimited = unl.checked; save(); toast(unl.checked ? '♾️ Cœurs illimités' : '❤️ Cœurs activés'); render(); };
   var hlx = el('hlx'); if (hlx) hlx.onchange = function () { S.hl = hlx.checked; save(); toast(hlx.checked ? '🖍️ Mise en forme activée' : 'Mise en forme désactivée'); };
+  var analyticsChoice = el('analytics'); if (analyticsChoice) analyticsChoice.onchange = function () { S.analytics = analyticsChoice.checked; analyticsSetEnabled(S.analytics); save(); if (S.analytics) { analytics('analytics_consent', { enabled: 1 }); trackScreen(route()[0] || 'home'); } toast(S.analytics ? '📈 Statistiques anonymisées activées' : '📈 Statistiques anonymisées désactivées'); };
   var contestDate = el('contestDate'); if (contestDate) contestDate.onchange = function () {
     if (!contestDate.value) return;
     S.contestDate = contestDate.value; S.planStart = today(); save(); toast('🗓️ Date du concours enregistrée'); render();
   };
   var q = el('q'); if (q) q.onkeyup = function (e) { if (q.value.length >= 2 && (e.key === 'Enter' || q.value.length > 2)) { SQ = q.value; go('/search'); } };
   var q2 = el('q2'); if (q2) { q2.oninput = function () { SQ = q2.value; clearTimeout(q2._t); q2._t = setTimeout(function () { var p = q2.selectionStart; render(); var n = el('q2'); if (n) { n.focus(); n.setSelectionRange(p, p); } }, 350); }; q2.focus(); }
+  var cs = el('concoursSearch'); if (cs) cs.oninput = function () { window.CONCOURS_QUERY = cs.value; clearTimeout(cs._t); cs._t = setTimeout(render, 180); };
+  var cc = el('concoursCategory'); if (cc) { cc.value = window.CONCOURS_CATEGORY || ''; cc.onchange = function(){ window.CONCOURS_CATEGORY = cc.value; render(); }; }
+  var cy = el('concoursYear'); if (cy) { cy.value = window.CONCOURS_YEAR || ''; cy.onchange = function(){ window.CONCOURS_YEAR = cy.value; render(); }; }
+  var cst = el('concoursStatus'); if (cst) { cst.value = window.CONCOURS_STATUS || ''; cst.onchange = function(){ window.CONCOURS_STATUS = cst.value; render(); }; }
   var flip = el('flip'); if (flip) flip.onclick = function () { doFlip(); };
   if (RUN && RUN.mode === 'exam' && RUN.items[RUN.i]) tickExam();
 }
@@ -1902,6 +1954,8 @@ function act(a, b) {
     case 'flip': doFlip(); break;
     case 'again': if (RUN) go('/quiz/' + RUN.did + '/' + RUN.ui); break;
     case 'startexam': startExam(); break;
+    case 'startquiz': startQuiz(+b.getAttribute('data-did'), b.getAttribute('data-ui')); break;
+    case 'startcards': startCards(+(b.getAttribute('data-did') || 0), b.getAttribute('data-ui') || ''); break;
     case 'notify': requestNotifications(); break;
     case 'install': installApp(); break;
     case 'unlimited': S.unlimited = true; save(); toast('♾️ Cœurs illimités activés'); go('/'); break;
@@ -2029,13 +2083,14 @@ document.addEventListener('keydown', function (e) {
 /* ------------------------------------------------------------- démarrage */
 function boot() {
   ROOT = el('app');
+  analyticsSetEnabled(!!S.analytics);
   applyTheme();
   if (!DOCS.length) { ROOT.innerHTML = '<div class="wrap"><div class="card">Aucune donnée chargée. Vérifie que les fichiers du dossier <b>data/</b> sont bien présents à côté de index.html.</div></div>'; return; }
   render();
-  showContributionWelcome();
   dailyReminder();
   setInterval(function () { if ((route()[0] || '') === '' ) { /* rafraîchit les cœurs sur l'accueil */ if (!S.unlimited && S.hearts < HEART_MAX) render(); } }, 60000);
-  watchAppUpdates();
+  /* Les mises à jour n’interrompent jamais le premier parcours. */
+  setTimeout(watchAppUpdates, 15000);
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
