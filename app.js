@@ -279,11 +279,19 @@ var ANALYTICS_ID = String(ANALYTICS_CONFIG.measurementId || '').trim();
 function analyticsReady() { return /^G-[A-Z0-9]+$/i.test(ANALYTICS_ID); }
 function analyticsSetEnabled(enabled) {
   if (!analyticsReady()) return;
-  window['ga-disable-' + ANALYTICS_ID] = !enabled;
-  if (window.gtag) window.gtag('consent', 'update', {
-    analytics_storage: enabled ? 'granted' : 'denied',
-    ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied'
-  });
+  if (enabled) {
+    if (window.gtag) window.gtag('consent', 'update', {
+      analytics_storage: 'granted', ad_storage: 'denied',
+      ad_user_data: 'denied', ad_personalization: 'denied'
+    });
+    window['ga-disable-' + ANALYTICS_ID] = false;
+  } else {
+    window['ga-disable-' + ANALYTICS_ID] = true;
+    if (window.gtag) window.gtag('consent', 'update', {
+      analytics_storage: 'denied', ad_storage: 'denied',
+      ad_user_data: 'denied', ad_personalization: 'denied'
+    });
+  }
 }
 function analytics(name, params) {
   if (!S.analytics || !analyticsReady()) return;
@@ -1890,7 +1898,7 @@ function bind() {
   var snd = el('snd'); if (snd) snd.onchange = function () { S.sound = snd.checked; save(); if (snd.checked) beep('ok'); };
   var unl = el('unl'); if (unl) unl.onchange = function () { S.unlimited = unl.checked; save(); toast(unl.checked ? '♾️ Cœurs illimités' : '❤️ Cœurs activés'); render(); };
   var hlx = el('hlx'); if (hlx) hlx.onchange = function () { S.hl = hlx.checked; save(); toast(hlx.checked ? '🖍️ Mise en forme activée' : 'Mise en forme désactivée'); };
-  var analyticsChoice = el('analytics'); if (analyticsChoice) analyticsChoice.onchange = function () { S.analytics = analyticsChoice.checked; analyticsSetEnabled(S.analytics); save(); if (S.analytics) { analytics('analytics_consent', { enabled: 1 }); trackScreen(route()[0] || 'home'); } toast(S.analytics ? '📈 Statistiques anonymisées activées' : '📈 Statistiques anonymisées désactivées'); };
+  var analyticsChoice = el('analytics'); if (analyticsChoice) analyticsChoice.onchange = function () { S.analytics = analyticsChoice.checked; analyticsSetEnabled(S.analytics); save(); if (S.analytics) { if (window.gtag) window.gtag('event', 'page_view', { page_location: location.href, page_title: document.title }); analytics('analytics_consent', { enabled: 1 }); trackScreen(route()[0] || 'home'); } toast(S.analytics ? '📈 Statistiques anonymisées activées' : '📈 Statistiques anonymisées désactivées'); };
   var contestDate = el('contestDate'); if (contestDate) contestDate.onchange = function () {
     if (!contestDate.value) return;
     S.contestDate = contestDate.value; S.planStart = today(); save(); toast('🗓️ Date du concours enregistrée'); render();
