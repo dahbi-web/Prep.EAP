@@ -276,27 +276,14 @@ var S = load();
    ni réponses, ni texte des cours, ni recherches, ni identifiant utilisateur. */
 var ANALYTICS_CONFIG = window.PREPME_ANALYTICS_CONFIG || {};
 var ANALYTICS_ID = String(ANALYTICS_CONFIG.measurementId || '').trim();
-var analyticsLoaded = false;
 function analyticsReady() { return /^G-[A-Z0-9]+$/i.test(ANALYTICS_ID); }
 function analyticsSetEnabled(enabled) {
   if (!analyticsReady()) return;
   window['ga-disable-' + ANALYTICS_ID] = !enabled;
-  if (!enabled) {
-    if (window.gtag) window.gtag('consent', 'update', { analytics_storage: 'denied' });
-    return;
-  }
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
-  window.gtag('consent', 'default', { analytics_storage: 'granted' });
-  if (!analyticsLoaded) {
-    analyticsLoaded = true;
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(ANALYTICS_ID);
-    document.head.appendChild(script);
-    window.gtag('js', new Date());
-    window.gtag('config', ANALYTICS_ID, { send_page_view: false });
-  }
+  if (window.gtag) window.gtag('consent', 'update', {
+    analytics_storage: enabled ? 'granted' : 'denied',
+    ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied'
+  });
 }
 function analytics(name, params) {
   if (!S.analytics || !analyticsReady()) return;
