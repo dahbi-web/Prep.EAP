@@ -78,6 +78,16 @@ DOCS.forEach(function (d) {
 });
 function doc(id) { return DOC_BY_ID[+id]; }
 function unit(did, ui) { var d = doc(did); return d && d.units[+ui]; }
+function questionSource(q, did, ui) {
+  if (q && q.source) return q.source;
+  var u = unit(did, ui), d = doc(did);
+  return d && u ? 'Document ' + d.code + ' · ' + (u.pages || 'unité ' + (+ui + 1)) : 'Source PDF du module';
+}
+function questionReportUrl(q, did, ui) {
+  var d = doc(did), u = unit(did, ui);
+  var text = 'Bonjour PrepMe, je souhaite signaler une question à vérifier. Module ' + (d ? d.code + ' · ' + d.title : did) + ' · ' + (u ? u.t : ui) + '. Question : ' + String(q && q.q || '').replace(/<[^>]+>/g, ' ');
+  return 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent(text);
+}
 function qKey(did, ui, qi) { return 'q' + did + '.' + ui + '.' + qi; }
 function cKey(did, ui, ci) { return 'c' + did + '.' + ui + '.' + ci; }
 function uKey(did, ui) { return did + '.' + ui; }
@@ -138,10 +148,11 @@ function allCards(filterDocId) {
 
 /* ----------------------------------------------------------------- state */
 var KEY = 'cnc_anass_v2';
+var BACKUP_KEY = KEY + '_backup';
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.5.7';
+var APP_VERSION = '3.5.35';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -255,8 +266,8 @@ function blank() {
   return {
     v: 2, xp: 0, day: today(), xpDay: 0, streak: 0, lastDay: null, best: 0,
     hearts: HEART_MAX, heartTs: Date.now(),
-    goal: 50, contestDate: CONTEST_DATE, planStart: '2026-09-10', homeMode: 'auto', sound: true, theme: 'auto', unlimited: false, hl: true,
-    units: {}, srs: {}, exams: [], hist: {}, seen: {}
+    goal: 50, contestDate: CONTEST_DATE, planStart: '2026-09-10', homeMode: 'auto', sound: true, theme: 'auto', fontScale: 'normal', unlimited: false, hl: true,
+    units: {}, srs: {}, exams: [], sessions: [], lastRoute: '', hist: {}, seen: {}
   };
 }
 var S = load();
@@ -362,19 +373,29 @@ function watchAppUpdates() {
   window.addEventListener('online', checkRemoteUpdate);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && navigator.onLine) checkRemoteUpdate(); });
 }
+function completeProgress(s) {
+  if (!isValidProgress(s)) return null;
+  var b = blank();
+  for (var k in b) if (!(k in s)) s[k] = b[k];
+  migrateSns3047Progress(s);
+  return s;
+}
+function parseProgress(raw) {
+  if (!raw) return null;
+  try { return completeProgress(JSON.parse(raw)); } catch (e) { return null; }
+}
 function load() {
   try {
-    var raw = localStorage.getItem(KEY);
-    if (!raw) return blank();
-    var s = JSON.parse(raw); if (!isValidProgress(s)) return blank();
-    var b = blank();
-    for (var k in b) if (!(k in s)) s[k] = b[k];
-    migrateSns3047Progress(s);
-    return s;
+    var s = parseProgress(localStorage.getItem(KEY));
+    if (s) return s;
+    s = parseProgress(localStorage.getItem(BACKUP_KEY));
+    if (s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (restoreErr) { } toast('♻️ Sauvegarde précédente restaurée'); return s; }
+    return blank();
   } catch (e) { return blank(); }
 }
 function isValidProgress(s) {
-  return !!(s && typeof s === 'object' && (s.v === 2 || typeof s.v === 'number') &&
+  return !!(s && typeof s === 'object' && !Array.isArray(s) && Number.isFinite(Number(s.v)) && Number(s.v) >= 1 &&
+    Number.isFinite(Number(s.xp)) && Number(s.xp) >= 0 &&
     s.units && typeof s.units === 'object' && s.srs && typeof s.srs === 'object' &&
     s.hist && typeof s.hist === 'object' && s.seen && typeof s.seen === 'object');
 }
@@ -398,9 +419,17 @@ var saveT = null;
 function save() { clearTimeout(saveT); saveT = setTimeout(function () {
   try {
     if (!isValidProgress(S)) throw new Error('invalid-progress');
-    localStorage.setItem(KEY, JSON.stringify(S));
-  } catch (e) { toast('⚠️ Progression non enregistrée : stockage indisponible'); }
+    var json = JSON.stringify(S), previous = localStorage.getItem(KEY);
+    if (previous && previous !== json && parseProgress(previous)) localStorage.setItem(BACKUP_KEY, previous);
+    localStorage.setItem(KEY, json);
+  } catch (e) { toast('⚠️ Progression non enregistrée : stockage indisponible ou invalide'); }
 }, 120); }
+function recordSession(type, result, total, secs, scope) {
+  if (!S.sessions || !Array.isArray(S.sessions)) S.sessions = [];
+  S.sessions.push({ date: new Date().toISOString(), type: type, score: total ? Math.round(result / total * 100) : 0, correct: result, total: total, secs: Math.max(0, Math.round(secs || 0)), scope: scope || '' });
+  if (S.sessions.length > 200) S.sessions = S.sessions.slice(-200);
+  save();
+}
 
 function rollDay() {
   var t = today();
@@ -850,6 +879,7 @@ function applyTheme() {
   var t = S.theme;
   if (t === 'auto') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', t);
+  document.documentElement.setAttribute('data-font-scale', S.fontScale || 'normal');
   var m = document.querySelector('meta[name=theme-color]');
   if (m) m.content = t === 'dark' ? '#111820' : '#58cc02';
 }
@@ -858,6 +888,7 @@ if (window.matchMedia) { try { window.matchMedia('(prefers-color-scheme: dark)')
 /* --------------------------------------------------------------- routeur */
 function go(h) {
   var path = '/' + String(h || '').replace(/^\/+/, '');
+  if (/^\/(?:lesson|quiz|review|exam|cards)(?:\/|$)/.test(path)) { S.lastRoute = path.slice(1); save(); }
   var target = '#' + path;
   if (location.hash === target) { render(); return; }
   location.hash = path;
@@ -897,7 +928,7 @@ function render() {
 /* ------------------------------------------------------------ composants */
 function bar(title, back) {
   return '<div class="topbar">' +
-    (back ? '<button class="iconbtn" data-go="' + back + '">←</button>' : '<span style="width:34px"></span>') +
+    (back ? '<button class="iconbtn" data-go="' + back + '" aria-label="Retour">←</button>' : '<span style="width:34px"></span>') +
     '<span class="ttl">' + esc(title) + '</span>' +
     '<span class="pill hearts">' + (S.unlimited ? '♾️' : '❤️ ' + hearts()) + '</span>' +
     '</div>';
@@ -907,18 +938,18 @@ function navBar(v) {
   var items = [
     ['', '🏠', 'Accueil'],
     ['review', '🧠', 'Évaluation intelligente'],
-    ['concours', '📝', 'concours'],
+    ['concours', '📝', 'Concours'],
     ['pdf', '📚', 'Cours PDF'],
     ['cards', '🃏', 'Cartes'],
     ['stats', '📊', 'Statistiques'],
     ['set', '⚙️', 'Réglages']
   ];
-  return '<div class="nav"><div class="in">' + items.map(function (it) {
+  return '<nav class="nav" aria-label="Navigation principale"><div class="in">' + items.map(function (it) {
     var on = (v === it[0] || (v === 'home' && it[0] === '')) ? ' on' : '';
     var dot = (it[0] === 'review' && d) ? '<span class="dot">' + (d > 99 ? '99+' : d) + '</span>' : '';
     var label = it[2] === 'Évaluation intelligente' ? 'Évaluation<br>intelligente' : it[2];
-    return '<button class="' + on.trim() + '" data-go="' + it[0] + '"><span class="ic">' + it[1] + '</span><span class="nav-label">' + label + '</span>' + dot + '</button>';
-  }).join('') + '</div></div>';
+    return '<button type="button" class="' + on.trim() + '" data-go="' + it[0] + '" aria-label="' + it[2] + '"' + (on ? ' aria-current="page"' : '') + '><span class="ic" aria-hidden="true">' + it[1] + '</span><span class="nav-label">' + label + '</span>' + dot + '</button>';
+  }).join('') + '</div></nav>';
 }
 function vPdfs() {
   var list = window.PREP_PDFS || [];
@@ -1096,6 +1127,8 @@ function vHome() {
     { go: 'exam', title: 'Lancer un examen blanc', detail: 'Tes cours sont à jour : mesure maintenant ton niveau.', why: 'Tu peux vérifier ta préparation en conditions réelles.', time: '≈ 15 min' }));
   var g = Math.min(1, S.xpDay / (S.goal || 50));
   var xpGap = Math.max(0, S.goal - S.xpDay);
+  var resume = S.lastRoute && /^(?:lesson|quiz|review|exam|cards)(?:\/|$)/.test(S.lastRoute) ? S.lastRoute : '';
+  var resumeLabel = resume ? (resume.indexOf('lesson/') === 0 ? 'Reprendre la leçon' : resume.indexOf('quiz/') === 0 ? 'Reprendre le quiz' : resume.indexOf('review') === 0 ? 'Reprendre les révisions' : resume.indexOf('exam') === 0 ? 'Reprendre l’examen' : 'Reprendre les cartes') : '';
 
   var h = '<div class="card"><b>📲 Utiliser hors ligne</b><div class="sub">Installe l’application pour réviser sans Internet.</div><div class="spacer"></div><button class="btn blue sm" data-act="install">⬇️ Télécharger / installer</button></div>' +
     '<div class="hero">' +
@@ -1113,6 +1146,7 @@ function vHome() {
     '</div>';
 
   h += '<div class="wrap">';
+  if (resume) h += '<div class="card resume-card" style="border-color:var(--blue)"><div class="row"><div style="flex:1"><b>▶️ Reprendre</b><div class="sub">' + esc(resumeLabel) + ' · dernière activité conservée sur cet appareil</div></div><button class="btn blue sm" data-go="' + esc(resume) + '">Reprendre</button></div></div>';
   h += '<div class="mode-switch" role="group" aria-label="Mode de préparation"><button class="' + (autoMode ? 'on' : '') + '" data-home-mode="auto"><b>✨ Auto</b><small>PrepMe décide</small></button><button class="' + (!autoMode ? 'on' : '') + '" data-home-mode="manual"><b>🖐️ Manuel</b><small>Je vois tout et je choisis</small></button></div>';
   if (!autoMode) {
   var paceLabel = plan.delta > 0 ? plan.delta + ' unité' + (plan.delta > 1 ? 's' : '') + ' d’avance' :
@@ -1215,10 +1249,18 @@ function reviewTargets() {
 }
 
 /* --------------------------------------------------------------- vue DOC */
+function unitMinutes(u) {
+  var words = String(u.lesson || '').replace(/<[^>]+>/g, ' ').trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(3, Math.ceil(words / 180) + Math.ceil((u.qs || []).length * 0.7) + Math.ceil((u.cards || []).length * 0.15));
+}
 function vDoc(id) {
   var d = doc(id); if (!d) return vHome();
   var h = bar(d.code + '. ' + d.title, '') + '<div class="wrap">';
   h += '<h1>' + d.icon + ' ' + esc(d.title) + '</h1><div class="sub">' + esc(d.sub || '') + '</div>';
+  var studied = d.units.filter(function (u, i) { var s = ust(d.id, i); return s.lesson || s.runs > 0; }).length;
+  var mastered = d.units.filter(function (u, i) { return ust(d.id, i).crowns >= CROWN_MAX; }).length;
+  var status = mastered === d.units.length ? '✅ Module maîtrisé' : studied ? '🔄 Module en cours' : '🆕 Module à commencer';
+  h += '<div class="card module-objective"><b>🎯 Objectif du module</b><div class="sub">Comprendre les notions clés de « ' + esc(d.title) + ' », retenir les définitions et chiffres importants, puis réussir les QCM et les révisions.</div><div class="sub" style="margin-top:6px">' + status + ' · ' + studied + '/' + d.units.length + ' unités parcourues · ' + mastered + '/' + d.units.length + ' maîtrisées</div></div>';
   h += '<div class="row" style="margin:12px 0 4px"><div class="progress"><div style="width:' + docPct(d) + '%"></div></div>' +
     '<b style="font-size:13px">' + docPct(d) + '%</b></div>';
   h += '<div class="row2" style="margin:12px 0"><button class="btn blue sm" data-go="cards/' + d.id + '">🃏 Flashcards</button>' +
@@ -1231,7 +1273,7 @@ function vDoc(id) {
     h += '<div class="node ' + cls + '" data-go="lesson/' + d.id + '/' + i + '">' +
       '<div class="circ">' + (u.ic || '📘') + '</div>' +
       '<div class="info" style="flex:1"><div class="t">' + esc(u.t) + '</div>' +
-      '<div class="d">' + u.qs.length + ' QCM · ' + u.cards.length + ' cartes' + (u.pages ? ' · ' + u.pages : '') + '</div>' +
+      '<div class="d">' + u.qs.length + ' QCM · ' + u.cards.length + ' cartes · ≈ ' + unitMinutes(u) + ' min' + (u.pages ? ' · ' + u.pages : '') + '</div>' +
       '<div class="unit-source">📄 ' + esc(sourceLabel(d.id, u.pages)) + '</div>' +
       '<div class="crowns">' + '👑'.repeat(s.crowns) + '<span style="opacity:.25">' + '👑'.repeat(CROWN_MAX - s.crowns) + '</span>' +
       (s.best ? ' <span class="badge ok">' + s.best + '%</span>' : '') + '</div></div>' +
@@ -1376,6 +1418,7 @@ function quizEnd() {
   }
   if (pct >= 80) { beep('up'); if (pct === 100) confetti(); }
   var secs = Math.round((Date.now() - R.t0) / 1000);
+  recordSession(R.mode === 'lesson' ? 'quiz' : 'revision', R.ok, tot, secs, R.title || '');
   var h = bar('Résultat', '') + '<div class="wrap center">' +
     '<div style="font-size:56px;margin:16px 0 4px">' + (pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '💪' : '📚') + '</div>' +
     '<h1>' + pct + '%</h1><div class="sub">' + R.ok + ' bonnes / ' + tot + ' questions · ' + Math.floor(secs / 60) + 'm' + pad(secs % 60) + 's</div>' +
@@ -1388,7 +1431,7 @@ function quizEnd() {
     h += '<div class="card" style="text-align:left"><b>À revoir (' + R.wrong.length + ')</b>';
     R.wrong.slice(0, 12).forEach(function (it) {
       h += '<div style="margin-top:10px;font-size:13.5px"><div style="font-weight:700">' + rich(it.q.q) + '</div>' +
-        '<div style="color:var(--green-dk)">➜ ' + rich(it.q.o[it.q.c]) + '</div></div>';
+        '<div style="color:var(--green-dk)">➜ ' + rich(it.q.o[it.q.c]) + '</div><div class="sub">📄 ' + esc(questionSource(it.q, it.d, it.u)) + ' · <a href="' + esc(questionReportUrl(it.q, it.d, it.u)) + '" target="_blank" rel="noopener noreferrer">Signaler</a></div></div>';
     });
     h += '<div class="sub" style="margin-top:10px">Ces questions sont programmées dans ta révision espacée.</div></div>';
   }
@@ -1486,6 +1529,7 @@ function cardGrade(g) {
 }
 function reviewEnd() {
   var R = RUN;
+  recordSession('revision', R.ok, R.items.length, (Date.now() - R.t0) / 1000, 'Révision espacée');
   addXP(R.xp + 5);
   if (!S.unlimited && S.hearts < HEART_MAX && R.items.length >= 5) { gainHeart(1); }
   beep('up');
@@ -1574,6 +1618,7 @@ function examEnd() {
   clearInterval(EXTIMER);
   var R = RUN, tot = R.items.length, pct = tot ? Math.round(R.ok / tot * 100) : 0;
   var secs = Math.round((Date.now() - R.t0) / 1000);
+  recordSession('examen', R.ok, tot, secs, R.scope);
   addXP(R.xp + 25);
   S.exams.push({ date: today(), n: tot, pct: pct, secs: secs, scope: R.scope });
   save();
@@ -1592,7 +1637,7 @@ function examEnd() {
       h += '<div class="hr"></div><div style="font-size:13.6px"><div style="font-weight:700">' + rich(it.q.q) + '</div>' +
         '<div style="color:var(--green-dk);margin:3px 0"><b>➜ ' + rich(it.q.o[it.q.c]) + '</b></div>' +
         (it.q.e ? '<div class="sub">' + rich(it.q.e) + '</div>' : '') +
-        '<div class="sub" style="margin-top:3px">' + esc(doc(it.d).code + ' · ' + unit(it.d, it.u).t) + '</div></div>';
+        '<div class="sub" style="margin-top:3px">' + esc(doc(it.d).code + ' · ' + unit(it.d, it.u).t) + '</div><div class="sub">📄 ' + esc(questionSource(it.q, it.d, it.u)) + ' · <a href="' + esc(questionReportUrl(it.q, it.d, it.u)) + '" target="_blank" rel="noopener noreferrer">Signaler</a></div></div>';
     });
     h += '</div>';
   }
@@ -1604,6 +1649,8 @@ function examEnd() {
 function vStats() {
   var days = [], t = today();
   for (var i = 6; i >= 0; i--) { var d = dayShift(t, -i); days.push([d, d === t ? S.xpDay : (S.hist[d] || 0)]); }
+  function xpPeriod(n) { var total = 0, active = 0; for (var j = 0; j < n; j++) { var day = dayShift(t, -j), value = day === t ? S.xpDay : +(S.hist[day] || 0); total += value; if (value > 0) active++; } return { total: total, active: active }; }
+  var p7 = xpPeriod(7), p30 = xpPeriod(30), p90 = xpPeriod(90);
   var max = Math.max(10, Math.max.apply(null, days.map(function (x) { return x[1]; })));
   var totQ = 0, okQ = 0, koQ = 0, crowns = 0, maxc = 0;
   DOCS.forEach(function (d) {
@@ -1614,6 +1661,22 @@ function vStats() {
     '<div class="stat"><div class="v">' + S.xp + '</div><div class="l">XP total</div></div>' +
     '<div class="stat"><div class="v">' + S.streak + '</div><div class="l">série (record ' + S.best + ')</div></div>' +
     '<div class="stat"><div class="v">' + Math.round(crowns / Math.max(1, maxc) * 100) + '%</div><div class="l">maîtrise</div></div></div>';
+  h += '<div class="card"><div class="row"><div style="flex:1"><b>📈 Évolution de l’activité</b><div class="sub">XP gagné et jours actifs</div></div><button class="btn ghost sm" data-act="exportStats">⬇️ Exporter</button></div><div class="row3" style="margin-top:12px"><div class="stat"><div class="v">' + p7.total + '</div><div class="l">7 jours · ' + p7.active + ' actifs</div></div><div class="stat"><div class="v">' + p30.total + '</div><div class="l">30 jours · ' + p30.active + ' actifs</div></div><div class="stat"><div class="v">' + p90.total + '</div><div class="l">90 jours · ' + p90.active + ' actifs</div></div></div></div>';
+  var recent = (S.sessions || []).slice(-5).reverse();
+  h += '<h2>Historique des séances</h2>';
+  if (!recent.length) h += '<div class="card sub">Tes séances terminées apparaîtront ici.</div>';
+  recent.forEach(function (s) {
+    var label = s.type === 'examen' ? '📝 Examen' : s.type === 'revision' ? '🔁 Révision' : '✅ Quiz';
+    var date = String(s.date || '').slice(0, 10);
+    h += '<div class="mod"><div class="bub">' + label.split(' ')[0] + '</div><div class="info"><div class="t">' + esc(label.slice(2)) + ' · ' + esc(date) + '</div><div class="p">' + s.correct + '/' + s.total + ' · ' + Math.round(s.score || 0) + '% · ' + Math.floor((s.secs || 0) / 60) + 'm' + pad((s.secs || 0) % 60) + 's</div></div><span class="badge ' + (s.score >= 80 ? 'ok' : s.score < 50 ? 'hot' : '') + '">' + Math.round(s.score || 0) + '%</span></div>';
+  });
+  var sessionSummary = { quiz: 0, revision: 0, examen: 0 }, sessionCorrect = { quiz: 0, revision: 0, examen: 0 };
+  (S.sessions || []).forEach(function (s) { if (sessionSummary[s.type] != null) { sessionSummary[s.type]++; sessionCorrect[s.type] += +s.correct || 0; } });
+  h += '<div class="card"><b>🧭 Répartition des séances</b><div class="row3" style="margin-top:10px">' +
+    '<div class="stat"><div class="v">' + sessionSummary.quiz + '</div><div class="l">quiz</div></div>' +
+    '<div class="stat"><div class="v">' + sessionSummary.revision + '</div><div class="l">révisions</div></div>' +
+    '<div class="stat"><div class="v">' + sessionSummary.examen + '</div><div class="l">examens</div></div></div>' +
+    '<div class="sub" style="margin-top:8px">Réponses justes enregistrées : ' + (sessionCorrect.quiz + sessionCorrect.revision + sessionCorrect.examen) + '</div></div>';
   h += '<h2>7 derniers jours</h2><div class="card"><div class="bars">' +
     days.map(function (x) {
       var n = ['D', 'L', 'M', 'M', 'J', 'V', 'S'][new Date(x[0]).getDay()];
@@ -1624,6 +1687,8 @@ function vStats() {
     '<div class="stat"><div class="v">' + okQ + '</div><div class="l">justes</div></div>' +
     '<div class="stat"><div class="v">' + koQ + '</div><div class="l">fausses</div></div>' +
     '<div class="stat"><div class="v">' + (okQ + koQ ? Math.round(okQ / (okQ + koQ) * 100) : 0) + '%</div><div class="l">réussite</div></div></div>';
+  var errorCount = Object.keys(S.srs || {}).filter(function (k) { return S.srs[k] && S.srs[k].lap; }).length;
+  h += '<div class="card" style="border-color:var(--orange)"><div class="row"><div style="flex:1"><b>🎯 Révision ciblée</b><div class="sub">' + (errorCount ? errorCount + ' question' + (errorCount > 1 ? 's' : '') + ' ratée' + (errorCount > 1 ? 's' : '') + ' à consolider.' : 'Les questions ratées apparaîtront ici après tes quiz.') + '</div></div><button class="btn gold sm" data-go="review">Réviser mes erreurs</button></div></div>';
   var modWeak = [];
   DOCS.forEach(function (d) {
     var mok = 0, mko = 0, started = false;
@@ -1664,7 +1729,14 @@ function vStats() {
 function vSettings() {
   var h = bar('Réglages', '') + '<div class="wrap">';
   var storageState = '✅ Stockage local disponible';
+  var storageDetail = '';
   try { localStorage.setItem('__prepme_diag__', '1'); localStorage.removeItem('__prepme_diag__'); } catch (e) { storageState = '⚠️ Stockage local indisponible'; }
+  try {
+    var savedRaw = localStorage.getItem(KEY), backupRaw = localStorage.getItem(BACKUP_KEY);
+    var savedKb = savedRaw ? (savedRaw.length / 1024).toFixed(1) : '0.0';
+    storageDetail = '<br>État : ' + (savedRaw ? '✅ progression enregistrée' : '⚠️ aucune progression enregistrée') +
+      ' · taille : ' + savedKb + ' Ko<br>' + (backupRaw ? '✅ copie de secours disponible' : 'ℹ️ copie de secours créée après la prochaine modification');
+  } catch (e2) { storageDetail = '<br>⚠️ détails du stockage indisponibles'; }
   var networkState = navigator.onLine ? '🌐 Connexion disponible' : '📴 Fonctionnement hors ligne';
   h += '<div class="card"><b>🗓️ Date de mon concours</b><div class="sub">Le rythme quotidien et le compte à rebours s’adaptent automatiquement.</div><div class="spacer"></div><label class="date-field"><span>Date prévue</span><input type="date" id="contestDate" value="' + esc(S.contestDate || CONTEST_DATE) + '"></label></div>';
   h += '<div class="card"><b>Objectif quotidien</b><div class="sub">XP à gagner chaque jour pour garder ta série</div>' +
@@ -1675,6 +1747,8 @@ function vSettings() {
     [['auto', '🌗 Auto'], ['light', '☀️ Mode diurne'], ['dark', '🌙 Sombre']].map(function (t) {
       return '<button class="btn ' + (S.theme === t[0] ? '' : 'ghost') + ' sm" data-theme="' + t[0] + '">' + t[1] + '</button>';
     }).join('') + '</div></div>';
+  h += '<div class="card"><b>🔤 Taille du texte</b><div class="sub">Ajuste la lisibilité des cours, boutons et informations.</div><div class="spacer"></div><div class="row3">' +
+    [['small','Petite'],['normal','Normale'],['large','Grande']].map(function (t) { return '<button class="btn ' + (S.fontScale === t[0] ? '' : 'ghost') + ' sm" data-font-scale="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
   h += '<div class="card"><label class="row" style="justify-content:space-between"><span><b>🔊 Le son est activé</b><div class="sub">Retour audio juste / faux</div></span>' +
     '<input type="checkbox" id="snd"' + (S.sound ? ' checked' : '') + ' style="width:22px;height:22px"></label>' +
     '<div class="hr"></div><label class="row" style="justify-content:space-between"><span><b>Cœurs illimités</b><div class="sub">Ne jamais être bloqué par les erreurs</div></span>' +
@@ -1684,13 +1758,13 @@ function vSettings() {
   h += '<div class="card"><b>🔔 Rappels du concours</b><div class="sub">Autoriser les rappels de l’application sur cet appareil.</div><div class="spacer"></div><button class="btn blue sm" data-act="notify">' + (S.notify ? '✅ Rappels activés' : 'Activer les notifications') + '</button></div>';
   h += '<div class="card"><b>📲 Installation hors ligne</b><div class="sub">Si le bouton ne s’ouvre pas : menu du navigateur → « Ajouter à l’écran d’accueil ».</div><div class="spacer"></div><button class="btn blue sm" data-act="install">⬇️ Installer l’application</button></div>';
   h += '<div class="card"><b>🔄 Mises à jour</b><div class="sub">Version ' + APP_VERSION + ' · vérification automatique quand Internet est disponible. Une alerte s’affiche seulement lorsqu’une nouvelle version est publiée.</div></div>';
-  h += '<div class="card"><b>🛠️ Diagnostic hors ligne</b><div class="sub">Version installée : <b>' + APP_VERSION + '</b><br>' + networkState + '<br>' + storageState + '<br>Progression : clé protégée <b>cnc_anass_v2</b><br>Pour corriger un affichage après mise à jour : faire <b>Ctrl+F5</b> sur PC.</div></div>';
+  h += '<div class="card"><b>🛠️ Diagnostic hors ligne</b><div class="sub">Version installée : <b>' + APP_VERSION + '</b><br>' + networkState + '<br>' + storageState + storageDetail + '<br>Progression : clé protégée <b>cnc_anass_v2</b><br>Pour corriger un affichage après mise à jour : faire <b>Ctrl+F5</b> sur PC.</div><div class="spacer"></div><div class="row2"><button class="btn blue sm" data-act="export">⬇️ Créer une copie maintenant</button><button class="btn ghost sm" data-act="storageTest">🧪 Tester le stockage</button></div></div>';
   h += '<div class="card"><b>🧭 Test diagnostic</b><div class="sub">20 questions mélangées pour évaluer ton niveau de départ. Le test utilise la banque existante et ne réinitialise aucune progression.</div><div class="spacer"></div><button class="btn purple sm" data-act="diagnostic">🧭 Commencer le diagnostic</button></div>';
   h += '<div class="card"><b>💬 Contact WhatsApp</b><div class="sub">Pour déclarer un problème, suggérer une amélioration ou déposer des documents de concours.</div><div class="spacer"></div><a class="btn green sm" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">WhatsApp · ' + esc(WHATSAPP_CONTACT_DISPLAY) + '</a></div>';
   h += '<div class="card"><b>Sauvegarde</b><div class="sub">Ta progression est stockée sur cet appareil. Exporte-la pour la transférer sur un autre (PC ↔ téléphone).</div>' +
     '<div class="spacer"></div><div class="row2"><button class="btn blue sm" data-act="export">⬇️ Exporter</button>' +
     '<button class="btn ghost sm" data-act="import">⬆️ Importer</button></div>' +
-    '<div class="spacer"></div><button class="btn red sm" data-act="reset">🗑️ Réinitialiser la progression</button></div>';
+    '<div class="spacer"></div><div class="row2"><button class="btn ghost sm" data-act="restoreBackup">♻️ Restaurer la copie de secours</button><button class="btn red sm" data-act="reset">🗑️ Réinitialiser la progression</button></div></div>';
   var nq = 0, nc = 0; DOCS.forEach(function (d) { d.units.forEach(function (u) { nq += u.qs.length; nc += u.cards.length; }); });
   h += '<button class="settings-link" data-go="about"><span><b>🛡️ À propos et confidentialité</b><small>Informations légales, données et avertissement pédagogique</small></span><strong>›</strong></button>';
   h += '<div class="app-signature"><div class="app-signature-mark">P</div><div><b>PrepMe</b><span>Version ' + APP_VERSION + ' · ' + DOCS.length + ' modules · ' + nq + ' QCM · ' + nc + ' flashcards</span></div></div>';
@@ -1743,6 +1817,15 @@ function vSearch() {
 function bind() {
   Array.prototype.forEach.call(ROOT.querySelectorAll('[data-go]'), function (b) {
     b.onclick = function (ev) { if (ev && ev.stopPropagation) ev.stopPropagation(); clearInterval(EXTIMER); go('/' + b.getAttribute('data-go')); };
+    var tag = (b.tagName || '').toLowerCase();
+    if (tag !== 'a' && tag !== 'button' && tag !== 'input' && tag !== 'select' && tag !== 'textarea') {
+      b.setAttribute('role', 'button');
+      b.setAttribute('tabindex', '0');
+      if (!b.getAttribute('aria-label')) b.setAttribute('aria-label', (b.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120) || 'Ouvrir');
+      b.onkeydown = function (ev) {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); b.click(); }
+      };
+    }
   });
   Array.prototype.forEach.call(ROOT.querySelectorAll('.opt'), function (b) {
     b.onclick = function () { answer(b.getAttribute('data-opt')); };
@@ -1766,6 +1849,9 @@ function bind() {
   });
   Array.prototype.forEach.call(ROOT.querySelectorAll('[data-theme]'), function (b) {
     b.onclick = function () { S.theme = b.getAttribute('data-theme'); save(); applyTheme(); render(); };
+  });
+  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-font-scale]'), function (b) {
+    b.onclick = function () { S.fontScale = b.getAttribute('data-font-scale'); save(); applyTheme(); render(); };
   });
   var snd = el('snd'); if (snd) snd.onchange = function () { S.sound = snd.checked; save(); if (snd.checked) beep('ok'); };
   var unl = el('unl'); if (unl) unl.onchange = function () { S.unlimited = unl.checked; save(); toast(unl.checked ? '♾️ Cœurs illimités' : '❤️ Cœurs activés'); render(); };
@@ -1855,6 +1941,30 @@ function act(a, b) {
       } else anchorSave(json, name);
       break;
     }
+    case 'exportStats': {
+      var statPayload = { version: APP_VERSION, exportedAt: new Date().toISOString(), xp: S.xp, streak: S.streak, best: S.best, history: S.hist, exams: S.exams, units: S.units };
+      anchorSave(JSON.stringify(statPayload, null, 2), 'cnc-anass-statistiques-' + today() + '.json');
+      break;
+    }
+    case 'storageTest': {
+      try {
+        var stamp = 'prepme-test-' + Date.now();
+        localStorage.setItem('__prepme_storage_test__', stamp);
+        var ok = localStorage.getItem('__prepme_storage_test__') === stamp;
+        localStorage.removeItem('__prepme_storage_test__');
+        toast(ok ? '✅ Stockage local fonctionnel' : '⚠️ Lecture du stockage impossible');
+      } catch (e) { toast('⚠️ Écriture dans le stockage impossible'); }
+      break;
+    }
+    case 'restoreBackup': {
+      var backup = null;
+      try { backup = parseProgress(localStorage.getItem(BACKUP_KEY)); } catch (e) { backup = null; }
+      if (!backup) { toast('ℹ️ Aucune copie de secours valide disponible'); break; }
+      if (!confirm('Restaurer la copie de secours ? La progression actuelle sera conservée dans une copie avant restauration.')) break;
+      try { localStorage.setItem(KEY + '_before_restore', JSON.stringify(S)); } catch (backupErr) { }
+      S = backup; save(); toast('♻️ Copie de secours restaurée'); render();
+      break;
+    }
     case 'import': {
       var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/json';
       inp.onchange = function () {
@@ -1863,11 +1973,11 @@ function act(a, b) {
         rd.onload = function () {
           try {
             var o = JSON.parse(rd.result);
-            if (!isValidProgress(o)) { toast('Fichier invalide ou incompatible'); return; }
+            o = completeProgress(o);
+            if (!o) { toast('Fichier invalide, incomplet ou incompatible'); return; }
             if (!confirm('Importer cette progression et remplacer celle de cet appareil ?')) return;
             try { localStorage.setItem(KEY + '_before_import', JSON.stringify(S)); } catch (backupErr) { }
-            var b = blank(); for (var k in b) if (!(k in o)) o[k] = b[k];
-            migrateSns3047Progress(o); S = o; save(); toast('Progression importée · sauvegarde précédente conservée'); render();
+            S = o; save(); toast('Progression importée · sauvegarde précédente conservée'); render();
           }
           catch (e) { toast('Fichier illisible'); }
         };

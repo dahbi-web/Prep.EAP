@@ -1,14 +1,20 @@
 /* Service worker — mise en cache complète pour usage hors-ligne */
-var CACHE = 'cnc-anass-v50';
-  var APP_VERSION = '3.5.10';
+var CACHE = 'cnc-anass-v75';
+var APP_VERSION = '3.5.35';
 var ASSETS = [
   './', './index.html', './privacy-policy.html', './app.css', './app.js', './manifest.webmanifest',
   './pdfs.js', './vendor/pdf.min.js', './vendor/pdf.worker.min.js',
-  './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png',
+  './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png', './favicon.ico',
   './data/doc01_concours.js',
   './data/doc01.js', './data/doc02.js', './data/doc03.js', './data/doc04.js',
-  './data/doc05.js', './data/doc06.js', './data/doc07.js', './data/doc08.js',
-  './data/doc16.js', './data/doc26.js', './data/doc31.js',
+  './data/doc05.js', './data/doc05_enrichment.js', './data/doc06.js', './data/doc07.js',
+  './data/doc08.js', './data/doc08_enrichment.js',
+  './data/doc09.js', './data/doc09_enrichment.js', './data/doc09_frontmatter.js', './data/doc10.js', './data/doc10_enrichment.js', './data/doc11.js',
+  './data/doc12.js', './data/doc13.js', './data/doc14.js', './data/doc12_13_14_enrichment.js', './data/doc15.js', './data/doc16.js',
+  './data/doc15_17_18_enrichment.js', './data/doc17.js', './data/doc18.js', './data/doc19.js', './data/doc20.js', './data/doc21.js',
+  './data/doc19_20_21_enrichment.js', './data/doc22.js', './data/doc23.js', './data/doc24.js', './data/doc23_24_enrichment.js', './data/doc25.js', './data/doc26.js',
+  './data/doc27.js', './data/doc28.js', './data/doc29.js', './data/doc30.js', './data/doc31.js',
+  './data/content-review.js',
   './concours-commun/sujet-01.html', './concours-commun/sujet-02.html',
   './concours-commun/sujet-03.html', './concours-commun/sujet-04.html',
   './concours-commun/sujet-05.html', './concours-commun/sujet-06.html',
@@ -48,10 +54,14 @@ self.addEventListener('fetch', function (e) {
   e.respondWith(
     caches.match(e.request).then(function (r) {
       return r || fetch(e.request).then(function (resp) {
+        if (!resp || !resp.ok) throw new Error('network response unavailable');
         var copy = resp.clone();
         caches.open(CACHE).then(function (c) { c.put(e.request, copy).catch(function () { }); });
         return resp;
-      }).catch(function () { return caches.match('./index.html'); });
+      }).catch(function () {
+        var isDocument = e.request.destination === 'document' || /\.html?$/.test(new URL(e.request.url).pathname);
+        return isDocument ? caches.match('./index.html') : new Response('', { status: 503, statusText: 'Offline' });
+      });
     })
   );
 });
