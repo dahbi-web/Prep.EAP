@@ -1079,6 +1079,22 @@ function vConcoursPdfView(index) {
     '<div class="pdf-download"><a class="btn ghost sm" download href="' + href + '">⬇️ Télécharger le PDF</a></div></div>';
 }
 
+function jobAlertHtml() {
+  var subject = encodeURIComponent('Candidature — Hôpital Universitaire du Sport Mohammed VI');
+  return '<article class="job-alert card" aria-labelledby="job-alert-title">' +
+    '<div class="job-alert-head"><div><span class="job-alert-kicker">🔔 Nouvelle alerte emploi</span><h2 id="job-alert-title">Rejoignez l’Hôpital Universitaire du Sport Mohammed VI</h2></div><span class="badge hot">Recrutement</span></div>' +
+    '<div class="job-alert-grid"><a class="job-alert-visual" href="assets/recrutement-huism6.jpg" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir le visuel de l’offre d’emploi"><img src="assets/recrutement-huism6.jpg" alt="On recrute — Hôpital Universitaire du Sport Mohammed VI" loading="lazy"></a>' +
+    '<div class="job-alert-copy"><p>Dans le cadre de son ouverture prochaine, l’Hôpital Universitaire du Sport Mohammed VI renforce ses équipes et lance une campagne de recrutement couvrant les métiers du soin, du médico-technique, de la rééducation ainsi que les fonctions administratives et support.</p>' +
+    '<p>Porté par la Fondation Mohammed VI des Sciences et de la Santé, l’établissement réunit expertise médicale, chirurgie, médecine du sport, rééducation, réathlétisation, formation et recherche.</p></div></div>' +
+    '<details class="job-alert-details" open><summary>Voir les profils recherchés</summary><div class="job-alert-roles">' +
+    '<div><h3>Soins et bloc opératoire</h3><ul><li>Infirmier(ère) polyvalent(e)</li><li>Infirmier(ère) anesthésiste</li><li>Aide opératoire</li><li>Aide-soignant(e)</li><li>Infirmier(ère) hygiéniste</li></ul></div>' +
+    '<div><h3>Médico-technique, rééducation et parcours patient</h3><ul><li>Technicien(ne) de radiologie</li><li>Kinésithérapeute</li><li>Technicien(ne) ambulancier(ère)</li><li>Secrétaire médical(e)</li><li>Assistant(e) médical(e)</li></ul></div>' +
+    '<div><h3>Accueil, admission et facturation</h3><ul><li>Responsable BAF</li></ul></div>' +
+    '</div></details>' +
+    '<div class="job-alert-contact"><div><b>📧 recrutement.huim6s@fm6ss.ma</b><span>📍 Hôpital Universitaire du Sport Mohammed VI</span></div><a class="btn green sm" href="mailto:recrutement.huim6s@fm6ss.ma?subject=' + subject + '">Envoyer une candidature</a></div>' +
+    '</article>';
+}
+
 /* ------------------------------------------------------------ vue ACCUEIL */
 function vHome() {
   var due = dueList().length;
@@ -1113,6 +1129,8 @@ function vHome() {
     '</div>';
 
   h += '<div class="wrap">';
+  h += jobAlertHtml();
+  if (resume) h += '<div class="card resume-card" style="border-color:var(--blue)"><div class="row"><div style="flex:1"><b>▶️ Reprendre</b><div class="sub">' + esc(resumeLabel) + ' · dernière activité conservée sur cet appareil</div></div><button class="btn blue sm" data-go="' + esc(resume) + '">Reprendre</button></div></div>';
   h += '<div class="mode-switch" role="group" aria-label="Mode de préparation"><button class="' + (autoMode ? 'on' : '') + '" data-home-mode="auto"><b>✨ Auto</b><small>PrepMe décide</small></button><button class="' + (!autoMode ? 'on' : '') + '" data-home-mode="manual"><b>🖐️ Manuel</b><small>Je vois tout et je choisis</small></button></div>';
   if (!autoMode) {
   var paceLabel = plan.delta > 0 ? plan.delta + ' unité' + (plan.delta > 1 ? 's' : '') + ' d’avance' :
