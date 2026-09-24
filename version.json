@@ -1,10 +1,11 @@
 {
-  "version": "3.5.36",
-  "versionCode": 76,
+  "version": "3.5.37",
+  "versionCode": 77,
   "date": "2026-09-24",
-  "cache": "cnc-anass-v76",
+  "cache": "cnc-anass-v77",
   "modules": 31,
   "nouveautes": [
+    "Résultats Analytics agrégés par séance, sans événement envoyé après chaque réponse",
     "Mesure d’usage automatique sans cookies Analytics, limitée aux écrans, à la navigation et aux résultats agrégés",
     "Sauvegarde restaurée automatiquement si la copie principale est invalide",
     "Module Accident Exposition Au Sang structuré avec 21 QCM vérifiés et sources par page",

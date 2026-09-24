@@ -153,7 +153,7 @@ var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
 /* Source unique de vérité : version.json est généré avec cette même valeur. */
-var APP_VERSION = window.PREPME_VERSION || '3.5.36';
+var APP_VERSION = window.PREPME_VERSION || '3.5.37';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -1388,7 +1388,6 @@ function quizFrame() {
 function answer(chosen) {
   var R = RUN, it = R.items[R.i], q = it.q;
   var correct = (+chosen === q.c);
-  analytics('quiz_answered', { mode: R.mode || 'lesson', is_correct: correct ? 1 : 0, question_index: R.i + 1 });
   var btns = ROOT.querySelectorAll('.opt');
   Array.prototype.forEach.call(btns, function (b) {
     b.disabled = true;
