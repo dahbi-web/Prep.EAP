@@ -153,7 +153,7 @@ var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
 /* Source unique de vérité : version.json est généré avec cette même valeur. */
-var APP_VERSION = window.PREPME_VERSION || '3.5.35';
+var APP_VERSION = window.PREPME_VERSION || '3.5.36';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -267,35 +267,27 @@ function blank() {
   return {
     v: 2, xp: 0, day: today(), xpDay: 0, streak: 0, lastDay: null, best: 0,
     hearts: HEART_MAX, heartTs: Date.now(),
-    goal: 50, contestDate: CONTEST_DATE, planStart: '2026-09-10', homeMode: 'auto', sound: true, theme: 'auto', fontScale: 'normal', unlimited: false, hl: true, analytics: false,
+    goal: 50, contestDate: CONTEST_DATE, planStart: '2026-09-10', homeMode: 'auto', sound: true, theme: 'auto', fontScale: 'normal', unlimited: false, hl: true, analytics: true,
     units: {}, srs: {}, exams: [], sessions: [], lastRoute: '', hist: {}, seen: {}
   };
 }
 var S = load();
-/* GA4 est chargé seulement après consentement. Les événements ne contiennent
-   ni réponses, ni texte des cours, ni recherches, ni identifiant utilisateur. */
+/* La mesure GA4 est permanente et fonctionne sans stockage Analytics. Les
+   événements ne contiennent ni réponses, ni texte des cours, ni recherches. */
+S.analytics = true;
 var ANALYTICS_CONFIG = window.PREPME_ANALYTICS_CONFIG || {};
 var ANALYTICS_ID = String(ANALYTICS_CONFIG.measurementId || '').trim();
 function analyticsReady() { return /^G-[A-Z0-9]+$/i.test(ANALYTICS_ID); }
-function analyticsSetEnabled(enabled) {
+function analyticsSetEnabled() {
   if (!analyticsReady()) return;
-  if (enabled) {
-    if (window.gtag) window.gtag('consent', 'update', {
-      analytics_storage: 'granted', ad_storage: 'denied',
-      ad_user_data: 'denied', ad_personalization: 'denied'
-    });
-    window['ga-disable-' + ANALYTICS_ID] = false;
-  } else {
-    window['ga-disable-' + ANALYTICS_ID] = true;
-    if (window.gtag) window.gtag('consent', 'update', {
-      analytics_storage: 'denied', ad_storage: 'denied',
-      ad_user_data: 'denied', ad_personalization: 'denied'
-    });
-  }
+  window['ga-disable-' + ANALYTICS_ID] = false;
+  if (window.gtag) window.gtag('consent', 'update', {
+    analytics_storage: 'denied', ad_storage: 'denied',
+    ad_user_data: 'denied', ad_personalization: 'denied'
+  });
 }
 function analytics(name, params) {
-  if (!S.analytics || !analyticsReady()) return;
-  analyticsSetEnabled(true);
+  if (!analyticsReady()) return;
   if (window.gtag) window.gtag('event', name, params || {});
 }
 function trackScreen(screen) { analytics('screen_view', { screen_name: String(screen || 'home').slice(0, 40) }); }
@@ -1795,8 +1787,8 @@ function vSettings() {
     '<input type="checkbox" id="unl"' + (S.unlimited ? ' checked' : '') + ' style="width:22px;height:22px"></label>' +
     '<div class="hr"></div><label class="row" style="justify-content:space-between"><span><b>Mise en forme des leçons</b><div class="sub">Couleurs (définition, date, chiffre, loi) et émojis comme les documents source</div></span>' +
     '<input type="checkbox" id="hlx"' + (S.hl ? ' checked' : '') + ' style="width:22px;height:22px"></label></div>';
-  h += '<div class="card"><label class="row" style="justify-content:space-between"><span><b>📈 Aider à améliorer PrepMe</b><div class="sub">Partager des statistiques d’usage anonymisées : écrans, navigation et résultats agrégés. Jamais les réponses, recherches ou données personnelles.</div></span>' +
-    '<input type="checkbox" id="analytics"' + (S.analytics ? ' checked' : '') + ' style="width:22px;height:22px"></label></div>';
+  h += '<div class="card"><div class="row" style="justify-content:space-between"><span><b>📈 Mesure d’usage active</b><div class="sub">Statistiques sans cookies Analytics et fortement agrégées : écrans, navigation et résultats. Aucune réponse, recherche ou texte de cours n’est transmis.</div></span>' +
+    '<input type="checkbox" id="analytics" checked disabled aria-label="Mesure d’usage sans cookies active" style="width:22px;height:22px"></div><div class="spacer"></div><a class="sub" href="privacy-policy.html">En savoir plus sur la confidentialité</a></div>';
   h += '<div class="card"><b>🔔 Rappels du concours</b><div class="sub">Autoriser les rappels de l’application sur cet appareil.</div><div class="spacer"></div><button class="btn blue sm" data-act="notify">' + (S.notify ? '✅ Rappels activés' : 'Activer les notifications') + '</button></div>';
   h += '<div class="card"><b>📲 Installation hors ligne</b><div class="sub">Si le bouton ne s’ouvre pas : menu du navigateur → « Ajouter à l’écran d’accueil ».</div><div class="spacer"></div><button class="btn blue sm" data-act="install">⬇️ Installer l’application</button></div>';
   h += '<div class="card"><b>🔄 Mises à jour</b><div class="sub">Version ' + APP_VERSION + ' · vérification automatique quand Internet est disponible. Une alerte s’affiche seulement lorsqu’une nouvelle version est publiée.</div></div>';
@@ -1818,10 +1810,10 @@ function vAbout() {
   return bar('À propos', 'set') + '<main class="wrap legal-page">' +
     '<section class="about-hero"><div class="about-logo">P</div><div><h1>PrepMe</h1><p>Préparation structurée aux concours de santé</p><span>Version ' + APP_VERSION + '</span></div></section>' +
     '<section class="card"><h2>🎓 Finalité pédagogique</h2><p>PrepMe est un outil indépendant de révision et d’entraînement. Il ne représente aucune administration, aucun établissement de santé ni aucun organisateur de concours.</p><p>Les cours, QCM et explications doivent être vérifiés avec les textes officiels et les documents sources. Ils ne constituent ni un avis médical, ni une décision administrative.</p></section>' +
-    '<section class="card"><h2>🛡️ Confidentialité</h2><p><b>Données enregistrées :</b> progression, réponses, préférences et planning sont conservés localement sur votre appareil.</p><p><b>Mesure d’usage facultative :</b> si vous activez « Aider à améliorer PrepMe », Google Analytics 4 reçoit des statistiques anonymisées sur les écrans, la navigation et les résultats agrégés des sessions. Les réponses, recherches, textes de cours et données personnelles ne sont pas envoyés. Cette option est désactivée par défaut et peut être retirée à tout moment dans Réglages.</p><p><b>Connexion facultative :</b> l’application fonctionne hors ligne. Lorsqu’Internet est disponible, une requête peut être envoyée à GitHub pour vérifier l’existence d’une nouvelle version. Le contact WhatsApp ne s’ouvre que lorsque vous appuyez sur son bouton.</p><p><b>Contrôle utilisateur :</b> la sauvegarde peut être exportée ou importée depuis Réglages. La réinitialisation efface les données locales de progression.</p></section>' +
+    '<section class="card"><h2>🛡️ Confidentialité</h2><p><b>Données enregistrées :</b> progression, réponses, préférences et planning sont conservés localement sur votre appareil.</p><p><b>Mesure d’usage sans cookies :</b> Google Analytics 4 reçoit automatiquement des statistiques agrégées sur les écrans, la navigation et les résultats des sessions. Le stockage Analytics et les fonctions publicitaires restent désactivés. PrepMe n’envoie ni réponses aux QCM, ni recherches, ni texte de cours, ni nom ou coordonnées. Google peut néanmoins recevoir les métadonnées techniques nécessaires à la transmission, conformément à sa propre politique de confidentialité.</p><p><b>Connexion facultative :</b> l’application fonctionne hors ligne. Lorsqu’Internet est disponible, une requête peut être envoyée à GitHub pour vérifier l’existence d’une nouvelle version. Le contact WhatsApp ne s’ouvre que lorsque vous appuyez sur son bouton.</p><p><b>Contrôle utilisateur :</b> la sauvegarde peut être exportée ou importée depuis Réglages. La réinitialisation efface les données locales de progression.</p></section>' +
     '<section class="card"><h2>📚 Contenus et sources</h2><p>Les documents PDF intégrés restent accessibles séparément afin de permettre la consultation des sources. Les marques, institutions et titres cités appartiennent à leurs propriétaires respectifs.</p></section>' +
     '<section class="card"><h2>💬 Assistance et contribution</h2><p>Pour signaler un problème, proposer une amélioration ou envoyer des sujets, corrigés et autres documents, contactez PrepMe sur WhatsApp.</p><a class="btn green sm" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">WhatsApp · ' + esc(WHATSAPP_CONTACT_DISPLAY) + '</a></section>' +
-    '<p class="legal-updated">Dernière mise à jour : 20 septembre 2026</p></main>';
+    '<p class="legal-updated">Dernière mise à jour : 24 septembre 2026</p></main>';
 }
 
 /* ---------------------------------------------------------- vue RECHERCHE */
@@ -1898,7 +1890,6 @@ function bind() {
   var snd = el('snd'); if (snd) snd.onchange = function () { S.sound = snd.checked; save(); if (snd.checked) beep('ok'); };
   var unl = el('unl'); if (unl) unl.onchange = function () { S.unlimited = unl.checked; save(); toast(unl.checked ? '♾️ Cœurs illimités' : '❤️ Cœurs activés'); render(); };
   var hlx = el('hlx'); if (hlx) hlx.onchange = function () { S.hl = hlx.checked; save(); toast(hlx.checked ? '🖍️ Mise en forme activée' : 'Mise en forme désactivée'); };
-  var analyticsChoice = el('analytics'); if (analyticsChoice) analyticsChoice.onchange = function () { S.analytics = analyticsChoice.checked; analyticsSetEnabled(S.analytics); save(); if (S.analytics) { if (window.gtag) window.gtag('event', 'page_view', { page_location: location.href, page_title: document.title }); analytics('analytics_consent', { enabled: 1 }); trackScreen(route()[0] || 'home'); } toast(S.analytics ? '📈 Statistiques anonymisées activées' : '📈 Statistiques anonymisées désactivées'); };
   var contestDate = el('contestDate'); if (contestDate) contestDate.onchange = function () {
     if (!contestDate.value) return;
     S.contestDate = contestDate.value; S.planStart = today(); save(); toast('🗓️ Date du concours enregistrée'); render();
@@ -2078,7 +2069,7 @@ document.addEventListener('keydown', function (e) {
 /* ------------------------------------------------------------- démarrage */
 function boot() {
   ROOT = el('app');
-  analyticsSetEnabled(!!S.analytics);
+  analyticsSetEnabled();
   applyTheme();
   if (!DOCS.length) { ROOT.innerHTML = '<div class="wrap"><div class="card">Aucune donnée chargée. Vérifie que les fichiers du dossier <b>data/</b> sont bien présents à côté de index.html.</div></div>'; return; }
   render();
