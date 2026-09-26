@@ -1749,10 +1749,11 @@ function quizEnd() {
   if (pct >= 80) { beep('up'); if (pct === 100) confetti(); }
   var secs = Math.round((Date.now() - R.t0) / 1000);
   recordSession(R.mode === 'lesson' ? 'quiz' : 'revision', R.ok, tot, secs, R.title || '');
-  if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('quiz_complete', {
-    quiz_mode: R.mode,
-    score: pct,
+  if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('quiz_completed', {
+    mode: R.mode,
     question_count: tot,
+    correct_count: R.ok,
+    score_percent: pct,
     duration_seconds: secs
   });
   var h = bar('Résultat', '') + '<div class="wrap center">' +
@@ -1955,9 +1956,10 @@ function examEnd() {
   var R = RUN, tot = R.items.length, pct = tot ? Math.round(R.ok / tot * 100) : 0;
   var secs = Math.round((Date.now() - R.t0) / 1000);
   recordSession('examen', R.ok, tot, secs, R.scope);
-  if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('exam_complete', {
-    score: pct,
+  if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('exam_completed', {
     question_count: tot,
+    correct_count: R.ok,
+    score_percent: pct,
     duration_seconds: secs
   });
   addXP(R.xp + 25);

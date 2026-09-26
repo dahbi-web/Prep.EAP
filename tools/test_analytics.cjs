@@ -42,6 +42,8 @@ assert.equal(api.pageView(), true);
 assert.equal(api.track('ui_click', { button_action: 'stats' }), true);
 
 const calls = context.window.dataLayer.map(args => Array.from(args));
+assert(calls.some(call => call[0] === 'consent' && call[1] === 'default' && call[2].analytics_storage === 'denied'));
+assert(calls.some(call => call[0] === 'config' && call[2].allow_google_signals === false));
 const pageViews = calls.filter(call => call[0] === 'event' && call[1] === 'page_view');
 assert.equal(pageViews.length, 2);
 assert.equal(pageViews[0][2].page_path, '/prep/index.html#/home');

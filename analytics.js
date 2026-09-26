@@ -10,6 +10,14 @@
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
 
+  // Consent Mode : mesure agrégée sans cookie Analytics ni publicité.
+  window.gtag("consent", "default", {
+    analytics_storage: "denied",
+    ad_storage: "denied",
+    ad_user_data: "denied",
+    ad_personalization: "denied"
+  });
+
   function routePath() {
     return location.pathname + location.search + (location.hash || "#/");
   }
@@ -37,7 +45,9 @@
   window.gtag("js", new Date());
   window.gtag("config", MEASUREMENT_ID, {
     send_page_view: false,
-    anonymize_ip: true
+    anonymize_ip: true,
+    allow_google_signals: false,
+    allow_ad_personalization_signals: false
   });
   state = "configure";
 
