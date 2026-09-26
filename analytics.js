@@ -65,7 +65,9 @@
     if (banner) banner.remove();
     if (consent === "granted") {
       lastPage = "";
-      setTimeout(pageView, 0);
+      // Laisser gtag appliquer la mise à jour du consentement avant le premier hit.
+      // Cela évite que le page_view initial reste uniquement dans dataLayer.
+      setTimeout(pageView, 1200);
     }
   }
 

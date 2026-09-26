@@ -1,8 +1,8 @@
 {
-  "version": "3.5.53",
-  "versionCode": 93,
+  "version": "3.5.54",
+  "versionCode": 94,
   "date": "2026-09-26",
-  "cache": "cnc-anass-v93",
+  "cache": "cnc-anass-v94",
   "modules": 45,
   "nouveautes": [
     "Consentement Analytics explicite : après acceptation, les visiteurs et pages consultées remontent dans les rapports GA4 en temps réel",

@@ -1,4 +1,4 @@
-# PrepMe — version PWA 3.5.53
+# PrepMe — version PWA 3.5.54
 
 Préparation aux concours de santé : 45 modules, 1 459 QCM interactifs et 1 257 cartes. Les modules 32 à 45 sont des documents de consultation sans QCM interactifs ; le module 32 comporte des cartes. Le catalogue Concours regroupe 74 PDF et 1 PPTX.
 

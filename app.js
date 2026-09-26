@@ -159,7 +159,7 @@ var STORAGE_CORRUPT = false;
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.5.53';
+var APP_VERSION = '3.5.54';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
