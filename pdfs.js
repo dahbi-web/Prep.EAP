@@ -29,5 +29,19 @@ window.PREP_PDFS = [
   ['28', 'Loi 07-22 — Haute Autorité de la Santé', '28- La Lois 07-22 Haute Autorité de la Santé.pdf'],
   ['29', 'Loi 10-22 — Agence des médicaments', '29- La loi 10-22 Agence Des Médicaments.pdf'],
   ['30', 'Loi 11-22 — Agence du sang', '30- La Loi 11-22 Agence du Sang et Ses Dérivés.pdf'],
-  ['31', 'CS · SROS · CSN · CSR', '31- CS. SROS. CSN. CSR.pdf']
+  ['31', 'CS · SROS · CSN · CSR', '31- CS. SROS. CSN. CSR.pdf'],
+  ['32', 'Je préparer — Annales des concours', '32- Je prepare - Annales des concours.pdf'],
+  ['33', 'Concours IDE — échelle 11', '33- EAP - concours-ide-11-1.pdf'],
+  ['34', 'Je préparer — banque de questions', '34- EAP - je-prepare-banques-questions.pdf'],
+  ['35', 'Préparation au concours', '35- EAP - preparation-au-concours.pdf'],
+  ['36', 'QCM 2017 et ENSP', '36- EAP - qcm-17-et-ensp-corrig-elkh.pdf'],
+  ['37', 'QCM 2017 et Master ISPITS', '37- EAP - qcm-17-et-master-corrig-elkh.pdf'],
+  ['38', 'QCM 2016 corrigé', '38- EAP - qcm-2016-corrige-elkh.pdf'],
+  ['39', 'QCM 3 — 2017 corrigé', '39- EAP - qcm-3-2017-corrig-ELKH.pdf'],
+  ['40', 'QCM 4', '40- EAP - qcm-4.pdf'],
+  ['41', 'QCM commun — SNS', '41- EAP - qcm-commun-corrige-sns.pdf'],
+  ['42', 'QCM US corrigé', '42- EAP - qcm-us-corrige.pdf'],
+  ['43', 'Décret 2-93-308', '43- EAP - decret-2-93-308.pdf'],
+  ['44', 'Examen d’aptitude professionnelle', '44- EAP - EXA-CON2.pdf'],
+  ['45', 'Statut des infirmiers', '45- EAP - STATUINF.pdf']
 ];

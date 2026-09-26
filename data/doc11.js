@@ -23,7 +23,7 @@ lesson:`<h3>📚 À quoi servent les Comptes Nationaux de la Santé</h3>
 <div class="tip">🧠 <b>Mnémo SHA-11 :</b> trois <b>lettres</b> pour trois <b>axes</b> — <b>C</b>onsommation, <b>F</b>ourniture, <b>F</b>inancement — et trois <b>organisations</b> : OMS, OCDE, Eurostat.</div>`,
 qs:[
 {q:`Que signifie SHA-11 ?`,o:[`Standard Health Assessment`,`System of Health Accounts-11`,`Statistical Health Analysis`,`Système Harmonisé d'Assurance`],c:1,e:`System of Health Accounts-11, ou système des comptes de santé (SCS).`},
-{q:`En quelle année la classification SHA-11 a-t-elle été introduite ?`,o:[`2008`,`2011`,`2018`,`2022`],c:1,e:`En 2011.`},
+{q:`En quelle année la classification SHA-11 a-t-elle été introduite ?`,o:[`2008`,`2011`,`2018`,`2022`],c:1,e:`La classification SHA-11 a été introduite en 2011 pour harmoniser les comptes de la santé et comparer les dépenses entre pays et dans le temps.`},
 {q:`Quelles organisations ont introduit la classification SHA-11 ?`,o:[`L'OMS avec l'OCDE et Eurostat`,`La Banque mondiale et le FMI`,`L'ONU seule`,`L'OMS seule`],c:0,e:`L'OMS, en collaboration avec l'OCDE et Eurostat.`},
 {q:`Selon combien d'axes SHA-11 classe-t-elle les dépenses de santé ?`,o:[`2`,`3`,`4`,`5`],c:1,e:`3 axes : la consommation, la fourniture et le financement.`},
 {q:`Quels sont les trois axes de la classification SHA-11 ?`,o:[`Consommation, fourniture, financement`,`Prévention, soins, réhabilitation`,`Public, privé, mixte`,`Hôpital, ville, pharmacie`],c:0,e:`Consommation, fourniture, financement.`},

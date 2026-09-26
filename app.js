@@ -1,6 +1,6 @@
 /* ==========================================================================
    Concours de santé — moteur de l'application
-   Révision type "Duolingo" pour le concours (licence) — 31 modules
+   Révision type "Duolingo" pour le concours (licence) — 45 modules
    Aucune dépendance externe. Fonctionne hors-ligne.
    ========================================================================== */
 (function () {
@@ -70,6 +70,12 @@ if (SNS_DOC) {
 if (window.CNC_APPLY_CONTENT_REVIEW) window.CNC_APPLY_CONTENT_REVIEW(DOCS);
 DOCS.sort(function (a, b) { return a.id - b.id; });
 
+/* Les modules 1 à 31 sont les vrais cours du parcours. Les modules 32 à 45
+   sont des annales, banques de QCM ou textes sources : ils restent dans
+   Concours et Cours PDF, mais ne sont pas présentés comme des cours. */
+var COURSE_DOCS = DOCS.filter(function (d) { return +d.id >= 1 && +d.id <= 31; });
+function isCourseDocId(id) { return +id >= 1 && +id <= 31; }
+
 // index rapide
 var DOC_BY_ID = {};
 DOCS.forEach(function (d) {
@@ -78,6 +84,16 @@ DOCS.forEach(function (d) {
 });
 function doc(id) { return DOC_BY_ID[+id]; }
 function unit(did, ui) { var d = doc(did); return d && d.units[+ui]; }
+function questionSource(q, did, ui) {
+  if (q && q.source) return q.source;
+  var u = unit(did, ui), d = doc(did);
+  return d && u ? 'Document ' + d.code + ' · ' + (u.pages || 'unité ' + (+ui + 1)) : 'Source PDF du module';
+}
+function questionReportUrl(q, did, ui) {
+  var d = doc(did), u = unit(did, ui);
+  var text = 'Bonjour PrepMe, je souhaite signaler une question à vérifier. Module ' + (d ? d.code + ' · ' + d.title : did) + ' · ' + (u ? u.t : ui) + '. Question : ' + String(q && q.q || '').replace(/<[^>]+>/g, ' ');
+  return 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent(text);
+}
 function qKey(did, ui, qi) { return 'q' + did + '.' + ui + '.' + qi; }
 function cKey(did, ui, ci) { return 'c' + did + '.' + ui + '.' + ci; }
 function uKey(did, ui) { return did + '.' + ui; }
@@ -103,7 +119,7 @@ function qcCard(q) {
 }
 function allQuestions(filterDocId) {
   var out = [];
-  DOCS.forEach(function (d) {
+  (filterDocId ? DOCS : COURSE_DOCS).forEach(function (d) {
     if (filterDocId && d.id !== +filterDocId) return;
     d.units.forEach(function (u, ui) {
       u.qs.forEach(function (q, qi) { out.push({ q: q, k: qKey(d.id, ui, qi), d: d.id, u: ui }); });
@@ -127,7 +143,7 @@ function diagnosticQuestions() {
 }
 function allCards(filterDocId) {
   var out = [];
-  DOCS.forEach(function (d) {
+  (filterDocId ? DOCS : COURSE_DOCS).forEach(function (d) {
     if (filterDocId && d.id !== +filterDocId) return;
     d.units.forEach(function (u, ui) {
       u.cards.forEach(function (c, ci) { out.push({ c: c, k: cKey(d.id, ui, ci), d: d.id, u: ui }); });
@@ -138,10 +154,12 @@ function allCards(filterDocId) {
 
 /* ----------------------------------------------------------------- state */
 var KEY = 'cnc_anass_v2';
+var BACKUP_KEY = KEY + '_backup';
+var STORAGE_CORRUPT = false;
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.5.7';
+var APP_VERSION = '3.5.52';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -187,7 +205,20 @@ var DOC_SOURCES = {
   28: [{label:'Dossier local — 28- La Lois 07-22 Haute Autorité de la Santé.pdf', local:true}],
   29: [{label:'Dossier local — 29- La loi 10-22 Agence Des Médicaments.pdf', local:true}],
   30: [{label:'Dossier local — 30- La Loi 11-22 Agence du Sang et Ses Dérivés.pdf', local:true}],
-  31: [{label:'Dossier local — 31- CS. SROS. CSN. CSR.pdf', local:true}]
+  31: [{label:'Dossier local — 31- CS. SROS. CSN. CSR.pdf', local:true}],
+  33: [{label:'EAP téléchargé — 33- EAP - concours-ide-11-1.pdf', local:true}],
+  34: [{label:'EAP téléchargé — 34- EAP - je-prepare-banques-questions.pdf', local:true}],
+  35: [{label:'EAP téléchargé — 35- EAP - preparation-au-concours.pdf', local:true}],
+  36: [{label:'EAP téléchargé — 36- EAP - qcm-17-et-ensp-corrig-elkh.pdf', local:true}],
+  37: [{label:'EAP téléchargé — 37- EAP - qcm-17-et-master-corrig-elkh.pdf', local:true}],
+  38: [{label:'EAP téléchargé — 38- EAP - qcm-2016-corrige-elkh.pdf', local:true}],
+  39: [{label:'EAP téléchargé — 39- EAP - qcm-3-2017-corrig-ELKH.pdf', local:true}],
+  40: [{label:'EAP téléchargé — 40- EAP - qcm-4.pdf', local:true}],
+  41: [{label:'EAP téléchargé — 41- EAP - qcm-commun-corrige-sns.pdf', local:true}],
+  42: [{label:'EAP téléchargé — 42- EAP - qcm-us-corrige.pdf', local:true}],
+  43: [{label:'Document officiel téléchargé — 43- EAP - decret-2-93-308.pdf', local:true}],
+  44: [{label:'Document officiel téléchargé — 44- EAP - EXA-CON2.pdf', local:true}],
+  45: [{label:'Document officiel téléchargé — 45- EAP - STATUINF.pdf', local:true}]
 };
 var ABBREVIATIONS = {
   'SNS':'Système National de Santé','OMS':'Organisation Mondiale de la Santé','MSPS':'Ministère de la Santé et de la Protection Sociale','GST':'Groupement Sanitaire Territorial','HAS':'Haute Autorité de Santé','CHU':'Centre Hospitalier Universitaire','ESSP':'Établissements de Soins de Santé Primaires','RESSP':'Réseau des Établissements de Soins de Santé Primaires','RH':'Réseau Hospitalier','RISUM':'Réseau Intégré des Soins d’Urgence Médicale','REMS':'Réseau des Établissements Médico-Sociaux','SROS':'Schéma Régional de l’Offre de Soins','SRES':'Service du Réseau des Établissements Sanitaires','DRS':'Direction Régionale de la Santé','DPRF':'Direction de la Planification et des Ressources Financières','DRH':'Direction des Ressources Humaines','DELM':'Direction de l’Épidémiologie et de la Lutte contre les Maladies','DMP':'Direction du Médicament et de la Pharmacie','DHSA':'Direction des Hôpitaux et des Soins Ambulatoires','DEM':'Direction des Équipements et de la Maintenance','INH':'Institut National d’Hygiène','CNTSH':'Centre National de Transfusion Sanguine et d’Hématologie','CAPM':'Centre Anti Poison et de Pharmacovigilance du Maroc','LNCM':'Laboratoire National de Contrôle des Médicaments','ENSP':'École Nationale de Santé Publique','ISPITS':'Instituts Supérieurs des Professions Infirmières et Techniques de Santé','CMDP':'Conseil des Médecins, Dentistes et Pharmaciens','PEH':'Projet d’Établissement Hospitalier','PMR':'Projet Médical Régional','AMO':'Assurance Maladie Obligatoire','CNSS':'Caisse Nationale de Sécurité Sociale','CNOPS':'Caisse Nationale des Organismes de Prévoyance Sociale','ANAM':'Agence Nationale de l’Assurance Maladie','RAMED':'Régime d’Assistance Médicale','CMB':'Couverture Médicale de Base','RSU':'Registre Social Unifié','AMO-TNS':'AMO des Travailleurs Non-Salariés','AMO-TADAMON':'AMO destinée aux personnes incapables d’acquitter les cotisations','ALD':'Affection de Longue Durée','ALC':'Affection Lourde et Coûteuse','AES':'Accident d’Exposition au Sang','MDO':'Maladie à Déclaration Obligatoire','VIH':'Virus de l’Immunodéficience Humaine','SIDA':'Syndrome d’Immunodéficience Acquise','VHB':'Virus de l’Hépatite B','VHC':'Virus de l’Hépatite C','HBV':'Hepatitis B Virus','HIV':'Human Immunodeficiency Virus','HPV':'Papillomavirus Humain','SRAS':'Syndrome Respiratoire Aigu Sévère','TIAC':'Toxi-Infection Alimentaire Collective','PNI':'Programme National d’Immunisation','HTA':'Hypertension Artérielle','BPCO':'Bronchopneumopathie Chronique Obstructive','AVC':'Accident Vasculaire Cérébral','IVG':'Interruption Volontaire de Grossesse','SAMU':'Service d’Aide Médicale Urgente','PEC':'Prise En Charge','IEC':'Information, Éducation et Communication','PIB':'Produit Intérieur Brut','PNB':'Produit National Brut','IDH':'Indice de Développement Humain','HCP':'Haut-Commissariat au Plan','ODD':'Objectifs de Développement Durable','OMD':'Objectifs du Millénaire pour le Développement','OIT':'Organisation Internationale du Travail','OCDE':'Organisation de Coopération et de Développement Économiques','ONG':'Organisation Non Gouvernementale','PPP':'Partenariat Public-Privé','TNR':'Tarif National de Référence','TNS':'Travailleur Non-Salarié','PDCA':'Planifier, Déployer, Contrôler, Agir','ISO':'Organisation Internationale de Normalisation','QCM':'Questionnaire à Choix Multiple','CSU':'Centre de Santé Urbain','CSR':'Centre de Santé Rural','CSN':'Carte Sanitaire Nationale','PAA':'Plan d’Action Annuel','PA':'Plan d’Action','EIG':'Événement Indésirable Grave'
@@ -255,8 +286,9 @@ function blank() {
   return {
     v: 2, xp: 0, day: today(), xpDay: 0, streak: 0, lastDay: null, best: 0,
     hearts: HEART_MAX, heartTs: Date.now(),
-    goal: 50, contestDate: CONTEST_DATE, planStart: '2026-09-10', homeMode: 'auto', sound: true, theme: 'auto', unlimited: false, hl: true,
-    units: {}, srs: {}, exams: [], hist: {}, seen: {}
+    goal: 50, contestDate: CONTEST_DATE, planStart: '2026-09-10', homeMode: 'auto', sound: true, theme: 'auto', fontScale: 'normal', unlimited: true, hl: true,
+    units: {}, srs: {}, exams: [], sessions: [], lastRoute: '', hist: {}, seen: {},
+    profile: { displayName: '', diploma: '', target: '' }
   };
 }
 var S = load();
@@ -362,21 +394,65 @@ function watchAppUpdates() {
   window.addEventListener('online', checkRemoteUpdate);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && navigator.onLine) checkRemoteUpdate(); });
 }
+function completeProgress(s) {
+  if (!isValidProgress(s)) return null;
+  var b = blank();
+  for (var k in b) if (!(k in s)) s[k] = b[k];
+  if (!s.profile || typeof s.profile !== 'object' || Array.isArray(s.profile)) s.profile = b.profile;
+  ['displayName','diploma','target'].forEach(function (field) {
+    if (typeof s.profile[field] !== 'string') s.profile[field] = '';
+    s.profile[field] = s.profile[field].slice(0, 60);
+  });
+  // Les cœurs sont toujours illimités, y compris pour les anciennes sauvegardes.
+  s.unlimited = true;
+  Object.keys(s.units).forEach(function (key) {
+    ['runs','best','crowns','lesson','ok','ko'].forEach(function (field) { if (s.units[key][field] === undefined) s.units[key][field] = 0; });
+  });
+  migrateSns3047Progress(s);
+  return s;
+}
+function parseProgress(raw) {
+  if (!raw) return null;
+  try { return completeProgress(JSON.parse(raw)); } catch (e) { return null; }
+}
 function load() {
   try {
-    var raw = localStorage.getItem(KEY);
-    if (!raw) return blank();
-    var s = JSON.parse(raw); if (!isValidProgress(s)) return blank();
-    var b = blank();
-    for (var k in b) if (!(k in s)) s[k] = b[k];
-    migrateSns3047Progress(s);
-    return s;
+    var s = parseProgress(localStorage.getItem(KEY));
+    if (s) return s;
+    s = parseProgress(localStorage.getItem(BACKUP_KEY)) || parseProgress(localStorage.getItem(KEY + '_backup2'));
+    if (s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (restoreErr) { } toast('♻️ Sauvegarde précédente restaurée'); return s; }
+    if (localStorage.getItem(KEY) || localStorage.getItem(BACKUP_KEY) || localStorage.getItem(KEY + '_backup2')) {
+      STORAGE_CORRUPT = true;
+      toast('⚠️ Sauvegarde illisible : données conservées. Importe une copie valide dans Réglages.');
+    }
+    return blank();
   } catch (e) { return blank(); }
 }
 function isValidProgress(s) {
-  return !!(s && typeof s === 'object' && (s.v === 2 || typeof s.v === 'number') &&
-    s.units && typeof s.units === 'object' && s.srs && typeof s.srs === 'object' &&
-    s.hist && typeof s.hist === 'object' && s.seen && typeof s.seen === 'object');
+  function record(x) { return !!x && typeof x === 'object' && !Array.isArray(x); }
+  function number(x, max) { return typeof x === 'number' && Number.isFinite(x) && x >= 0 && (max == null || x <= max); }
+  function fields(x, names) { return names.every(function (k) { return x[k] === undefined || number(x[k]); }); }
+  function safeKeys(x) { return !x || typeof x !== 'object' || Object.keys(x).every(function (k) { return k !== '__proto__' && k !== 'constructor' && k !== 'prototype' && safeKeys(x[k]); }); }
+  if (!record(s) || !safeKeys(s) || !Number.isInteger(s.v) || s.v < 1 || s.v > 2 || !number(s.xp) ||
+      !['units', 'srs', 'hist', 'seen'].every(function (k) { return record(s[k]); })) return false;
+  if (!fields(s, ['xpDay','streak','best','hearts','heartTs','goal']) || (s.hearts !== undefined && s.hearts > HEART_MAX)) return false;
+  if (!['sound','unlimited','hl','sns3047Migrated'].every(function (k) { return s[k] === undefined || typeof s[k] === 'boolean'; })) return false;
+  if (s.profile !== undefined && (!record(s.profile) || !['displayName','diploma','target'].every(function (k) { return s.profile[k] === undefined || (typeof s.profile[k] === 'string' && s.profile[k].length <= 60); }))) return false;
+  if (!['day','lastDay','contestDate','planStart'].every(function (k) { return s[k] == null || (typeof s[k] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s[k])); })) return false;
+  if (!Object.keys(s.units).every(function (k) {
+    var u = s.units[k]; return record(u) && fields(u, ['runs','best','crowns','lesson','ok','ko']) &&
+      (u.crowns === undefined || (Number.isInteger(u.crowns) && u.crowns <= CROWN_MAX));
+  })) return false;
+  if (!Object.keys(s.srs).every(function (k) {
+    var r = s.srs[k]; return record(r) && fields(r, ['b','lap','seen']) &&
+      (r.b == null || (Number.isInteger(r.b) && r.b <= 5)) && typeof r.due === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.due);
+  }) || !Object.keys(s.hist).every(function (k) { return number(s.hist[k]); })) return false;
+  return ['exams','sessions'].every(function (k) {
+    return s[k] === undefined || (Array.isArray(s[k]) && s[k].every(function (e) {
+      return record(e) && fields(e, ['pct','n','secs','score','correct','total']) && typeof e.date === 'string' && /^[\dT:Z.+-]+$/.test(e.date) &&
+        (e.scope === undefined || typeof e.scope === 'string') && (e.type === undefined || typeof e.type === 'string');
+    }));
+  });
 }
 function migrateSns3047Progress(s) {
   if (!s || s.sns3047Migrated) return;
@@ -395,12 +471,35 @@ function migrateSns3047Progress(s) {
   s.sns3047Migrated = true;
 }
 var saveT = null;
-function save() { clearTimeout(saveT); saveT = setTimeout(function () {
+function flushSave() {
+  if (saveT === null) return;
+  clearTimeout(saveT); saveT = null;
   try {
+    if (STORAGE_CORRUPT) throw new Error('preserve-unreadable-progress');
     if (!isValidProgress(S)) throw new Error('invalid-progress');
-    localStorage.setItem(KEY, JSON.stringify(S));
-  } catch (e) { toast('⚠️ Progression non enregistrée : stockage indisponible'); }
-}, 120); }
+    var json = JSON.stringify(S), previous = localStorage.getItem(KEY);
+    var backupFailed = false;
+    try {
+      if (previous !== json) {
+        var older = localStorage.getItem(BACKUP_KEY);
+        localStorage.setItem(KEY + '_backup2', parseProgress(older) ? older : (parseProgress(previous) ? previous : json));
+        localStorage.setItem(BACKUP_KEY, parseProgress(previous) ? previous : json);
+      }
+    } catch (backupError) { backupFailed = true; }
+    localStorage.setItem(KEY, json);
+    if (backupFailed) toast('⚠️ Progression enregistrée, mais copie de secours indisponible. Exporte une sauvegarde.');
+    return true;
+  } catch (e) { toast('⚠️ Progression non enregistrée : stockage indisponible ou invalide'); return false; }
+}
+function save() { clearTimeout(saveT); saveT = setTimeout(flushSave, 120); }
+window.addEventListener('pagehide', flushSave);
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushSave(); });
+function recordSession(type, result, total, secs, scope) {
+  if (!S.sessions || !Array.isArray(S.sessions)) S.sessions = [];
+  S.sessions.push({ date: new Date().toISOString(), type: type, score: total ? Math.round(result / total * 100) : 0, correct: result, total: total, secs: Math.max(0, Math.round(secs || 0)), scope: scope || '' });
+  if (S.sessions.length > 200) S.sessions = S.sessions.slice(-200);
+  save();
+}
 
 function rollDay() {
   var t = today();
@@ -421,6 +520,48 @@ function addXP(n) {
     setTimeout(showStreakCelebration, 220);
   }
   save();
+}
+
+/* Classement motivant hors ligne. Les autres lignes sont des profils de
+   référence simulés : aucun candidat réel ni donnée distante n'est affiché. */
+var LEAGUE_TIERS = [
+  { name: 'Bronze', icon: '🥉', min: 0, next: 500, color: '#b97945' },
+  { name: 'Argent', icon: '🥈', min: 500, next: 1500, color: '#8996a3' },
+  { name: 'Or', icon: '🥇', min: 1500, next: 3500, color: '#d7a900' },
+  { name: 'Saphir', icon: '💎', min: 3500, next: 7000, color: '#1cb0f6' },
+  { name: 'Émeraude', icon: '🏆', min: 7000, next: null, color: '#46a302' }
+];
+function weekActivity() {
+  var t = today(), parts = t.split('-'), date = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+  var sinceMonday = (date.getDay() + 6) % 7, start = dayShift(t, -sinceMonday), total = 0;
+  for (var i = 0; i < 7; i++) {
+    var day = dayShift(start, i);
+    total += day === S.day ? +(S.xpDay || 0) : +(S.hist[day] || 0);
+  }
+  return { start: start, end: dayShift(start, 6), total: total, remaining: Math.max(0, 6 - sinceMonday) };
+}
+function leagueTier() {
+  var tier = LEAGUE_TIERS[0];
+  LEAGUE_TIERS.forEach(function (item) { if (S.xp >= item.min) tier = item; });
+  return tier;
+}
+function leagueData() {
+  var week = weekActivity(), profile = S.profile || {}, peers = [
+    ['Salma', 'Infirmière polyvalente', 360, 'S'],
+    ['Youssef', 'Technicien de santé', 295, 'Y'],
+    ['Imane', 'Sage-femme', 245, 'I'],
+    ['Amine', 'Infirmier anesthésiste', 205, 'A'],
+    ['Sara', 'Kinésithérapie', 170, 'S'],
+    ['Mehdi', 'Manipulateur radio', 135, 'M'],
+    ['Nour', 'Laboratoire', 100, 'N'],
+    ['Aya', 'Santé mentale', 65, 'A'],
+    ['Omar', 'Préparation EAP', 35, 'O']
+  ].map(function (p) { return { name: p[0], diploma: p[1], xp: p[2], avatar: p[3], simulated: true }; });
+  peers.push({ name: (profile.displayName || 'Moi').trim() || 'Moi', diploma: [profile.diploma || 'Diplôme non renseigné', profile.target || ''].filter(Boolean).join(' · '), xp: week.total, avatar: '★', me: true });
+  peers.sort(function (a, b) { return b.xp - a.xp || Number(b.me) - Number(a.me) || a.name.localeCompare(b.name); });
+  var rank = peers.findIndex(function (p) { return p.me; }) + 1;
+  var above = rank > 1 ? peers[rank - 2] : null;
+  return { week: week, tier: leagueTier(), rows: peers, rank: rank, gap: above ? Math.max(0, above.xp - week.total + 1) : 0 };
 }
 
 function streakDays() {
@@ -498,7 +639,7 @@ function docStarted(d) { return d.units.some(function (u, i) { return ust(d.id, 
 function planInfo() {
   var contestDate = /^\d{4}-\d{2}-\d{2}$/.test(S.contestDate || '') ? S.contestDate : CONTEST_DATE;
   var rawLeft = dayDiff(today(), contestDate), left = Math.max(0, rawLeft), remaining = 0, total = 0, done = 0;
-  DOCS.forEach(function (d) { d.units.forEach(function (u, i) { total++; if (ust(d.id, i).crowns >= CROWN_MAX) done++; else remaining++; }); });
+  COURSE_DOCS.forEach(function (d) { d.units.forEach(function (u, i) { total++; if (ust(d.id, i).crowns >= CROWN_MAX) done++; else remaining++; }); });
   var perDay = left ? Math.ceil(remaining / left) : remaining;
   var start = /^\d{4}-\d{2}-\d{2}$/.test(S.planStart || '') ? S.planStart : today();
   var duration = Math.max(1, dayDiff(start, contestDate));
@@ -516,7 +657,7 @@ function dateFr(s) {
 }
 function readinessInfo() {
   var totalUnits = 0, crownUnits = 0, ok = 0, ko = 0;
-  DOCS.forEach(function (d) { d.units.forEach(function (u, i) {
+  COURSE_DOCS.forEach(function (d) { d.units.forEach(function (u, i) {
     var s = ust(d.id, i); totalUnits++; crownUnits += s.crowns / CROWN_MAX; ok += s.ok || 0; ko += s.ko || 0;
   }); });
   var mastery = totalUnits ? crownUnits / totalUnits : 0;
@@ -527,6 +668,93 @@ function readinessInfo() {
   var score = Math.round((mastery * .35 + seen * .30 + accuracy * .25 + revision * .10) * 100);
   var label = score >= 80 ? 'Prêt pour l’épreuve' : score >= 60 ? 'Bonne progression' : score >= 35 ? 'Base en construction' : 'Démarrage';
   return { score: score, label: label, mastery: Math.round(mastery * 100), coverage: Math.round(seen * 100), accuracy: Math.round(accuracy * 100), revision: Math.round(revision * 100) };
+}
+function progressDashboardInfo() {
+  var groups = { mastered: [], fragile: [], active: [], unseen: [] };
+  var modules = {}, questionTotal = 0, questionSeen = 0;
+  COURSE_DOCS.forEach(function (d) {
+    d.units.forEach(function (u, ui) {
+      if (!u.qs.length) return; // les pages documentaires ne faussent pas la progression pédagogique
+      var key = uKey(d.id, ui), state = S.units[key] || {}, attempts = +(state.ok || 0) + +(state.ko || 0);
+      var accuracy = attempts ? +(state.ok || 0) / attempts : 0, seen = 0, errors = 0;
+      u.qs.forEach(function (_, qi) {
+        var item = S.srs[qKey(d.id, ui, qi)];
+        questionTotal++;
+        if (item && (item.seen || item.lap || item.b || item.due)) { seen++; questionSeen++; }
+        if (item && item.lap) errors++;
+      });
+      var itemInfo = { d: d, u: u, ui: ui, attempts: attempts, accuracy: accuracy, seen: seen, errors: errors };
+      var fragile = (attempts >= 3 && accuracy < .7) || (errors >= Math.max(2, Math.ceil(u.qs.length * .25)) && accuracy < .8);
+      var status = fragile ? 'fragile' :
+        (+(state.crowns || 0) > 0 || (attempts >= Math.min(5, u.qs.length) && accuracy >= .8)) ? 'mastered' :
+        (!state.lesson && !attempts && !seen) ? 'unseen' : 'active';
+      groups[status].push(itemInfo);
+      if (!modules[d.id]) modules[d.id] = { d: d, mastered: 0, fragile: 0, active: 0, unseen: 0, total: 0 };
+      modules[d.id][status]++; modules[d.id].total++;
+    });
+  });
+  groups.fragile.sort(function (a, b) { return a.accuracy - b.accuracy || b.errors - a.errors; });
+  groups.active.sort(function (a, b) { return b.attempts - a.attempts; });
+  var total = groups.mastered.length + groups.fragile.length + groups.active.length + groups.unseen.length;
+  var remaining = total - groups.mastered.length;
+  var contestDate = /^\d{4}-\d{2}-\d{2}$/.test(S.contestDate || '') ? S.contestDate : CONTEST_DATE;
+  var daysLeft = Math.max(0, dayDiff(today(), contestDate));
+  var recentQuiz = (S.sessions || []).filter(function (session) {
+    var date = String(session.date || '').slice(0, 10);
+    return session.type === 'quiz' && /^\d{4}-\d{2}-\d{2}$/.test(date) && dayDiff(date, today()) >= 0 && dayDiff(date, today()) < 14;
+  });
+  var paceWindow = 14;
+  if (recentQuiz.length) {
+    var oldest = recentQuiz.reduce(function (min, session) { var date = String(session.date).slice(0, 10); return date < min ? date : min; }, today());
+    paceWindow = Math.max(1, Math.min(14, dayDiff(oldest, today()) + 1));
+  }
+  var pace = recentQuiz.length ? recentQuiz.length / paceWindow : 0;
+  var activeQuizDays = Object.keys(recentQuiz.reduce(function (days, session) { days[String(session.date).slice(0, 10)] = true; return days; }, {})).length;
+  var needed = remaining && daysLeft ? remaining / daysLeft : remaining;
+  var forecastDays = pace ? Math.ceil(remaining / pace) : null;
+  var forecastDate = forecastDays == null ? null : dayShift(today(), forecastDays);
+  var confidence = recentQuiz.length >= 14 && activeQuizDays >= 7 ? 'élevée' : recentQuiz.length >= 5 && activeQuizDays >= 3 ? 'moyenne' : 'faible';
+  var chance = remaining === 0 ? 100 : (!daysLeft || !pace ? null : Math.min(100, Math.round(Math.min(1, pace / Math.max(.01, needed)) * 85 + groups.mastered.length / Math.max(1, total) * 15)));
+  var status = remaining === 0 ? 'Programme couvert' : !daysLeft ? 'Date du concours atteinte' : chance == null ? 'Données insuffisantes' : chance >= 75 ? 'Rythme suffisant' : chance >= 45 ? 'Rythme à renforcer' : 'Risque de retard';
+  var priority = groups.fragile[0] || groups.active[0] || groups.unseen[0] || groups.mastered[0] || null;
+  var moduleList = Object.keys(modules).map(function (id) { return modules[id]; });
+  moduleList.sort(function (a, b) {
+    var scoreA = a.fragile * 4 + a.active * 2 + a.unseen, scoreB = b.fragile * 4 + b.active * 2 + b.unseen;
+    return scoreB - scoreA || a.d.id - b.d.id;
+  });
+  return { groups: groups, total: total, remaining: remaining, questionTotal: questionTotal, questionSeen: questionSeen,
+    questionCoverage: questionTotal ? Math.round(questionSeen / questionTotal * 100) : 0, contestDate: contestDate, daysLeft: daysLeft,
+    quizSessions: recentQuiz.length, activeQuizDays: activeQuizDays, paceWindow: paceWindow, pace: pace, needed: needed, forecastDate: forecastDate,
+    chance: chance, confidence: confidence, status: status, priority: priority, modules: moduleList };
+}
+function progressDashboardHtml() {
+  var p = progressDashboardInfo(), total = Math.max(1, p.total);
+  var states = [
+    ['mastered', 'Maîtrisées', '✅', '#58cc02'], ['fragile', 'Fragiles', '⚠️', '#ff9600'],
+    ['active', 'En cours', '🔄', '#1cb0f6'], ['unseen', 'Jamais vues', '○', '#a8b3bd']
+  ];
+  var h = '<section class="progress-dashboard" aria-labelledby="progress-dashboard-title"><div class="progress-dashboard-head"><div><h2 id="progress-dashboard-title">🧭 Où tu en es vraiment</h2><div class="sub">' + p.total + ' unités avec QCM · ' + p.questionCoverage + '% des questions déjà rencontrées</div></div><span class="badge">' + (p.total - p.remaining) + '/' + p.total + '</span></div>';
+  h += '<div class="progress-segments" role="img" aria-label="' + states.map(function (x) { return x[1] + ' : ' + p.groups[x[0]].length; }).join(', ') + '">' +
+    states.map(function (x) { var n = p.groups[x[0]].length; return n ? '<span style="width:' + (n / total * 100) + '%;background:' + x[3] + '"></span>' : ''; }).join('') + '</div>';
+  h += '<div class="progress-state-grid">' + states.map(function (x) {
+    return '<div class="progress-state ' + x[0] + '"><span>' + x[2] + '</span><b>' + p.groups[x[0]].length + '</b><small>' + x[1] + '</small></div>';
+  }).join('') + '</div><div class="sub progress-definition">Maîtrisée = quiz réussi à au moins 80 %. Fragile = résultats sous 70 % ou erreurs répétées. Les documents sans QCM sont exclus.</div></section>';
+  var chanceText = p.chance == null ? '—' : p.chance + '%';
+  var chanceClass = p.chance == null ? 'unknown' : p.chance >= 75 ? 'good' : p.chance >= 45 ? 'warn' : 'risk';
+  h += '<section class="card forecast-card ' + chanceClass + '"><div class="forecast-main"><div><b>📅 Finir avant le ' + esc(dateFr(p.contestDate)) + '</b><div class="forecast-status">' + esc(p.status) + '</div></div><div class="forecast-score">' + chanceText + '<small>chances estimées</small></div></div>';
+  if (!p.remaining) h += '<div class="sub">Toutes les unités avec QCM ont déjà été maîtrisées au moins une fois.</div>';
+  else if (!p.quizSessions) h += '<div class="sub">Termine quelques quiz pour calculer ton rythme. Il reste ' + p.remaining + ' unités et ' + p.daysLeft + ' jour' + (p.daysLeft > 1 ? 's' : '') + ' avant le concours.</div>';
+  else h += '<div class="forecast-grid"><span><b>' + p.remaining + '</b> unités restantes</span><span><b>' + p.needed.toFixed(1) + '</b> unité/jour nécessaire</span><span><b>' + p.pace.toFixed(1) + '</b> séance/jour observée</span></div>' +
+    '<div class="sub forecast-note">Projection : fin vers le <b>' + esc(dateFr(p.forecastDate)) + '</b>, à partir de ' + p.quizSessions + ' séance' + (p.quizSessions > 1 ? 's' : '') + ' sur ' + p.paceWindow + ' jour' + (p.paceWindow > 1 ? 's' : '') + '. Confiance ' + p.confidence + ' : cet indicateur mesure le rythme, pas le résultat au concours.</div>';
+  if (p.priority) h += '<button class="btn sm" data-go="lesson/' + p.priority.d.id + '/' + p.priority.ui + '">Continuer avec ' + esc(p.priority.u.t) + ' →</button>';
+  h += '</section><h2>Priorités par module</h2><div class="sub dashboard-intro">Les modules avec le plus d’unités fragiles ou incomplètes apparaissent en premier.</div><div class="priority-table">';
+  p.modules.slice(0, 6).forEach(function (m) {
+    var pct = Math.round(m.mastered / Math.max(1, m.total) * 100);
+    h += '<button class="priority-row" data-go="doc/' + m.d.id + '"><span class="priority-icon">' + (m.d.icon || '📘') + '</span><span class="priority-copy"><b>' + esc(m.d.code + '. ' + m.d.title) + '</b><small>' +
+      (m.fragile ? '⚠️ ' + m.fragile + ' fragile' + (m.fragile > 1 ? 's' : '') + ' · ' : '') + (m.active ? '🔄 ' + m.active + ' en cours · ' : '') + (m.unseen ? '○ ' + m.unseen + ' jamais vue' + (m.unseen > 1 ? 's' : '') : 'Tout vu') +
+      '</small><span class="progress thin"><span style="width:' + pct + '%"></span></span></span><strong>' + pct + '%</strong></button>';
+  });
+  return h + '</div>';
 }
 function weeklyInfo() {
   var total = 0, active = 0;
@@ -572,7 +800,10 @@ function grade(k, g) {                      // g : 0 = raté, 3 dur, 4 bien, 5 f
 function isStubborn(k) { return (S.srs[k] && S.srs[k].lap || 0) >= 3; }
 function dueList() {
   var t = today(), out = [];
-  for (var k in S.srs) { if (S.srs[k].due <= t) out.push(k); }
+  for (var k in S.srs) {
+    var item = resolveKey(k);
+    if (item && isCourseDocId(item.d) && S.srs[k].due <= t) out.push(k);
+  }
   return out;
 }
 function resolveKey(k) {
@@ -798,7 +1029,7 @@ function legendHL() {
 }
 
 /* ------------------------------------------------------------------ util */
-function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function rich(s) { return String(s == null ? '' : s); }   // le contenu est de confiance (généré localement)
 function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 function el(id) { return document.getElementById(id); }
@@ -850,6 +1081,7 @@ function applyTheme() {
   var t = S.theme;
   if (t === 'auto') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', t);
+  document.documentElement.setAttribute('data-font-scale', S.fontScale || 'normal');
   var m = document.querySelector('meta[name=theme-color]');
   if (m) m.content = t === 'dark' ? '#111820' : '#58cc02';
 }
@@ -858,15 +1090,47 @@ if (window.matchMedia) { try { window.matchMedia('(prefers-color-scheme: dark)')
 /* --------------------------------------------------------------- routeur */
 function go(h) {
   var path = '/' + String(h || '').replace(/^\/+/, '');
+  if (/^\/(?:lesson|quiz|review|exam|cards)(?:\/|$)/.test(path)) { S.lastRoute = path.slice(1); save(); }
   var target = '#' + path;
   if (location.hash === target) { render(); return; }
   location.hash = path;
 }
+function trackPageView() {
+  if (window.PREP_ANALYTICS && typeof window.PREP_ANALYTICS.pageView === 'function') {
+    window.PREP_ANALYTICS.pageView();
+    return;
+  }
+  if (typeof window.gtag !== 'function') return;
+  window.gtag('event', 'page_view', {
+    page_title: document.title,
+    page_location: location.href,
+    page_path: location.pathname + location.search + (location.hash || '#/')
+  });
+}
+document.addEventListener('click', function (event) {
+  var button = event.target.closest && event.target.closest('button, a');
+  if (!button) return;
+  var action = button.getAttribute('data-act') || button.getAttribute('data-go') || button.getAttribute('href');
+  if (!action) return;
+  var parameters = {
+    button_action: action,
+    button_label: (button.textContent || '').trim().slice(0, 80),
+    page_path: location.pathname + location.search + (location.hash || '#/')
+  };
+  if (window.PREP_ANALYTICS && typeof window.PREP_ANALYTICS.track === 'function') {
+    window.PREP_ANALYTICS.track('ui_click', parameters);
+  } else if (typeof window.gtag === 'function') {
+    window.gtag('event', 'ui_click', parameters);
+  }
+}, true);
 function route() { return (location.hash || '#/').replace(/^#\/?/, '').split('/'); }
 window.addEventListener('hashchange', render);
 
 var ROOT;
 function render() {
+  Array.prototype.forEach.call(document.querySelectorAll('.fbbar'), function (b) { b.remove(); });
+  clearInterval(EXTIMER);
+  trackPageView();
   rollDay(); hearts();
   var r = route(), v = r[0] || '';
   window.scrollTo(0, 0);
@@ -883,6 +1147,7 @@ function render() {
     case 'pdf': html = vPdfs(); break;
     case 'pdfview': html = vPdfView(r[1], r[2], r[3], r[4]); break;
     case 'exam': html = vExamSetup(r[1]); break;
+    case 'league': html = vLeague(); break;
     case 'stats': html = vStats(); break;
     case 'set': html = vSettings(); break;
     case 'about': html = vAbout(); break;
@@ -897,7 +1162,7 @@ function render() {
 /* ------------------------------------------------------------ composants */
 function bar(title, back) {
   return '<div class="topbar">' +
-    (back ? '<button class="iconbtn" data-go="' + back + '">←</button>' : '<span style="width:34px"></span>') +
+    (back ? '<button class="iconbtn" data-go="' + back + '" aria-label="Retour">←</button>' : '<span style="width:34px"></span>') +
     '<span class="ttl">' + esc(title) + '</span>' +
     '<span class="pill hearts">' + (S.unlimited ? '♾️' : '❤️ ' + hearts()) + '</span>' +
     '</div>';
@@ -907,25 +1172,26 @@ function navBar(v) {
   var items = [
     ['', '🏠', 'Accueil'],
     ['review', '🧠', 'Évaluation intelligente'],
-    ['concours', '📝', 'concours'],
+    ['concours', '📝', 'Concours'],
     ['pdf', '📚', 'Cours PDF'],
     ['cards', '🃏', 'Cartes'],
+    ['league', '🏆', 'Classement'],
     ['stats', '📊', 'Statistiques'],
     ['set', '⚙️', 'Réglages']
   ];
-  return '<div class="nav"><div class="in">' + items.map(function (it) {
+  return '<nav class="nav" aria-label="Navigation principale"><div class="in">' + items.map(function (it) {
     var on = (v === it[0] || (v === 'home' && it[0] === '')) ? ' on' : '';
     var dot = (it[0] === 'review' && d) ? '<span class="dot">' + (d > 99 ? '99+' : d) + '</span>' : '';
-    var label = it[2] === 'Évaluation intelligente' ? 'Évaluation<br>intelligente' : it[2];
-    return '<button class="' + on.trim() + '" data-go="' + it[0] + '"><span class="ic">' + it[1] + '</span><span class="nav-label">' + label + '</span>' + dot + '</button>';
-  }).join('') + '</div></div>';
+    var label = it[2] === 'Évaluation intelligente' ? 'Évaluation' : it[2] === 'Statistiques' ? 'Stats' : it[2];
+    return '<button type="button" class="' + on.trim() + '" data-go="' + it[0] + '" aria-label="' + it[2] + '"' + (on ? ' aria-current="page"' : '') + '><span class="ic" aria-hidden="true">' + it[1] + '</span><span class="nav-label">' + label + '</span>' + dot + '</button>';
+  }).join('') + '</div></nav>';
 }
 function vPdfs() {
   var list = window.PREP_PDFS || [];
-  var h = bar('Cours PDF', '') + '<div class="wrap"><h1>📚 Cours PDF</h1><div class="sub">Les documents sources des modules sont disponibles hors ligne dans la version PWA et l’APK.</div><div class="spacer"></div>';
+  var h = bar('Cours PDF', '') + '<div class="wrap"><h1>📚 Cours PDF</h1><div class="sub">Les documents sont intégrés au fichier autonome. En PWA, laisse le premier téléchargement se terminer avant de passer hors ligne.</div><div class="spacer"></div>';
   list.forEach(function (p, i) {
     var href = 'cours-pdf/' + encodeURIComponent(p[2]);
-    h += '<article class="card pdf-course"><div class="pdf-course-main"><div class="pdf-course-icon">📄</div><div class="pdf-course-copy"><b>' + esc(p[0] + '. ' + p[1]) + '</b><div class="sub">Lecture dans PrepMe · disponible hors ligne</div></div></div><div class="pdf-course-actions"><button class="btn blue sm" data-go="pdfview/' + i + '">👁️ Visualiser</button><a class="btn ghost sm" download href="' + href + '">⬇️ Télécharger</a></div></article>';
+    h += '<article class="card pdf-course"><div class="pdf-course-main"><div class="pdf-course-icon">📄</div><div class="pdf-course-copy"><b>' + esc(p[0] + '. ' + p[1]) + '</b><div class="sub">Lecture dans PrepMe · disponible hors ligne</div></div></div><div class="pdf-course-actions"><button class="btn blue sm" data-go="pdfview/' + i + '">👁️ Visualiser</button><a class="btn ghost sm" data-course-download="' + i + '" download href="' + href + '">⬇️ Télécharger</a></div></article>';
   });
   return h + '</div>';
 }
@@ -938,7 +1204,7 @@ function vPdfView(index, startPage, backDid, backUi) {
   return bar(p[1], back) + '<div class="pdf-reader" data-pdf-src="' + href + '" data-pdf-embedded="' + esc(p[2]) + '" data-pdf-fallback="' + esc(fallback) + '" data-pdf-page="' + Math.max(1, +(startPage || 1)) + '">' +
     '<div class="pdf-toolbar"><button class="pdf-tool" id="pdfPrev">←</button><span id="pdfPage">Page…</span><button class="pdf-tool" id="pdfNext">→</button><button class="pdf-tool" id="pdfZoomOut">−</button><span id="pdfZoom">100%</span><button class="pdf-tool" id="pdfZoomIn">+</button></div>' +
     '<div class="pdf-status" id="pdfStatus">Chargement du PDF…</div><div class="pdf-canvas-wrap"><canvas id="pdfCanvas"></canvas></div>' +
-    '<div class="pdf-download"><a class="btn ghost sm" download href="' + href + '">⬇️ Télécharger le PDF</a></div></div>';
+    '<div class="pdf-download"><a class="btn ghost sm" data-course-download="' + (+index) + '" download href="' + href + '">⬇️ Télécharger le PDF</a></div></div>';
 }
 
 var PDF_READER = { doc: null, page: 1, scale: 1.15, rendering: false, pending: null };
@@ -955,15 +1221,19 @@ function initPdfReader() {
   window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
   var requestedPage = Math.max(1, +(box.getAttribute('data-pdf-page') || 1));
   PDF_READER = { doc: null, page: requestedPage, scale: 1.15, rendering: false, pending: null };
+  var reader = PDF_READER;
+  function isCurrentReader() { return PDF_READER === reader && box.isConnected && ROOT.contains(box) && el('pdfStatus') === status; }
   var fallbackSrc = box.getAttribute('data-pdf-fallback');
   var embeddedName = box.getAttribute('data-pdf-embedded');
-  var embeddedB64 = embeddedName && window.PREP_COURSE_PDFS_B64 && window.PREP_COURSE_PDFS_B64[embeddedName];
+  var embeddedB64 = embeddedName && ((window.PREP_COURSE_PDFS_B64 && window.PREP_COURSE_PDFS_B64[embeddedName]) || (window.CNC_CONCOURS_PDFS_B64 && window.CNC_CONCOURS_PDFS_B64[embeddedName]));
   function loadPdf(src, usingFallback) {
     window.pdfjsLib.getDocument(src).promise.then(function (doc) {
+      if (!isCurrentReader()) return;
       PDF_READER.doc = doc; status.style.display = 'none';
       if (usingFallback) { var dl = box.querySelector('.pdf-download a'); if (dl) dl.href = fallbackSrc; }
       renderPdfPage(Math.min(requestedPage, doc.numPages));
     }).catch(function () {
+      if (!isCurrentReader()) return;
       if (!usingFallback && fallbackSrc) { status.textContent = 'Source locale indisponible · chargement depuis GitHub…'; loadPdf(fallbackSrc, true); }
       else status.textContent = 'Impossible d’afficher ce PDF. Vérifiez la connexion ou utilisez Télécharger.';
     });
@@ -971,8 +1241,9 @@ function initPdfReader() {
   if (embeddedB64) {
     status.textContent = 'Ouverture de la page ' + requestedPage + '…';
     window.pdfjsLib.getDocument({ data: pdfBase64Bytes(embeddedB64) }).promise.then(function (doc) {
+      if (!isCurrentReader()) return;
       PDF_READER.doc = doc; status.style.display = 'none'; renderPdfPage(Math.min(requestedPage, doc.numPages));
-    }).catch(function () { status.textContent = 'Impossible d’ouvrir le PDF intégré.'; });
+    }).catch(function () { if (isCurrentReader()) status.textContent = 'Impossible d’ouvrir le PDF intégré.'; });
   } else loadPdf(box.getAttribute('data-pdf-src'), false);
   el('pdfPrev').onclick = function () { if (PDF_READER.page > 1) renderPdfPage(PDF_READER.page - 1); };
   el('pdfNext').onclick = function () { if (PDF_READER.doc && PDF_READER.page < PDF_READER.doc.numPages) renderPdfPage(PDF_READER.page + 1); };
@@ -983,19 +1254,23 @@ function renderPdfPage(number) {
   if (!PDF_READER.doc) return;
   if (PDF_READER.rendering) { PDF_READER.pending = number; return; }
   PDF_READER.rendering = true;
+  var reader = PDF_READER;
   PDF_READER.doc.getPage(number).then(function (page) {
-    var canvas = el('pdfCanvas'), wrap = canvas.parentNode, raw = page.getViewport({ scale: 1 });
+    var canvas = el('pdfCanvas');
+    if (PDF_READER !== reader || !canvas || !canvas.parentNode) { reader.rendering = false; return null; }
+    var wrap = canvas.parentNode, raw = page.getViewport({ scale: 1 });
     var fit = Math.max(.25, (wrap.clientWidth - 16) / raw.width), viewport = page.getViewport({ scale: fit * PDF_READER.scale });
     var ratio = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.floor(viewport.width * ratio); canvas.height = Math.floor(viewport.height * ratio);
     canvas.style.width = Math.floor(viewport.width) + 'px'; canvas.style.height = Math.floor(viewport.height) + 'px';
     return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport, transform: ratio === 1 ? null : [ratio, 0, 0, ratio, 0, 0] }).promise;
   }).then(function () {
+    if (PDF_READER !== reader || !el('pdfPage') || !el('pdfZoom')) { reader.rendering = false; return; }
     PDF_READER.page = number; PDF_READER.rendering = false;
     el('pdfPage').textContent = 'Page ' + number + ' / ' + PDF_READER.doc.numPages;
     el('pdfZoom').textContent = Math.round(PDF_READER.scale * 100) + '%';
     if (PDF_READER.pending !== null) { var next = PDF_READER.pending; PDF_READER.pending = null; renderPdfPage(next); }
-  }).catch(function () { PDF_READER.rendering = false; el('pdfStatus').style.display = 'block'; el('pdfStatus').textContent = 'Erreur pendant l’affichage de cette page.'; });
+  }).catch(function () { var status = el('pdfStatus'); reader.rendering = false; if (PDF_READER === reader && status) { status.style.display = 'block'; status.textContent = 'Erreur pendant l’affichage de cette page.'; } });
 }
 function ring(pct) {
   var r = 24, c = 2 * Math.PI * r, o = c * (1 - Math.min(1, pct));
@@ -1007,6 +1282,7 @@ function ring(pct) {
 
 /* ------------------------------------------------------- vue CONCOURS */
 var CONCOURS_VIEWER_URLS = {};
+var CONCOURS_FILE_URLS = {};
 function concoursViewerUrl(htmlFile) {
   var embedded = window.CNC_CONCOURS_VIEWERS_B64 && window.CNC_CONCOURS_VIEWERS_B64[htmlFile];
   if (!embedded) return 'concours-commun/' + htmlFile;
@@ -1017,63 +1293,115 @@ function concoursViewerUrl(htmlFile) {
   }
   return CONCOURS_VIEWER_URLS[htmlFile];
 }
-var CONCOURS_DOCS = [
-  ['08- CNC Marrakech - Commun 2024-1.pdf', 'CNC Marrakech · Commun 2024'],
-  ['15- CNC Marrakech - Commun 2025-2.pdf', 'CNC Marrakech · Commun 2025'],
-  ['Chu Marrakech.pdf', 'CHU Marrakech'],
-  ['CNC Beni Mellal Khénifra 2023 Avec Justification.pdf', 'CNC Beni Mellal-Khénifra 2023 · corrigé'],
-  ['CNC Guelmim 2023 Avec Justification.pdf', 'CNC Guelmim 2023 · corrigé'],
-  ['cnc rect Marrakech 2025-1.pdf', 'CNC Marrakech 2025 · rectificatif'],
-  ['CNC Tanger 2023 - preuve 1 Avec Justification.pdf', 'CNC Tanger 2023 · corrigé'],
-  ['commun marrakech 2024.pdf', 'Commun Marrakech 2024'],
-  ['Concours CHU MARRAKECH 2020.pdf', 'Concours CHU Marrakech 2020'],
-  ['Concours CHU SM 2024 Avec Justification.pdf', 'Concours CHU SM 2024 · corrigé'],
-  ['Concours Commun 03 Mars 2019 Avec Justification.pdf', 'Concours commun · 3 mars 2019 · corrigé'],
-  ['Concours Commun National 10 Juin 2018 Avec Justification.pdf', 'Concours commun national · 10 juin 2018 · corrigé'],
-  ['Concours commun souss massa 2024.pdf', 'Concours commun Souss-Massa 2024'],
-  ['Concours ISFSC Région  Marrakech 2024 Avec Justification.docx-1.pdf', 'ISFSC Marrakech 2024 · corrigé'],
-  ['Concours National 26 Juin 2026 Avec Justification.pdf', 'Concours national · 26 juin 2026 · corrigé'],
-  ['Concours Région Fès Meknes Avec Justification.pdf', 'Concours région Fès-Meknès · corrigé'],
-  ['correction commun marrakech.pdf', 'Correction commun Marrakech'],
-  ['Etat Marrakech commun 2024VF.pdf', 'État Marrakech commun 2024'],
-  ['QCM_marrakech_2024_logo_arriere_plan_plus_clair-1.pdf', 'QCM Marrakech 2024'],
-  ['Recueil des Epreuves du Concours ITS 2021-2025.pdf', 'Recueil des épreuves du concours ITS 2021–2025'],
-  ['draa 2024.pdf', 'Draa-Tafilalet · Commun 2024'],
-  ['Concours de draa Tafilalet octobre 2021.pdf', 'Draa-Tafilalet · octobre 2021'],
-  ['DRAA 2025.pdf', 'Draa-Tafilalet · concours 2025'],
-  ['CamScanner 22-06-2026 20.39.pdf', 'Sujet scanné · juin 2026'],
-  ['beni mellal 2025 commun .pdf', 'Béni Mellal · Commun 2025'],
-  ['commun CHU Oujda 2023.pdf', 'CHU Oujda · Commun 2023'],
-  ['CHU Oujda.pdf', 'CHU Oujda'],
-  ['cnc recrt laayoune 2025.pdf', 'Laâyoune · recrutement 2025'],
-  ['etat laayoun 2024 commun.pdf', 'Laâyoune · Commun 2024'],
-  ['cncr agadir 2024.pdf', 'Agadir · concours 2024'],
-  ['commun état Tanger 2025.pdf', 'Tanger · Commun 2025'],
-  ['état tanger.pdf', 'Tanger · concours d’État']
-];
+var CONCOURS_DOCS = (window.PREP_CONCOURS_DOCS || []).slice();
+var CONCOURS_FILTER = 'Tous';
+var CONCOURS_QUERY = '';
+var CONCOURS_TYPE = 'Tous';
+var CONCOURS_SORT = 'recent';
+var CONCOURS_LIMIT = 12;
+function concoursPdfHref(p) {
+  return (p.folder || 'concours-commun') + '/' + encodeURIComponent(p.file).replace(/%2F/g, '/');
+}
+function concoursEmbeddedKey(p) { return p.folder === 'cours-pdf' ? p.file : (p.folder || 'concours-commun') + '/' + p.file; }
+function concoursDocumentUrl(p) {
+  var key = concoursEmbeddedKey(p), embedded = window.CNC_CONCOURS_FILES_B64 && window.CNC_CONCOURS_FILES_B64[key];
+  if (!embedded && p.format === 'PDF') {
+    var pdfData = (window.PREP_COURSE_PDFS_B64 && window.PREP_COURSE_PDFS_B64[key]) || (window.CNC_CONCOURS_PDFS_B64 && window.CNC_CONCOURS_PDFS_B64[key]);
+    if (pdfData) embedded = { data: pdfData, type: 'application/pdf' };
+  }
+  if (!embedded) return concoursPdfHref(p);
+  if (!CONCOURS_FILE_URLS[key]) {
+    var binary = atob(embedded.data || embedded), bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    var mime = embedded.type || (p.format === 'PPTX' ? 'application/vnd.openxmlformats-officedocument.presentationml.presentation' : 'application/octet-stream');
+    CONCOURS_FILE_URLS[key] = URL.createObjectURL(new Blob([bytes], { type: mime }));
+  }
+  return CONCOURS_FILE_URLS[key];
+}
+function concoursCategories() {
+  var preferred = ['EAP / échelle 11', 'Textes officiels EAP', 'Concours commun / national', 'CHU', 'Concours régionaux', 'Recrutement / spécialité', 'QCM / bases', 'Autres documents'];
+  var present = {};
+  CONCOURS_DOCS.forEach(function (p) { present[p.category] = true; });
+  var extras = Object.keys(present).filter(function (c) { return preferred.indexOf(c) < 0; }).sort();
+  return ['Tous'].concat(preferred.filter(function (c) { return present[c]; }), extras);
+}
+function concoursNorm(value) {
+  var text = String(value || '').toLowerCase();
+  return text.normalize ? text.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : text;
+}
+function concoursYear(p, newest) {
+  var years = (p.years || []).map(Number).filter(function (y) { return y > 1900; });
+  if (!years.length) return 0;
+  return newest === false ? Math.min.apply(Math, years) : Math.max.apply(Math, years);
+}
+function concoursFilteredDocs() {
+  var q = concoursNorm(CONCOURS_QUERY).trim();
+  var docs = CONCOURS_DOCS.filter(function (p) {
+    var byCat = CONCOURS_FILTER === 'Tous' || p.category === CONCOURS_FILTER;
+    var byType = CONCOURS_TYPE === 'Tous' || (CONCOURS_TYPE === 'Corrigés' && p.correction) || (CONCOURS_TYPE === 'Sujets' && !p.correction && !p.official) || (CONCOURS_TYPE === 'Officiels' && p.official);
+    var hay = concoursNorm([p.title, p.file, p.category, p.note, p.source, (p.years || []).join(' ')].join(' '));
+    return byCat && byType && (!q || hay.indexOf(q) >= 0);
+  });
+  docs.sort(function (a, b) {
+    if (CONCOURS_SORT === 'oldest') return (concoursYear(a, false) || 9999) - (concoursYear(b, false) || 9999) || concoursNorm(a.title).localeCompare(concoursNorm(b.title));
+    if (CONCOURS_SORT === 'az') return concoursNorm(a.title).localeCompare(concoursNorm(b.title));
+    if (CONCOURS_SORT === 'category') return concoursNorm(a.category).localeCompare(concoursNorm(b.category)) || (concoursYear(b) - concoursYear(a));
+    return concoursYear(b) - concoursYear(a) || Number(b.correction) - Number(a.correction) || concoursNorm(a.title).localeCompare(concoursNorm(b.title));
+  });
+  return docs;
+}
+function concoursStatsHtml() {
+  var corrected = CONCOURS_DOCS.filter(function (p) { return p.correction; }).length;
+  var official = CONCOURS_DOCS.filter(function (p) { return p.official; }).length;
+  var sheets = CONCOURS_DOCS.filter(function (p) { return p.viewer; }).length;
+  return '<section class="concours-hero" aria-label="Résumé de la bibliothèque"><div class="concours-hero-copy"><span class="concours-kicker">BIBLIOTHÈQUE DE PRÉPARATION</span><h1>Prépare ton concours avec les bonnes annales</h1><p>Sujets, corrigés et textes de référence réunis dans un catalogue simple à explorer.</p><button class="btn gold" data-go="exam">Lancer un examen blanc <span aria-hidden="true">→</span></button></div><div class="concours-stats"><div><strong>' + CONCOURS_DOCS.length + '</strong><span>documents</span></div><div><strong>' + corrected + '</strong><span>corrigés</span></div><div><strong>' + official + '</strong><span>textes officiels</span></div><div><strong>' + sheets + '</strong><span>fiches pédagogiques</span></div></div></section>';
+}
+function concoursCategoryHtml() {
+  return '<div class="concours-category-rail" role="group" aria-label="Catégories de documents">' + concoursCategories().map(function (category) {
+    var count = category === 'Tous' ? CONCOURS_DOCS.length : CONCOURS_DOCS.filter(function (p) { return p.category === category; }).length;
+    return '<button class="concours-category' + (category === CONCOURS_FILTER ? ' active' : '') + '" data-concours-category="' + esc(category) + '" aria-pressed="' + (category === CONCOURS_FILTER ? 'true' : 'false') + '"><span>' + esc(category) + '</span><b>' + count + '</b></button>';
+  }).join('') + '</div>';
+}
+function concoursCatalogHtml() {
+  var docs = concoursFilteredDocs();
+  var visibleDocs = docs.slice(0, CONCOURS_LIMIT);
+  var hasFilters = CONCOURS_FILTER !== 'Tous' || CONCOURS_TYPE !== 'Tous' || !!String(CONCOURS_QUERY || '').trim();
+  var h = '<section class="concours-finder" aria-labelledby="concours-library-title"><div class="concours-searchbox"><span aria-hidden="true">⌕</span><label class="sr-only" for="concoursSearch">Rechercher un document</label><input id="concoursSearch" type="search" autocomplete="off" placeholder="Rechercher : Marrakech, 2025, EAP…" value="' + esc(CONCOURS_QUERY) + '">' + (CONCOURS_QUERY ? '<button id="concoursClear" aria-label="Effacer la recherche">×</button>' : '') + '</div><div class="concours-selects"><label><span>Type</span><select id="concoursType"><option' + (CONCOURS_TYPE === 'Tous' ? ' selected' : '') + '>Tous</option><option' + (CONCOURS_TYPE === 'Sujets' ? ' selected' : '') + '>Sujets</option><option' + (CONCOURS_TYPE === 'Corrigés' ? ' selected' : '') + '>Corrigés</option><option' + (CONCOURS_TYPE === 'Officiels' ? ' selected' : '') + '>Officiels</option></select></label><label><span>Trier</span><select id="concoursSort"><option value="recent"' + (CONCOURS_SORT === 'recent' ? ' selected' : '') + '>Plus récents</option><option value="oldest"' + (CONCOURS_SORT === 'oldest' ? ' selected' : '') + '>Plus anciens</option><option value="az"' + (CONCOURS_SORT === 'az' ? ' selected' : '') + '>Titre A–Z</option><option value="category"' + (CONCOURS_SORT === 'category' ? ' selected' : '') + '>Par catégorie</option></select></label></div></section>';
+  h += '<div class="concours-results-head"><div><h2 id="concours-library-title">Documents</h2><div class="sub concours-count" aria-live="polite"><b>' + docs.length + '</b> résultat' + (docs.length > 1 ? 's' : '') + (hasFilters ? ' selon tes filtres' : ' dans la bibliothèque') + '</div></div>' + (hasFilters ? '<button class="concours-reset" id="concoursReset">Réinitialiser</button>' : '') + '</div><div id="concoursCatalog" class="concours-grid">';
+  if (!docs.length) h += '<div class="card concours-empty"><div aria-hidden="true">🔎</div><h3>Aucun document trouvé</h3><p>Essaie un autre mot-clé ou enlève un filtre.</p><button class="btn blue sm" id="concoursEmptyReset">Voir tous les documents</button></div>';
+  visibleDocs.forEach(function (p) {
+    var href = concoursDocumentUrl(p);
+    var isPdf = p.format === 'PDF';
+    var correction = p.correction ? '<span class="source-badge source-correction">✓ Corrigé à vérifier</span>' : '<span class="source-badge source-pending">Sujet seul</span>';
+    var official = p.official ? '<span class="source-badge source-official">Texte officiel</span>' : '';
+    var years = (p.years || []).length ? '<span class="source-badge source-old">' + esc(p.years.join(' · ')) + '</span>' : '';
+    var format = '<span class="source-badge source-format">' + esc(p.format || 'FICHIER') + '</span>';
+    var viewer = p.viewer ? '<a class="concours-sheet-link" href="' + esc(concoursViewerUrl(p.viewer)) + '" target="_blank" rel="noopener"><span aria-hidden="true">📝</span> Fiche pédagogique</a>' : '';
+    var moduleLink = p.module ? '<button class="btn ghost sm" data-go="lesson/' + p.module + '/0">📖 Ouvrir le module</button>' : '';
+    var docIndex = CONCOURS_DOCS.indexOf(p);
+    var open = isPdf ? '<button class="btn blue sm" data-go="concourspdf/' + docIndex + '">Consulter <span aria-hidden="true">→</span></button>' : '<span class="concours-file-action">Présentation PowerPoint</span>';
+    var downloadAttr = isPdf ? ' data-concours-download="' + docIndex + '"' : '';
+    h += '<article class="card concours-item"><div class="concours-item-top"><span class="concours-format-icon" aria-hidden="true">' + (isPdf ? 'PDF' : 'PPT') + '</span><span class="concours-category-label">' + esc(p.category) + '</span></div><h3>' + esc(p.title) + '</h3><div class="concours-badges">' + years + official + correction + format + '</div><p class="concours-note-line">' + esc(p.note || p.source || 'Document local') + '</p><details class="concours-file-details"><summary>Détails du fichier</summary><span>' + esc(p.file) + '</span></details><div class="concours-actions concours-actions-main">' + open + '<a class="btn ghost sm"' + downloadAttr + ' download href="' + esc(href) + '">Télécharger</a>' + moduleLink + '</div>' + viewer + '</article>';
+  });
+  h += '</div>';
+  if (visibleDocs.length < docs.length) h += '<div class="concours-more"><button class="btn ghost" id="concoursMore">Afficher ' + Math.min(12, docs.length - visibleDocs.length) + ' autres documents</button><span class="sub">' + visibleDocs.length + ' sur ' + docs.length + '</span></div>';
+  return h;
+}
 function vConcours() {
   var h = bar('Concours', '') + '<div class="wrap">';
-  h += '<h1>📝 Concours</h1><div class="sub">Sujets et corrigés du dossier Concours commun</div>';
-  h += '<div class="card" style="border-color:var(--green)"><b>Examen blanc</b><div class="sub">Teste-toi avec les QCM de préparation, en conditions chronométrées.</div><div class="spacer"></div><button class="btn gold" data-go="exam">Lancer un examen blanc</button></div>';
-  h += '<div class="card concours-note"><b>ℹ️ À propos des corrections</b><div class="sub">Les fiches ci-dessous transcrivent les sujets. Une transcription seule ne confirme pas les réponses : consulte le document original. Les explications des QCM d’entraînement sont pédagogiques et ne remplacent pas une source officielle.</div><div class="concours-badges"><span class="source-badge source-doc">Document pédagogique</span><span class="source-badge source-old">Ancien concours</span><span class="source-badge source-ai">Explication pédagogique</span></div></div>';
-  h += '<div class="card" style="border-color:#25d366"><b>💬 Contribuer par WhatsApp</b><div class="sub">Signaler un problème, proposer une amélioration ou envoyer des sujets, corrigés et autres documents.</div><div class="spacer"></div><a class="btn green sm" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">Ouvrir WhatsApp · ' + esc(WHATSAPP_CONTACT_DISPLAY) + '</a></div>';
-  h += '<h2>Sujets disponibles <span class="sub">(' + CONCOURS_DOCS.length + ' PDF)</span></h2>';
-  CONCOURS_DOCS.forEach(function (p, i) {
-    var htmlFile = 'sujet-' + String(i + 1).padStart(2, '0') + '.html';
-    var pdfUrl = 'concours-commun/' + encodeURIComponent(p[0]).replace(/%2F/g, '/');
-    var correction = /justification|corrig|correction/i.test(p[0]);
-    var year = (p[0].match(/20\d{2}/g) || []).map(Number).filter(function (y) { return y <= 2025; })[0];
-    h += '<div class="card concours-item"><div class="concours-item-head"><div class="concours-file">📄</div><div class="concours-item-info"><b>' + esc(p[1]) + '</b><div class="concours-badges"><span class="source-badge source-doc">Document pédagogique</span>' + (year ? '<span class="source-badge source-old">Ancien concours · ' + year + '</span>' : '') + (correction ? '<span class="source-badge source-correction">Corrigé fourni · à vérifier</span>' : '<span class="source-badge source-pending">Réponse non vérifiée</span>') + '</div></div></div><div class="concours-actions concours-actions-main"><button class="btn blue sm" data-go="concourspdf/' + i + '">👁️ Visualiser le PDF</button><a class="btn ghost sm" download href="' + esc(pdfUrl) + '">⬇️ Télécharger</a></div><a class="concours-sheet-link" href="' + esc(concoursViewerUrl(htmlFile)) + '" target="_blank" rel="noopener">📝 Ouvrir la fiche pédagogique</a></div>';
-  });
+  h += concoursStatsHtml();
+  h += '<section class="concours-guidance"><div><span aria-hidden="true">💡</span><p><b>Tu prépares l’EAP ?</b> Commence par la catégorie « EAP / échelle 11 », puis vérifie les corrigés proposés avec les textes officiels.</p></div><a href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">Contribuer sur WhatsApp</a></section>';
+  h += '<h2 class="concours-category-title">Explorer par catégorie</h2>' + concoursCategoryHtml();
+  h += concoursCatalogHtml();
   return h + '</div>';
 }
 
 function vConcoursPdfView(index) {
   var p = CONCOURS_DOCS[+index];
-  if (!p) return vConcours();
-  var href = 'concours-commun/' + encodeURIComponent(p[0]).replace(/%2F/g, '/');
-  var fallback = githubRawFile('concours-commun', p[0]);
-  return bar(p[1], 'concours') + '<div class="pdf-reader" data-pdf-src="' + href + '" data-pdf-fallback="' + esc(fallback) + '">' +
+  if (!p || p.format !== 'PDF') return vConcours();
+  var href = concoursPdfHref(p);
+  var fallback = githubRawFile(p.folder || 'concours-commun', p.file);
+  return bar(p.title, 'concours') + '<div class="pdf-reader" data-pdf-src="' + href + '" data-pdf-embedded="' + esc(concoursEmbeddedKey(p)) + '" data-pdf-fallback="' + esc(fallback) + '">' +
     '<div class="pdf-toolbar"><button class="pdf-tool" id="pdfPrev">←</button><span id="pdfPage">Page…</span><button class="pdf-tool" id="pdfNext">→</button><button class="pdf-tool" id="pdfZoomOut">−</button><span id="pdfZoom">100%</span><button class="pdf-tool" id="pdfZoomIn">+</button></div>' +
     '<div class="pdf-status" id="pdfStatus">Chargement du PDF…</div><div class="pdf-canvas-wrap"><canvas id="pdfCanvas"></canvas></div>' +
     '<div class="pdf-download"><a class="btn ghost sm" download href="' + href + '">⬇️ Télécharger le PDF</a></div></div>';
@@ -1101,8 +1429,9 @@ function vHome() {
   var plan = planInfo();
   var ready = readinessInfo();
   var week = weeklyInfo();
+  var league = leagueData();
   var autoMode = S.homeMode !== 'manual';
-  var totQ = 0; DOCS.forEach(function (d) { d.units.forEach(function (u) { totQ += u.qs.length; }); });
+  var totQ = 0; COURSE_DOCS.forEach(function (d) { d.units.forEach(function (u) { totQ += u.qs.length; }); });
   var nextU = firstUnfinished();
   var focusTarget = reviewTargets()[0];
   var nextAction = due ? { go: 'review', title: 'Réviser maintenant', detail: due + ' élément' + (due > 1 ? 's' : '') + ' à consolider avant de continuer.', why: 'Tes révisions programmées sont prioritaires.', time: '≈ 8 min' } :
@@ -1112,6 +1441,8 @@ function vHome() {
     { go: 'exam', title: 'Lancer un examen blanc', detail: 'Tes cours sont à jour : mesure maintenant ton niveau.', why: 'Tu peux vérifier ta préparation en conditions réelles.', time: '≈ 15 min' }));
   var g = Math.min(1, S.xpDay / (S.goal || 50));
   var xpGap = Math.max(0, S.goal - S.xpDay);
+  var resume = S.lastRoute && /^(?:lesson|quiz|review|exam|cards)(?:\/|$)/.test(S.lastRoute) ? S.lastRoute : '';
+  var resumeLabel = resume ? (resume.indexOf('lesson/') === 0 ? 'Reprendre la leçon' : resume.indexOf('quiz/') === 0 ? 'Reprendre le quiz' : resume.indexOf('review') === 0 ? 'Reprendre les révisions' : resume.indexOf('exam') === 0 ? 'Reprendre l’examen' : 'Reprendre les cartes') : '';
 
   var h = '<div class="card"><b>📲 Utiliser hors ligne</b><div class="sub">Installe l’application pour réviser sans Internet.</div><div class="spacer"></div><button class="btn blue sm" data-act="install">⬇️ Télécharger / installer</button></div>' +
     '<div class="hero">' +
@@ -1121,7 +1452,7 @@ function vHome() {
     '<span class="pill">' + (S.unlimited ? '♾️ cœurs' : '❤️ ' + hearts() + (hearts() < HEART_MAX ? ' · ' + heartIn() : '')) + '</span>' +
     '</div>' +
     '<h1 style="margin-top:12px">Diplômé en santé ? Prépare ton concours</h1>' +
-    '<div class="sub">Cours ciblés · QCM · flashcards · ' + DOCS.length + ' modules et ' + totQ + ' questions pour avancer jusqu’au concours.</div>' +
+    '<div class="sub">' + COURSE_DOCS.length + ' cours ciblés avec leurs QCM · ' + totQ + ' questions pour avancer jusqu’au concours.</div>' +
     '<div class="goal-ring">' + ring(g) +
     '<div style="flex:1"><div style="font-weight:800">Objectif du jour</div>' +
     '<div class="sub" style="color:#eafbe0">' + S.xpDay + ' / ' + S.goal + ' XP' +
@@ -1132,6 +1463,7 @@ function vHome() {
   h += jobAlertHtml();
   if (resume) h += '<div class="card resume-card" style="border-color:var(--blue)"><div class="row"><div style="flex:1"><b>▶️ Reprendre</b><div class="sub">' + esc(resumeLabel) + ' · dernière activité conservée sur cet appareil</div></div><button class="btn blue sm" data-go="' + esc(resume) + '">Reprendre</button></div></div>';
   h += '<div class="mode-switch" role="group" aria-label="Mode de préparation"><button class="' + (autoMode ? 'on' : '') + '" data-home-mode="auto"><b>✨ Auto</b><small>PrepMe décide</small></button><button class="' + (!autoMode ? 'on' : '') + '" data-home-mode="manual"><b>🖐️ Manuel</b><small>Je vois tout et je choisis</small></button></div>';
+  h += '<button class="card league-teaser" data-go="league"><span class="league-teaser-icon">' + league.tier.icon + '</span><span><b>Ligue ' + esc(league.tier.name) + ' · #' + league.rank + '</b><small>' + league.week.total + ' XP cette semaine' + (league.gap ? ' · ' + league.gap + ' XP pour dépasser le suivant' : ' · tu es en tête') + '</small></span><strong>›</strong></button>';
   if (!autoMode) {
   var paceLabel = plan.delta > 0 ? plan.delta + ' unité' + (plan.delta > 1 ? 's' : '') + ' d’avance' :
     plan.delta < 0 ? Math.abs(plan.delta) + ' unité' + (plan.delta < -1 ? 's' : '') + ' de retard' : 'dans le rythme prévu';
@@ -1178,25 +1510,33 @@ function vHome() {
     '<div class="qa" data-go="exam"><div class="ic">📝</div><div class="t">Examen blanc</div><div class="d">chronométré</div></div>' +
     '</div><div class="card quick-card"><div class="row"><div class="quick-icon">⚡</div><div style="flex:1"><b>Séance express</b><div class="sub">5 questions en 5 minutes, ou 10 questions pour une révision complète.</div></div></div><div class="spacer"></div><div class="row2"><button class="btn purple sm" data-act="quick5">⏱️ 5 minutes</button><button class="btn ghost sm" data-act="quick">10 questions</button></div></div><div class="spacer"></div>' +
     '<input class="search" id="q" placeholder="🔎 Chercher une notion, une loi, un chiffre…">' +
-    '<h2>Modules</h2>';
+    '<h2>📚 Cours et QCM associés</h2><div class="course-list-intro">Chaque banque de QCM est rattachée à son cours. Les annales complètes restent accessibles dans la section <b>Concours</b>.</div>';
 
-  DOCS.forEach(function (d) {
+  COURSE_DOCS.forEach(function (d) {
     var p = docPct(d), st = docStarted(d);
     var nq = 0; d.units.forEach(function (u) { nq += u.qs.length; });
-    h += '<div class="mod' + (p >= 100 ? ' done' : st ? ' started' : '') + '" data-go="doc/' + d.id + '">' +
-      '<div class="bub">' + d.icon + '</div>' +
-      '<div class="info"><div class="t">' + esc(d.code + '. ' + d.title) + '</div>' +
-      '<div class="p">' + d.units.length + ' unités · ' + nq + ' QCM · ≈ ' + Math.max(5, Math.round(nq * 0.8 + d.units.length * 2)) + ' min</div>' +
-      '<div class="progress thin" style="margin-top:6px"><div style="width:' + p + '%"></div></div></div>' +
-      '<div class="pct">' + p + '%</div></div>';
+    h += '<article class="mod home-course' + (p >= 100 ? ' done' : st ? ' started' : '') + '"><button class="home-course-main" data-go="doc/' + d.id + '" aria-label="Ouvrir le cours ' + esc(d.title) + '">' +
+      '<span class="bub">' + d.icon + '</span>' +
+      '<span class="info"><span class="t">' + esc(d.code + '. ' + d.title) + '</span>' +
+      '<span class="p">' + d.units.length + ' unités · ≈ ' + Math.max(5, Math.round(nq * 0.8 + d.units.length * 2)) + ' min</span>' +
+      '<span class="progress thin" style="margin-top:6px"><span style="width:' + p + '%"></span></span></span>' +
+      '<span class="pct">' + p + '%</span></button><div class="home-course-actions"><button data-go="doc/' + d.id + '">Lire le cours</button>' +
+      (nq ? '<button class="qcm" data-go="quiz/' + d.id + '/all">Faire les ' + nq + ' QCM</button>' : '<span class="qcm-pending">QCM en préparation</span>') + '</div></article>';
   });
   }
+  h += '<section class="candidate-reviews" aria-labelledby="candidate-reviews-title">' +
+    '<h2 id="candidate-reviews-title">💬 Avis des candidats</h2>' +
+    '<div class="sub candidate-reviews-intro">Ce que disent les infirmiers et techniciens de santé qui utilisent la plateforme.</div>' +
+    '<div class="card candidate-review"><div class="quote">“</div><blockquote>Les fiches et les QCM m’ont permis de réviser les lois importantes sans me disperser. Je vois clairement mes points faibles.</blockquote><cite>Samira — <span>Infirmière polyvalente</span></cite></div>' +
+    '<div class="card candidate-review"><div class="quote">“</div><blockquote>Le mode révision intelligente s’adapte à mon rythme. Même avec peu de temps après le travail, je peux faire une séance utile.</blockquote><cite>Youssef — <span>Technicien de santé</span></cite></div>' +
+    '<div class="card candidate-review"><div class="quote">“</div><blockquote>Les examens blancs m’ont aidée à gagner en confiance et à mieux gérer le temps avant le concours.</blockquote><cite>Imane — <span>Infirmière en santé mentale</span></cite></div>' +
+    '</section>';
   h += '</div>';
   return h;
 }
 function firstUnfinished() {
-  for (var i = 0; i < DOCS.length; i++) {
-    var d = DOCS[i];
+  for (var i = 0; i < COURSE_DOCS.length; i++) {
+    var d = COURSE_DOCS[i];
     for (var j = 0; j < d.units.length; j++) {
       var s = ust(d.id, j);
       if (s.crowns < CROWN_MAX && !s.lesson) return { d: d.id, u: j };
@@ -1216,7 +1556,7 @@ function reviewTargets() {
     var it = resolveKey(k);
     if (it) target(it.d, it.u).due++;
   });
-  DOCS.forEach(function (d) {
+  COURSE_DOCS.forEach(function (d) {
     d.units.forEach(function (u, i) {
       var s = ust(d.id, i), unseen = 0;
       if (s.lesson) u.qs.forEach(function (_, qi) { if (!S.srs[qKey(d.id, i, qi)]) unseen++; });
@@ -1233,15 +1573,26 @@ function reviewTargets() {
 }
 
 /* --------------------------------------------------------------- vue DOC */
+function unitMinutes(u) {
+  var words = String(u.lesson || '').replace(/<[^>]+>/g, ' ').trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(3, Math.ceil(words / 180) + Math.ceil((u.qs || []).length * 0.7) + Math.ceil((u.cards || []).length * 0.15));
+}
 function vDoc(id) {
   var d = doc(id); if (!d) return vHome();
+  var hasQuiz = d.units.some(function (u) { return u.qs.length; });
+  var hasCards = d.units.some(function (u) { return u.cards.length; });
   var h = bar(d.code + '. ' + d.title, '') + '<div class="wrap">';
   h += '<h1>' + d.icon + ' ' + esc(d.title) + '</h1><div class="sub">' + esc(d.sub || '') + '</div>';
-  h += '<div class="row" style="margin:12px 0 4px"><div class="progress"><div style="width:' + docPct(d) + '%"></div></div>' +
-    '<b style="font-size:13px">' + docPct(d) + '%</b></div>';
-  h += '<div class="row2" style="margin:12px 0"><button class="btn blue sm" data-go="cards/' + d.id + '">🃏 Flashcards</button>' +
-    '<button class="btn gold sm" data-go="quiz/' + d.id + '/all">⚡ Quiz du module</button></div>' +
-    '<button class="btn purple sm" data-go="exam/' + d.id + '">📝 Examen blanc ciblé sur ce module</button>';
+  var studied = d.units.filter(function (u, i) { var s = ust(d.id, i); return s.lesson || s.runs > 0; }).length;
+  var mastered = d.units.filter(function (u, i) { return ust(d.id, i).crowns >= CROWN_MAX; }).length;
+  var status = mastered === d.units.length ? '✅ Module maîtrisé' : studied ? '🔄 Module en cours' : '🆕 Module à commencer';
+  h += '<div class="card module-objective"><b>🎯 Objectif du module</b><div class="sub">' + (hasQuiz ? 'Comprendre les notions clés de « ' + esc(d.title) + ' », retenir les définitions et chiffres importants, puis réussir les QCM et les révisions.' : 'Consulter le document source, page par page. Ce module ne contient pas encore de QCM interactifs ni de corrigé validé dans PrepMe.') + '</div><div class="sub" style="margin-top:6px">' + (hasQuiz ? status : '📖 Document à consulter') + ' · ' + studied + '/' + d.units.length + ' unités parcourues' + (hasQuiz ? ' · ' + mastered + '/' + d.units.length + ' maîtrisées' : '') + '</div></div>';
+  var displayedPct = hasQuiz ? docPct(d) : Math.round(studied / Math.max(1, d.units.length) * 100);
+  h += '<div class="row" style="margin:12px 0 4px"><div class="progress"><div style="width:' + displayedPct + '%"></div></div>' +
+    '<b style="font-size:13px">' + displayedPct + '%</b></div>';
+  if (hasQuiz || hasCards) h += '<div class="row2" style="margin:12px 0"><button class="btn blue sm" data-go="cards/' + d.id + '">🃏 Flashcards</button>' +
+    (hasQuiz ? '<button class="btn gold sm" data-go="quiz/' + d.id + '/all">⚡ Quiz du module</button>' : '') + '</div>';
+  if (hasQuiz) h += '<button class="btn purple sm" data-go="exam/' + d.id + '">📝 Examen blanc ciblé sur ce module</button>';
   h += '<div class="path">';
   d.units.forEach(function (u, i) {
     var s = ust(d.id, i);
@@ -1249,11 +1600,11 @@ function vDoc(id) {
     h += '<div class="node ' + cls + '" data-go="lesson/' + d.id + '/' + i + '">' +
       '<div class="circ">' + (u.ic || '📘') + '</div>' +
       '<div class="info" style="flex:1"><div class="t">' + esc(u.t) + '</div>' +
-      '<div class="d">' + u.qs.length + ' QCM · ' + u.cards.length + ' cartes' + (u.pages ? ' · ' + u.pages : '') + '</div>' +
+      '<div class="d">' + u.qs.length + ' QCM · ' + u.cards.length + ' cartes · ≈ ' + unitMinutes(u) + ' min' + (u.pages ? ' · ' + u.pages : '') + '</div>' +
       '<div class="unit-source">📄 ' + esc(sourceLabel(d.id, u.pages)) + '</div>' +
-      '<div class="crowns">' + '👑'.repeat(s.crowns) + '<span style="opacity:.25">' + '👑'.repeat(CROWN_MAX - s.crowns) + '</span>' +
-      (s.best ? ' <span class="badge ok">' + s.best + '%</span>' : '') + '</div></div>' +
-      '<button class="cardbtn" title="Flashcards de cette unité" data-go="cards/' + d.id + '/' + i + '">🃏</button></div>';
+      (u.qs.length ? '<div class="crowns">' + '👑'.repeat(s.crowns) + '<span style="opacity:.25">' + '👑'.repeat(CROWN_MAX - s.crowns) + '</span>' +
+      (s.best ? ' <span class="badge ok">' + s.best + '%</span>' : '') + '</div>' : '') + '</div>' +
+      (u.cards.length || u.qs.length ? '<button class="cardbtn" title="Flashcards de cette unité" data-go="cards/' + d.id + '/' + i + '">🃏</button>' : '') + '</div>';
   });
   h += '</div></div>';
   return h;
@@ -1267,13 +1618,13 @@ function vLesson(did, ui) {
   return bar(u.t, 'doc/' + d.id) + '<div class="wrap">' + legendHL() +
     abbreviationBox(u) + sourceBox(d.id, ui) + '<div class="card lesson">' +
     rich(decorate(u.lesson) || '<p class="muted">Pas de leçon pour cette unité.</p>') + '</div>' +
-    '<button class="btn" data-go="quiz/' + d.id + '/' + ui + '">Passer au quiz →</button>' +
+    (u.qs.length ? '<button class="btn" data-go="quiz/' + d.id + '/' + ui + '">Passer au quiz →</button>' : '<div class="card sub">📖 Consultation du document source. Aucun QCM interactif validé pour cette page.</div>') +
     '<div class="spacer"></div>' +
     '<div class="row2">' +
     '<button class="btn ghost sm" data-act="speak">🔊 Écouter</button>' +
-    '<button class="btn blue sm" data-go="cards/' + d.id + '/' + ui + '">🃏 Cartes de cette unité (' +
-    Math.max(u.cards.length, Math.min(8, u.cards.length + u.qs.length)) + ')</button>' +
-    '<button class="btn ghost sm" data-go="cards/' + d.id + '">🃏 Cartes du module</button></div>' +
+    (u.cards.length || u.qs.length ? '<button class="btn blue sm" data-go="cards/' + d.id + '/' + ui + '">🃏 Cartes de cette unité (' +
+    Math.max(u.cards.length, Math.min(8, u.cards.length + u.qs.length)) + ')</button>' : '') +
+    (allCards(d.id).length ? '<button class="btn ghost sm" data-go="cards/' + d.id + '">🃏 Cartes du module</button>' : '') + '</div>' +
     '</div>';
 }
 
@@ -1336,6 +1687,8 @@ function quizFrame() {
 }
 function answer(chosen) {
   var R = RUN, it = R.items[R.i], q = it.q;
+  if (it.answered) return;
+  it.answered = true;
   var correct = (+chosen === q.c);
   var btns = ROOT.querySelectorAll('.opt');
   Array.prototype.forEach.call(btns, function (b) {
@@ -1371,6 +1724,7 @@ function answer(chosen) {
   if (why) why.onclick = function () { var box = fb.querySelector('.why-content'); box.hidden = !box.hidden; why.setAttribute('aria-expanded', String(!box.hidden)); why.textContent = box.hidden ? '💡 Pourquoi cette réponse ?' : 'Masquer l’explication'; };
   document.body.appendChild(fb);
   el('next').onclick = function () {
+    if (RUN !== R || !fb.isConnected) return;
     fb.remove(); RUN.i++;
     if (!S.unlimited && RUN.mode === 'lesson' && S.hearts <= 0 && RUN.i < RUN.items.length) { ROOT.innerHTML = vNoHearts() + navBar(''); bind(); return; }
     // Une séance de révision peut contenir des QCM et des flashcards.
@@ -1394,6 +1748,13 @@ function quizEnd() {
   }
   if (pct >= 80) { beep('up'); if (pct === 100) confetti(); }
   var secs = Math.round((Date.now() - R.t0) / 1000);
+  recordSession(R.mode === 'lesson' ? 'quiz' : 'revision', R.ok, tot, secs, R.title || '');
+  if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('quiz_complete', {
+    quiz_mode: R.mode,
+    score: pct,
+    question_count: tot,
+    duration_seconds: secs
+  });
   var h = bar('Résultat', '') + '<div class="wrap center">' +
     '<div style="font-size:56px;margin:16px 0 4px">' + (pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '💪' : '📚') + '</div>' +
     '<h1>' + pct + '%</h1><div class="sub">' + R.ok + ' bonnes / ' + tot + ' questions · ' + Math.floor(secs / 60) + 'm' + pad(secs % 60) + 's</div>' +
@@ -1406,7 +1767,7 @@ function quizEnd() {
     h += '<div class="card" style="text-align:left"><b>À revoir (' + R.wrong.length + ')</b>';
     R.wrong.slice(0, 12).forEach(function (it) {
       h += '<div style="margin-top:10px;font-size:13.5px"><div style="font-weight:700">' + rich(it.q.q) + '</div>' +
-        '<div style="color:var(--green-dk)">➜ ' + rich(it.q.o[it.q.c]) + '</div></div>';
+        '<div style="color:var(--green-dk)">➜ ' + rich(it.q.o[it.q.c]) + '</div><div class="sub">📄 ' + esc(questionSource(it.q, it.d, it.u)) + ' · <a href="' + esc(questionReportUrl(it.q, it.d, it.u)) + '" target="_blank" rel="noopener noreferrer">Signaler</a></div></div>';
     });
     h += '<div class="sub" style="margin-top:10px">Ces questions sont programmées dans ta révision espacée.</div></div>';
   }
@@ -1504,6 +1865,7 @@ function cardGrade(g) {
 }
 function reviewEnd() {
   var R = RUN;
+  recordSession('revision', R.ok, R.items.length, (Date.now() - R.t0) / 1000, 'Révision espacée');
   addXP(R.xp + 5);
   if (!S.unlimited && S.hearts < HEART_MAX && R.items.length >= 5) { gainHeart(1); }
   beep('up');
@@ -1545,7 +1907,7 @@ function vExamSetup(scopeId) {
   h += '<h1>📝 Examen blanc</h1><div class="sub">Conditions du concours : QCM chronométrés, correction détaillée à la fin.</div>';
   h += '<div class="card"><b>Périmètre</b><div class="spacer"></div><select id="scope" class="search">' +
     '<option value="0">Tous les modules</option>' +
-    DOCS.map(function (d) { return '<option value="' + d.id + '"' + (+scopeId === d.id ? ' selected' : '') + '>' + esc(d.code + '. ' + d.title) + '</option>'; }).join('') +
+    COURSE_DOCS.filter(function (d) { return allQuestions(d.id).length >= 5; }).map(function (d) { return '<option value="' + d.id + '"' + (+scopeId === d.id ? ' selected' : '') + '>' + esc(d.code + '. ' + d.title) + '</option>'; }).join('') +
     '</select><div class="spacer"></div><b>Nombre de questions</b><div class="spacer"></div>' +
     '<div class="row3"><button class="btn ghost sm nsel" data-n="20">20</button><button class="btn ghost sm nsel" data-n="40">40</button><button class="btn ghost sm nsel" data-n="60">60</button></div>' +
     '<div class="spacer"></div><label class="row"><input type="checkbox" id="chrono" checked> <span>Chronomètre (45 s / question)</span></label>' +
@@ -1585,13 +1947,19 @@ function tickExam() {
     var m = Math.floor(left / 60000), s = Math.floor(left % 60000 / 1000);
     t.textContent = m + ':' + pad(s);
     if (left < 60000) t.classList.add('warn');
-    if (left <= 0) { clearInterval(EXTIMER); RUN.i = RUN.items.length; ROOT.innerHTML = examEnd() + navBar('exam'); bind(); }
+    if (left <= 0) { clearInterval(EXTIMER); Array.prototype.forEach.call(document.querySelectorAll('.fbbar'), function (b) { b.remove(); }); RUN.i = RUN.items.length; ROOT.innerHTML = examEnd() + navBar('exam'); bind(); }
   }, 500);
 }
 function examEnd() {
   clearInterval(EXTIMER);
   var R = RUN, tot = R.items.length, pct = tot ? Math.round(R.ok / tot * 100) : 0;
   var secs = Math.round((Date.now() - R.t0) / 1000);
+  recordSession('examen', R.ok, tot, secs, R.scope);
+  if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('exam_complete', {
+    score: pct,
+    question_count: tot,
+    duration_seconds: secs
+  });
   addXP(R.xp + 25);
   S.exams.push({ date: today(), n: tot, pct: pct, secs: secs, scope: R.scope });
   save();
@@ -1610,7 +1978,7 @@ function examEnd() {
       h += '<div class="hr"></div><div style="font-size:13.6px"><div style="font-weight:700">' + rich(it.q.q) + '</div>' +
         '<div style="color:var(--green-dk);margin:3px 0"><b>➜ ' + rich(it.q.o[it.q.c]) + '</b></div>' +
         (it.q.e ? '<div class="sub">' + rich(it.q.e) + '</div>' : '') +
-        '<div class="sub" style="margin-top:3px">' + esc(doc(it.d).code + ' · ' + unit(it.d, it.u).t) + '</div></div>';
+        '<div class="sub" style="margin-top:3px">' + esc(doc(it.d).code + ' · ' + unit(it.d, it.u).t) + '</div><div class="sub">📄 ' + esc(questionSource(it.q, it.d, it.u)) + ' · <a href="' + esc(questionReportUrl(it.q, it.d, it.u)) + '" target="_blank" rel="noopener noreferrer">Signaler</a></div></div>';
     });
     h += '</div>';
   }
@@ -1618,20 +1986,69 @@ function examEnd() {
   return h;
 }
 
+/* -------------------------------------------------------- vue CLASSEMENT */
+function vLeague() {
+  var data = leagueData(), tier = data.tier, profile = S.profile || {};
+  var nextPct = tier.next ? Math.max(0, Math.min(100, Math.round((S.xp - tier.min) / (tier.next - tier.min) * 100))) : 100;
+  var status = data.rank <= 3 ? 'Zone de promotion' : data.rank <= 7 ? 'Zone de maintien' : 'Remonte au classement';
+  var statusClass = data.rank <= 3 ? 'promote' : data.rank <= 7 ? 'safe' : 'push';
+  var diplomaOptions = ['','Infirmier(ère)','Technicien(ne) de santé','Sage-femme','Kinésithérapeute','Manipulateur(trice) radio','Laboratoire','Autre diplôme de santé'];
+  var targetOptions = ['','Concours commun','Concours de spécialité','EAP / échelle 11','Autre concours'];
+  function options(list, selected, placeholder) {
+    return list.map(function (value) {
+      var label = value || placeholder;
+      return '<option value="' + esc(value) + '"' + (value === selected ? ' selected' : '') + '>' + esc(label) + '</option>';
+    }).join('');
+  }
+  var h = bar('Classement', '') + '<main class="wrap league-page">';
+  h += '<section class="league-hero" style="--league-color:' + tier.color + '"><span class="league-kicker">LIGUE DE LA SEMAINE</span><div class="league-trophy" aria-hidden="true">' + tier.icon + '</div><h1>Ligue ' + esc(tier.name) + '</h1><p>Du lundi ' + esc(dateFr(data.week.start)) + ' au dimanche ' + esc(dateFr(data.week.end)) + '</p><div class="league-rank-summary"><span><b>#' + data.rank + '</b> rang</span><span><b>' + data.week.total + '</b> XP</span><span><b>' + data.week.remaining + '</b> jour' + (data.week.remaining > 1 ? 's' : '') + '</span></div></section>';
+  h += '<section class="card league-season"><div class="row"><div style="flex:1"><b>' + esc(status) + '</b><div class="sub">' + (data.gap ? 'Encore ' + data.gap + ' XP pour dépasser la personne juste devant toi.' : 'Bravo, tu occupes la première place cette semaine.') + '</div></div><span class="league-status ' + statusClass + '">#' + data.rank + '</span></div>' +
+    '<div class="progress league-level-progress"><div style="width:' + nextPct + '%;background:' + tier.color + '"></div></div><div class="league-level-copy"><span>' + S.xp + ' XP au total</span><span>' + (tier.next ? (tier.next - S.xp) + ' XP avant la ligue suivante' : 'Dernière ligue atteinte') + '</span></div></section>';
+  h += '<section aria-labelledby="league-board-title"><div class="league-section-title"><div><h2 id="league-board-title">Classement hebdomadaire</h2><p>Gagne des XP avec les leçons, QCM et examens blancs.</p></div><span class="badge">10 places</span></div><div class="league-board">';
+  data.rows.forEach(function (person, index) {
+    var rank = index + 1, zone = rank <= 3 ? ' top' : rank > 7 ? ' danger' : '';
+    h += '<div class="league-row' + zone + (person.me ? ' me' : '') + '"' + (person.me ? ' aria-current="true"' : '') + '><span class="league-position">' + (rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank) + '</span><span class="league-avatar" aria-hidden="true">' + esc(person.avatar) + '</span><span class="league-person"><b>' + esc(person.name) + (person.me && person.name !== 'Moi' ? ' <em>Moi</em>' : '') + '</b><small>' + esc(person.diploma) + '</small></span><strong>' + person.xp + ' XP</strong></div>';
+  });
+  h += '</div><p class="league-disclosure">ℹ️ Mode hors ligne : les autres profils sont une simulation d’entraînement, pas de vrais candidats. Ton rang réagit à tes XP réels enregistrés sur cet appareil.</p></section>';
+  h += '<div class="league-cta card"><div><b>' + (data.gap ? 'Prêt à gagner ' + Math.min(50, data.gap) + ' XP ?' : 'Défends ta première place !') + '</b><span>Une séance express prend environ 5 minutes.</span></div><button class="btn gold sm" data-act="quick5">Lancer 5 QCM</button></div>';
+  h += '<section class="card league-profile"><div class="league-section-title"><div><h2 id="league-profile-title">Mon profil candidat</h2><p>Personnalise ta ligne dans le classement.</p></div><span aria-hidden="true">🎓</span></div><form id="leagueProfileForm" aria-labelledby="league-profile-title"><label><span>Prénom ou pseudo</span><input id="leagueName" maxlength="30" autocomplete="nickname" placeholder="Ex. Anass" value="' + esc(profile.displayName || '') + '"></label><label><span>Diplôme</span><select id="leagueDiploma">' + options(diplomaOptions, profile.diploma || '', 'Choisir mon diplôme') + '</select></label><label><span>Objectif</span><select id="leagueTarget">' + options(targetOptions, profile.target || '', 'Choisir mon concours') + '</select></label><button class="btn" type="submit">Enregistrer mon profil</button><small>🔒 Ces informations restent uniquement sur cet appareil.</small></form></section></main>';
+  return h;
+}
+
 /* ------------------------------------------------------------- vue STATS */
 function vStats() {
   var days = [], t = today();
   for (var i = 6; i >= 0; i--) { var d = dayShift(t, -i); days.push([d, d === t ? S.xpDay : (S.hist[d] || 0)]); }
+  function xpPeriod(n) { var total = 0, active = 0; for (var j = 0; j < n; j++) { var day = dayShift(t, -j), value = day === t ? S.xpDay : +(S.hist[day] || 0); total += value; if (value > 0) active++; } return { total: total, active: active }; }
+  var p7 = xpPeriod(7), p30 = xpPeriod(30), p90 = xpPeriod(90);
   var max = Math.max(10, Math.max.apply(null, days.map(function (x) { return x[1]; })));
   var totQ = 0, okQ = 0, koQ = 0, crowns = 0, maxc = 0;
-  DOCS.forEach(function (d) {
+  COURSE_DOCS.forEach(function (d) {
     d.units.forEach(function (u, i) { var s = ust(d.id, i); totQ += u.qs.length; okQ += s.ok; koQ += s.ko; crowns += s.crowns; maxc += CROWN_MAX; });
   });
+  var realProgress = progressDashboardInfo();
   var h = bar('Statistiques', '') + '<div class="wrap">';
   h += '<div class="row3">' +
     '<div class="stat"><div class="v">' + S.xp + '</div><div class="l">XP total</div></div>' +
     '<div class="stat"><div class="v">' + S.streak + '</div><div class="l">série (record ' + S.best + ')</div></div>' +
-    '<div class="stat"><div class="v">' + Math.round(crowns / Math.max(1, maxc) * 100) + '%</div><div class="l">maîtrise</div></div></div>';
+    '<div class="stat"><div class="v">' + Math.round(realProgress.groups.mastered.length / Math.max(1, realProgress.total) * 100) + '%</div><div class="l">unités maîtrisées</div></div></div>';
+  h += progressDashboardHtml();
+  h += '<div class="card"><div class="row"><div style="flex:1"><b>📈 Évolution de l’activité</b><div class="sub">XP gagné et jours actifs</div></div><button class="btn ghost sm" data-act="exportStats">⬇️ Exporter</button></div><div class="row3" style="margin-top:12px"><div class="stat"><div class="v">' + p7.total + '</div><div class="l">7 jours · ' + p7.active + ' actifs</div></div><div class="stat"><div class="v">' + p30.total + '</div><div class="l">30 jours · ' + p30.active + ' actifs</div></div><div class="stat"><div class="v">' + p90.total + '</div><div class="l">90 jours · ' + p90.active + ' actifs</div></div></div></div>';
+  var recent = (S.sessions || []).slice(-5).reverse();
+  h += '<h2>Historique des séances</h2>';
+  if (!recent.length) h += '<div class="card sub">Tes séances terminées apparaîtront ici.</div>';
+  recent.forEach(function (s) {
+    var label = s.type === 'examen' ? '📝 Examen' : s.type === 'revision' ? '🔁 Révision' : '✅ Quiz';
+    var date = String(s.date || '').slice(0, 10);
+    h += '<div class="mod"><div class="bub">' + label.split(' ')[0] + '</div><div class="info"><div class="t">' + esc(label.slice(2)) + ' · ' + esc(date) + '</div><div class="p">' + s.correct + '/' + s.total + ' · ' + Math.round(s.score || 0) + '% · ' + Math.floor((s.secs || 0) / 60) + 'm' + pad((s.secs || 0) % 60) + 's</div></div><span class="badge ' + (s.score >= 80 ? 'ok' : s.score < 50 ? 'hot' : '') + '">' + Math.round(s.score || 0) + '%</span></div>';
+  });
+  var sessionSummary = { quiz: 0, revision: 0, examen: 0 }, sessionCorrect = { quiz: 0, revision: 0, examen: 0 };
+  (S.sessions || []).forEach(function (s) { if (sessionSummary[s.type] != null) { sessionSummary[s.type]++; sessionCorrect[s.type] += +s.correct || 0; } });
+  h += '<div class="card"><b>🧭 Répartition des séances</b><div class="row3" style="margin-top:10px">' +
+    '<div class="stat"><div class="v">' + sessionSummary.quiz + '</div><div class="l">quiz</div></div>' +
+    '<div class="stat"><div class="v">' + sessionSummary.revision + '</div><div class="l">révisions</div></div>' +
+    '<div class="stat"><div class="v">' + sessionSummary.examen + '</div><div class="l">examens</div></div></div>' +
+    '<div class="sub" style="margin-top:8px">Réponses justes enregistrées : ' + (sessionCorrect.quiz + sessionCorrect.revision + sessionCorrect.examen) + '</div></div>';
   h += '<h2>7 derniers jours</h2><div class="card"><div class="bars">' +
     days.map(function (x) {
       var n = ['D', 'L', 'M', 'M', 'J', 'V', 'S'][new Date(x[0]).getDay()];
@@ -1642,8 +2059,10 @@ function vStats() {
     '<div class="stat"><div class="v">' + okQ + '</div><div class="l">justes</div></div>' +
     '<div class="stat"><div class="v">' + koQ + '</div><div class="l">fausses</div></div>' +
     '<div class="stat"><div class="v">' + (okQ + koQ ? Math.round(okQ / (okQ + koQ) * 100) : 0) + '%</div><div class="l">réussite</div></div></div>';
+  var errorCount = Object.keys(S.srs || {}).filter(function (k) { return S.srs[k] && S.srs[k].lap; }).length;
+  h += '<div class="card" style="border-color:var(--orange)"><div class="row"><div style="flex:1"><b>🎯 Révision ciblée</b><div class="sub">' + (errorCount ? errorCount + ' question' + (errorCount > 1 ? 's' : '') + ' ratée' + (errorCount > 1 ? 's' : '') + ' à consolider.' : 'Les questions ratées apparaîtront ici après tes quiz.') + '</div></div><button class="btn gold sm" data-go="review">Réviser mes erreurs</button></div></div>';
   var modWeak = [];
-  DOCS.forEach(function (d) {
+  COURSE_DOCS.forEach(function (d) {
     var mok = 0, mko = 0, started = false;
     d.units.forEach(function (u, i) { var s = ust(d.id, i); mok += s.ok || 0; mko += s.ko || 0; started = started || s.runs > 0; });
     if (started) modWeak.push({ d: d, r: mok + mko ? mok / (mok + mko) : 0, n: mok + mko });
@@ -1656,7 +2075,7 @@ function vStats() {
   });
   h += '<h2>Points faibles</h2>';
   var weak = [];
-  DOCS.forEach(function (d) {
+  COURSE_DOCS.forEach(function (d) {
     d.units.forEach(function (u, i) { var s = ust(d.id, i); if (s.ok + s.ko >= 4) weak.push({ d: d, u: u, i: i, r: s.ok / (s.ok + s.ko), n: s.ok + s.ko }); });
   });
   weak.sort(function (a, b) { return a.r - b.r; });
@@ -1681,8 +2100,17 @@ function vStats() {
 /* ---------------------------------------------------------- vue RÉGLAGES */
 function vSettings() {
   var h = bar('Réglages', '') + '<div class="wrap">';
+  var analyticsState = window.PREP_ANALYTICS ? window.PREP_ANALYTICS.status() : 'indisponible';
+  h += '<div class="card"><b>Mesure d\'audience Google Analytics</b><div class="sub">État de la balise GA4 : <b>' + esc(analyticsState) + '</b> · identifiant G-6JX59N8YQT</div></div>';
   var storageState = '✅ Stockage local disponible';
+  var storageDetail = '';
   try { localStorage.setItem('__prepme_diag__', '1'); localStorage.removeItem('__prepme_diag__'); } catch (e) { storageState = '⚠️ Stockage local indisponible'; }
+  try {
+    var savedRaw = localStorage.getItem(KEY), backupRaw = localStorage.getItem(BACKUP_KEY);
+    var savedKb = savedRaw ? (savedRaw.length / 1024).toFixed(1) : '0.0';
+    storageDetail = '<br>État : ' + (savedRaw ? '✅ progression enregistrée' : '⚠️ aucune progression enregistrée') +
+      ' · taille : ' + savedKb + ' Ko<br>' + (backupRaw ? '✅ copie de secours disponible' : 'ℹ️ copie de secours créée après la prochaine modification');
+  } catch (e2) { storageDetail = '<br>⚠️ détails du stockage indisponibles'; }
   var networkState = navigator.onLine ? '🌐 Connexion disponible' : '📴 Fonctionnement hors ligne';
   h += '<div class="card"><b>🗓️ Date de mon concours</b><div class="sub">Le rythme quotidien et le compte à rebours s’adaptent automatiquement.</div><div class="spacer"></div><label class="date-field"><span>Date prévue</span><input type="date" id="contestDate" value="' + esc(S.contestDate || CONTEST_DATE) + '"></label></div>';
   h += '<div class="card"><b>Objectif quotidien</b><div class="sub">XP à gagner chaque jour pour garder ta série</div>' +
@@ -1693,25 +2121,27 @@ function vSettings() {
     [['auto', '🌗 Auto'], ['light', '☀️ Mode diurne'], ['dark', '🌙 Sombre']].map(function (t) {
       return '<button class="btn ' + (S.theme === t[0] ? '' : 'ghost') + ' sm" data-theme="' + t[0] + '">' + t[1] + '</button>';
     }).join('') + '</div></div>';
+  h += '<div class="card"><b>🔤 Taille du texte</b><div class="sub">Ajuste la lisibilité des cours, boutons et informations.</div><div class="spacer"></div><div class="row3">' +
+    [['small','Petite'],['normal','Normale'],['large','Grande']].map(function (t) { return '<button class="btn ' + (S.fontScale === t[0] ? '' : 'ghost') + ' sm" data-font-scale="' + t[0] + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
   h += '<div class="card"><label class="row" style="justify-content:space-between"><span><b>🔊 Le son est activé</b><div class="sub">Retour audio juste / faux</div></span>' +
     '<input type="checkbox" id="snd"' + (S.sound ? ' checked' : '') + ' style="width:22px;height:22px"></label>' +
     '<div class="hr"></div><label class="row" style="justify-content:space-between"><span><b>Cœurs illimités</b><div class="sub">Ne jamais être bloqué par les erreurs</div></span>' +
-    '<input type="checkbox" id="unl"' + (S.unlimited ? ' checked' : '') + ' style="width:22px;height:22px"></label>' +
+    '<input type="checkbox" id="unl" checked disabled aria-label="Cœurs illimités toujours activés" style="width:22px;height:22px"></label>' +
     '<div class="hr"></div><label class="row" style="justify-content:space-between"><span><b>Mise en forme des leçons</b><div class="sub">Couleurs (définition, date, chiffre, loi) et émojis comme les documents source</div></span>' +
     '<input type="checkbox" id="hlx"' + (S.hl ? ' checked' : '') + ' style="width:22px;height:22px"></label></div>';
   h += '<div class="card"><b>🔔 Rappels du concours</b><div class="sub">Autoriser les rappels de l’application sur cet appareil.</div><div class="spacer"></div><button class="btn blue sm" data-act="notify">' + (S.notify ? '✅ Rappels activés' : 'Activer les notifications') + '</button></div>';
   h += '<div class="card"><b>📲 Installation hors ligne</b><div class="sub">Si le bouton ne s’ouvre pas : menu du navigateur → « Ajouter à l’écran d’accueil ».</div><div class="spacer"></div><button class="btn blue sm" data-act="install">⬇️ Installer l’application</button></div>';
   h += '<div class="card"><b>🔄 Mises à jour</b><div class="sub">Version ' + APP_VERSION + ' · vérification automatique quand Internet est disponible. Une alerte s’affiche seulement lorsqu’une nouvelle version est publiée.</div></div>';
-  h += '<div class="card"><b>🛠️ Diagnostic hors ligne</b><div class="sub">Version installée : <b>' + APP_VERSION + '</b><br>' + networkState + '<br>' + storageState + '<br>Progression : clé protégée <b>cnc_anass_v2</b><br>Pour corriger un affichage après mise à jour : faire <b>Ctrl+F5</b> sur PC.</div></div>';
+  h += '<div class="card"><b>🛠️ Diagnostic hors ligne</b><div class="sub">Version installée : <b>' + APP_VERSION + '</b><br>' + networkState + '<br>' + storageState + storageDetail + '<br>Progression : clé protégée <b>cnc_anass_v2</b><br>Pour corriger un affichage après mise à jour : faire <b>Ctrl+F5</b> sur PC.</div><div class="spacer"></div><div class="row2"><button class="btn blue sm" data-act="export">⬇️ Créer une copie maintenant</button><button class="btn ghost sm" data-act="storageTest">🧪 Tester le stockage</button></div></div>';
   h += '<div class="card"><b>🧭 Test diagnostic</b><div class="sub">20 questions mélangées pour évaluer ton niveau de départ. Le test utilise la banque existante et ne réinitialise aucune progression.</div><div class="spacer"></div><button class="btn purple sm" data-act="diagnostic">🧭 Commencer le diagnostic</button></div>';
   h += '<div class="card"><b>💬 Contact WhatsApp</b><div class="sub">Pour déclarer un problème, suggérer une amélioration ou déposer des documents de concours.</div><div class="spacer"></div><a class="btn green sm" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">WhatsApp · ' + esc(WHATSAPP_CONTACT_DISPLAY) + '</a></div>';
   h += '<div class="card"><b>Sauvegarde</b><div class="sub">Ta progression est stockée sur cet appareil. Exporte-la pour la transférer sur un autre (PC ↔ téléphone).</div>' +
     '<div class="spacer"></div><div class="row2"><button class="btn blue sm" data-act="export">⬇️ Exporter</button>' +
     '<button class="btn ghost sm" data-act="import">⬆️ Importer</button></div>' +
-    '<div class="spacer"></div><button class="btn red sm" data-act="reset">🗑️ Réinitialiser la progression</button></div>';
-  var nq = 0, nc = 0; DOCS.forEach(function (d) { d.units.forEach(function (u) { nq += u.qs.length; nc += u.cards.length; }); });
+    '<div class="spacer"></div><div class="row2"><button class="btn ghost sm" data-act="restoreBackup">♻️ Restaurer la copie de secours</button><button class="btn red sm" data-act="reset">🗑️ Réinitialiser la progression</button></div></div>';
+  var nq = 0, nc = 0; COURSE_DOCS.forEach(function (d) { d.units.forEach(function (u) { nq += u.qs.length; nc += u.cards.length; }); });
   h += '<button class="settings-link" data-go="about"><span><b>🛡️ À propos et confidentialité</b><small>Informations légales, données et avertissement pédagogique</small></span><strong>›</strong></button>';
-  h += '<div class="app-signature"><div class="app-signature-mark">P</div><div><b>PrepMe</b><span>Version ' + APP_VERSION + ' · ' + DOCS.length + ' modules · ' + nq + ' QCM · ' + nc + ' flashcards</span></div></div>';
+  h += '<div class="app-signature"><div class="app-signature-mark">P</div><div><b>PrepMe</b><span>Version ' + APP_VERSION + ' · ' + COURSE_DOCS.length + ' cours · ' + nq + ' QCM · ' + nc + ' flashcards</span></div></div>';
   h += '</div>';
   return h;
 }
@@ -1720,7 +2150,7 @@ function vAbout() {
   return bar('À propos', 'set') + '<main class="wrap legal-page">' +
     '<section class="about-hero"><div class="about-logo">P</div><div><h1>PrepMe</h1><p>Préparation structurée aux concours de santé</p><span>Version ' + APP_VERSION + '</span></div></section>' +
     '<section class="card"><h2>🎓 Finalité pédagogique</h2><p>PrepMe est un outil indépendant de révision et d’entraînement. Il ne représente aucune administration, aucun établissement de santé ni aucun organisateur de concours.</p><p>Les cours, QCM et explications doivent être vérifiés avec les textes officiels et les documents sources. Ils ne constituent ni un avis médical, ni une décision administrative.</p></section>' +
-    '<section class="card"><h2>🛡️ Confidentialité</h2><p><b>Données enregistrées :</b> progression, réponses, préférences et planning sont conservés localement sur votre appareil.</p><p><b>Aucun compte requis :</b> PrepMe n’intègre ni publicité, ni outil d’analyse comportementale, ni vente de données.</p><p><b>Connexion facultative :</b> l’application fonctionne hors ligne. Lorsqu’Internet est disponible, une requête peut être envoyée à GitHub pour vérifier l’existence d’une nouvelle version. Le contact WhatsApp ne s’ouvre que lorsque vous appuyez sur son bouton.</p><p><b>Contrôle utilisateur :</b> la sauvegarde peut être exportée ou importée depuis Réglages. La réinitialisation efface les données locales de progression.</p></section>' +
+    '<section class="card"><h2>🛡️ Confidentialité</h2><p><b>Données enregistrées :</b> progression, réponses, préférences et planning sont conservés localement sur votre appareil.</p><p><b>Aucun compte requis :</b> PrepMe ne demande pas de compte. Lorsque vous êtes connecté, Google Analytics 4 reçoit des événements de navigation et de clic (adresse de la page, action et libellé du bouton). La progression reste enregistrée dans le navigateur.</p><p><b>Connexion facultative :</b> l’application fonctionne hors ligne. Lorsqu’Internet est disponible, une requête peut être envoyée à GitHub pour vérifier l’existence d’une nouvelle version. Le contact WhatsApp ne s’ouvre que lorsque vous appuyez sur son bouton.</p><p><b>Contrôle utilisateur :</b> la sauvegarde peut être exportée ou importée depuis Réglages. La réinitialisation remet à zéro la progression active ; des copies de secours restent présentes. Pour supprimer toutes les données, utilisez les paramètres de stockage du navigateur.</p></section>' +
     '<section class="card"><h2>📚 Contenus et sources</h2><p>Les documents PDF intégrés restent accessibles séparément afin de permettre la consultation des sources. Les marques, institutions et titres cités appartiennent à leurs propriétaires respectifs.</p></section>' +
     '<section class="card"><h2>💬 Assistance et contribution</h2><p>Pour signaler un problème, proposer une amélioration ou envoyer des sujets, corrigés et autres documents, contactez PrepMe sur WhatsApp.</p><a class="btn green sm" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">WhatsApp · ' + esc(WHATSAPP_CONTACT_DISPLAY) + '</a></section>' +
     '<p class="legal-updated">Dernière mise à jour : 20 septembre 2026</p></main>';
@@ -1734,7 +2164,7 @@ function vSearch() {
     '<input class="search" id="q2" placeholder="🔎 Chercher…" value="' + esc(SQ) + '"><div class="spacer"></div>';
   if (q.length < 2) { h += '<div class="card sub">Tape au moins 2 caractères.</div></div>'; return h; }
   var res = [];
-  DOCS.forEach(function (d) {
+  COURSE_DOCS.forEach(function (d) {
     d.units.forEach(function (u, ui) {
       var score = 0;
       if ((u.t || '').toLowerCase().indexOf(q) >= 0) score += 3;
@@ -1761,6 +2191,15 @@ function vSearch() {
 function bind() {
   Array.prototype.forEach.call(ROOT.querySelectorAll('[data-go]'), function (b) {
     b.onclick = function (ev) { if (ev && ev.stopPropagation) ev.stopPropagation(); clearInterval(EXTIMER); go('/' + b.getAttribute('data-go')); };
+    var tag = (b.tagName || '').toLowerCase();
+    if (tag !== 'a' && tag !== 'button' && tag !== 'input' && tag !== 'select' && tag !== 'textarea') {
+      b.setAttribute('role', 'button');
+      b.setAttribute('tabindex', '0');
+      if (!b.getAttribute('aria-label')) b.setAttribute('aria-label', (b.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120) || 'Ouvrir');
+      b.onkeydown = function (ev) {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); b.click(); }
+      };
+    }
   });
   Array.prototype.forEach.call(ROOT.querySelectorAll('.opt'), function (b) {
     b.onclick = function () { answer(b.getAttribute('data-opt')); };
@@ -1785,15 +2224,41 @@ function bind() {
   Array.prototype.forEach.call(ROOT.querySelectorAll('[data-theme]'), function (b) {
     b.onclick = function () { S.theme = b.getAttribute('data-theme'); save(); applyTheme(); render(); };
   });
+  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-font-scale]'), function (b) {
+    b.onclick = function () { S.fontScale = b.getAttribute('data-font-scale'); save(); applyTheme(); render(); };
+  });
   var snd = el('snd'); if (snd) snd.onchange = function () { S.sound = snd.checked; save(); if (snd.checked) beep('ok'); };
-  var unl = el('unl'); if (unl) unl.onchange = function () { S.unlimited = unl.checked; save(); toast(unl.checked ? '♾️ Cœurs illimités' : '❤️ Cœurs activés'); render(); };
   var hlx = el('hlx'); if (hlx) hlx.onchange = function () { S.hl = hlx.checked; save(); toast(hlx.checked ? '🖍️ Mise en forme activée' : 'Mise en forme désactivée'); };
   var contestDate = el('contestDate'); if (contestDate) contestDate.onchange = function () {
     if (!contestDate.value) return;
     S.contestDate = contestDate.value; S.planStart = today(); save(); toast('🗓️ Date du concours enregistrée'); render();
   };
+  var leagueProfileForm = el('leagueProfileForm'); if (leagueProfileForm) leagueProfileForm.onsubmit = function (event) {
+    event.preventDefault();
+    var name = (el('leagueName').value || '').trim().replace(/\s+/g, ' ').slice(0, 30);
+    S.profile = { displayName: name, diploma: el('leagueDiploma').value || '', target: el('leagueTarget').value || '' };
+    save(); toast('✅ Profil enregistré sur cet appareil'); render();
+  };
   var q = el('q'); if (q) q.onkeyup = function (e) { if (q.value.length >= 2 && (e.key === 'Enter' || q.value.length > 2)) { SQ = q.value; go('/search'); } };
   var q2 = el('q2'); if (q2) { q2.oninput = function () { SQ = q2.value; clearTimeout(q2._t); q2._t = setTimeout(function () { var p = q2.selectionStart; render(); var n = el('q2'); if (n) { n.focus(); n.setSelectionRange(p, p); } }, 350); }; q2.focus(); }
+  var concoursSearch = el('concoursSearch'); if (concoursSearch) concoursSearch.oninput = function () { CONCOURS_QUERY = concoursSearch.value; CONCOURS_LIMIT = 12; clearTimeout(concoursSearch._t); concoursSearch._t = setTimeout(function () { render(); var n = el('concoursSearch'); if (n) { n.focus(); n.setSelectionRange(CONCOURS_QUERY.length, CONCOURS_QUERY.length); } }, 180); };
+  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-concours-category]'), function (b) { b.onclick = function () { CONCOURS_FILTER = b.getAttribute('data-concours-category') || 'Tous'; CONCOURS_LIMIT = 12; render(); }; });
+  var concoursType = el('concoursType'); if (concoursType) concoursType.onchange = function () { CONCOURS_TYPE = concoursType.value; CONCOURS_LIMIT = 12; render(); };
+  var concoursSort = el('concoursSort'); if (concoursSort) concoursSort.onchange = function () { CONCOURS_SORT = concoursSort.value; CONCOURS_LIMIT = 12; render(); };
+  function resetConcours() { CONCOURS_QUERY = ''; CONCOURS_FILTER = 'Tous'; CONCOURS_TYPE = 'Tous'; CONCOURS_LIMIT = 12; render(); }
+  var concoursClear = el('concoursClear'); if (concoursClear) concoursClear.onclick = function () { CONCOURS_QUERY = ''; CONCOURS_LIMIT = 12; render(); var n = el('concoursSearch'); if (n) n.focus(); };
+  var concoursReset = el('concoursReset'); if (concoursReset) concoursReset.onclick = resetConcours;
+  var concoursEmptyReset = el('concoursEmptyReset'); if (concoursEmptyReset) concoursEmptyReset.onclick = resetConcours;
+  var concoursMore = el('concoursMore'); if (concoursMore) concoursMore.onclick = function () { CONCOURS_LIMIT += 12; render(); setTimeout(function () { var cards = ROOT.querySelectorAll('.concours-item'); if (cards.length) cards[Math.max(0, cards.length - 12)].scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 0); };
+  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-concours-download]'), function (a) {
+    a.onclick = function (event) {
+      var p = CONCOURS_DOCS[+a.getAttribute('data-concours-download')];
+      if (!p || p.format !== 'PDF' || !(window.PREP_COURSE_PDFS_B64 || window.CNC_CONCOURS_PDFS_B64)) return;
+      event.preventDefault();
+      var url = concoursDocumentUrl(p), download = document.createElement('a');
+      download.href = url; download.download = p.file; document.body.appendChild(download); download.click(); download.remove();
+    };
+  });
   var flip = el('flip'); if (flip) flip.onclick = function () { doFlip(); };
   if (RUN && RUN.mode === 'exam' && RUN.items[RUN.i]) tickExam();
 }
@@ -1873,6 +2338,33 @@ function act(a, b) {
       } else anchorSave(json, name);
       break;
     }
+    case 'exportStats': {
+      var statPayload = { version: APP_VERSION, exportedAt: new Date().toISOString(), xp: S.xp, streak: S.streak, best: S.best, history: S.hist, exams: S.exams, units: S.units };
+      anchorSave(JSON.stringify(statPayload, null, 2), 'cnc-anass-statistiques-' + today() + '.json');
+      break;
+    }
+    case 'storageTest': {
+      try {
+        var stamp = 'prepme-test-' + Date.now();
+        localStorage.setItem('__prepme_storage_test__', stamp);
+        var ok = localStorage.getItem('__prepme_storage_test__') === stamp;
+        localStorage.removeItem('__prepme_storage_test__');
+        toast(ok ? '✅ Stockage local fonctionnel' : '⚠️ Lecture du stockage impossible');
+      } catch (e) { toast('⚠️ Écriture dans le stockage impossible'); }
+      break;
+    }
+    case 'restoreBackup': {
+      var backup = null;
+      try { backup = parseProgress(localStorage.getItem(BACKUP_KEY)); } catch (e) { backup = null; }
+      if (!backup) { toast('ℹ️ Aucune copie de secours valide disponible'); break; }
+      if (!confirm('Restaurer la copie de secours ? La progression actuelle sera conservée dans une copie avant restauration.')) break;
+      try { localStorage.setItem(KEY + '_before_restore', JSON.stringify(S)); } catch (backupErr) { toast('Restauration annulée : sauvegarde préalable impossible. Exporte ta progression.'); break; }
+      var beforeRestore = S, wasCorrupt = STORAGE_CORRUPT;
+      S = backup; STORAGE_CORRUPT = false; save();
+      if (!flushSave()) { S = beforeRestore; STORAGE_CORRUPT = wasCorrupt; break; }
+      applyTheme(); toast('♻️ Copie de secours restaurée'); render();
+      break;
+    }
     case 'import': {
       var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/json';
       inp.onchange = function () {
@@ -1881,11 +2373,14 @@ function act(a, b) {
         rd.onload = function () {
           try {
             var o = JSON.parse(rd.result);
-            if (!isValidProgress(o)) { toast('Fichier invalide ou incompatible'); return; }
+            o = completeProgress(o);
+            if (!o) { toast('Fichier invalide, incomplet ou incompatible'); return; }
             if (!confirm('Importer cette progression et remplacer celle de cet appareil ?')) return;
-            try { localStorage.setItem(KEY + '_before_import', JSON.stringify(S)); } catch (backupErr) { }
-            var b = blank(); for (var k in b) if (!(k in o)) o[k] = b[k];
-            migrateSns3047Progress(o); S = o; save(); toast('Progression importée · sauvegarde précédente conservée'); render();
+            try { localStorage.setItem(KEY + '_before_import', STORAGE_CORRUPT ? (localStorage.getItem(KEY) || JSON.stringify(S)) : JSON.stringify(S)); } catch (backupErr) { toast('Import annulé : sauvegarde préalable impossible. Exporte ta progression.'); return; }
+            var beforeImport = S, wasCorrupt = STORAGE_CORRUPT;
+            S = o; STORAGE_CORRUPT = false; save();
+            if (!flushSave()) { S = beforeImport; STORAGE_CORRUPT = wasCorrupt; return; }
+            applyTheme(); toast('Progression importée · sauvegarde précédente conservée'); render();
           }
           catch (e) { toast('Fichier illisible'); }
         };
@@ -1894,7 +2389,7 @@ function act(a, b) {
       inp.click(); break;
     }
     case 'reset':
-      if (confirm('Effacer toute la progression (XP, séries, couronnes, révisions) ?')) { S = blank(); save(); applyTheme(); toast('Progression réinitialisée'); go('/'); render(); }
+      if (confirm('Effacer toute la progression (XP, séries, couronnes, révisions) ?')) { S = blank(); STORAGE_CORRUPT = false; save(); applyTheme(); toast('Progression réinitialisée'); go('/'); render(); }
       break;
   }
 }
@@ -1912,11 +2407,31 @@ function showContributionWelcome() {
     '<a class="btn green" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">💬 Contribuer sur WhatsApp</a>' +
     '<button class="btn ghost contribution-later" type="button">Continuer dans l’application</button>' +
     '<small>WhatsApp · ' + esc(WHATSAPP_CONTACT_DISPLAY) + '</small></section>';
-  function closeWelcome() { overlay.remove(); }
+  var previousFocus = document.activeElement;
+  function closeWelcome() { overlay.remove(); if (previousFocus && previousFocus.focus) previousFocus.focus(); }
+  overlay.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') { event.preventDefault(); closeWelcome(); }
+    if (event.key === 'Tab') {
+      var controls = overlay.querySelectorAll('button, a[href]'), first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+  });
+  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-course-download]'), function (a) {
+    a.onclick = function (event) {
+      var p = (window.PREP_PDFS || [])[+a.getAttribute('data-course-download')];
+      if (!p || !window.PREP_COURSE_PDFS_B64 || !window.PREP_COURSE_PDFS_B64[p[2]]) return;
+      event.preventDefault();
+      var download = document.createElement('a');
+      download.href = concoursDocumentUrl({folder:'cours-pdf', file:p[2], format:'PDF'}); download.download = p[2];
+      document.body.appendChild(download); download.click(); download.remove();
+    };
+  });
   overlay.querySelector('.contribution-close').onclick = closeWelcome;
   overlay.querySelector('.contribution-later').onclick = closeWelcome;
   overlay.onclick = function (e) { if (e.target === overlay) closeWelcome(); };
   document.body.appendChild(overlay);
+  overlay.querySelector('.contribution-later').focus();
 }
 
 /* ------------------------------------------------------- fin de session */
@@ -1926,6 +2441,7 @@ quizEnd = quizEndRouter;
 
 /* clavier : 1-6 pour répondre, Entrée pour continuer */
 document.addEventListener('keydown', function (e) {
+  if (e.defaultPrevented || e.target.closest('input, textarea, select, [contenteditable="true"], [role="dialog"]')) return;
   if (e.key === 'Enter') { var n = el('next'); if (n) { n.click(); e.preventDefault(); return; } }
   if (/^[1-6]$/.test(e.key)) {
     var opts = ROOT.querySelectorAll('.opt:not([disabled])');

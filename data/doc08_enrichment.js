@@ -1,0 +1,1 @@
+(function(){const d=(window.CNC_DATA.docs||[]).find(x=>x.id===8);if(!d)return;['p.2-3','p.2-3','p.3-4','p.4-5','p.5-6','p.7-8','p.9-11','p.11','p.12-15','p.15-16'].forEach((p,i)=>{if(d.units[i])d.units[i].pages=p});})();

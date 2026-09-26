@@ -1,128 +1,33 @@
-# PrepMe — application de préparation aux concours (v3.3.0)
+# PrepMe — version PWA 3.5.52
 
-Application type **Duolingo** pour préparer le concours : leçons courtes, QCM avec explications,
-flashcards, **cœurs**, **objectif quotidien**, **série (streak)**, **couronnes**, **révision espacée**
-et **examens blancs chronométrés**. Tout fonctionne **hors ligne**, sans compte et sans internet.
+Préparation aux concours de santé : 45 modules, 1 459 QCM interactifs et 1 257 cartes. Les modules 32 à 45 sont des documents de consultation sans QCM interactifs ; le module 32 comporte des cartes. Le catalogue Concours regroupe 74 PDF et 1 PPTX.
 
-## Contenu de cette version
+## Ouvrir l’application
 
-| Module | Unités | QCM | Cartes |
-|---|---|---|---|
-| 01. SNS Maroc | 12 | 99 | 66 |
-| 02. Règlement intérieur des hôpitaux | 13 | 108 | 41 |
-| 03. Loi 08-22 — GST | 8 | 61 | 29 |
-| 04. Économie de la santé | 7 | 50 | 19 |
-| 05. Indicateurs de la santé | 6 | 46 | 27 |
-| 06. Loi-cadre 06-22 | 9 | 70 | 41 |
-| 07. Épidémiologie | 10 | 79 | 39 |
-| 08. Loi 43-13 — Professions infirmières | 10 | 72 | 32 |
-| 16. Couverture Médicale de Base | 11 | 93 | 43 |
-| 26. Plan Santé 2025 | 11 | 95 | 39 |
-| 31. CS · SROS · CSN · CSR | 6 | 47 | 21 |
-| **Total** | **103** | **820** | **397** |
+- Fichier autonome, fourni séparément du ZIP PWA : ouvrir CNC_ANASS_App_MOBILE.html. Il contient les documents et le lecteur PDF ; sa taille d’environ 367 Mo peut ralentir les téléphones peu puissants.
+- Version PWA sur PC : lancer `node local-server.js` dans ce dossier puis ouvrir http://localhost:8080.
+- Installation sur téléphone : utiliser une version publiée en HTTPS et l’option d’installation du navigateur. Laisser finir le téléchargement initial avant de passer hors ligne.
 
-Les 20 autres documents seront ajoutés ensuite : ils viendront s'ajouter dans le dossier `data/`
-**sans effacer ta progression**.
+Un accès HTTP via l’adresse IP du PC ne suffit pas pour activer le service worker sur le téléphone. HTTPS ou localhost sont requis : [documentation MDN](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API).
 
----
+## Progression et mises à jour
 
-## 1) Sur le PC — le plus simple
+La progression reste locale, sous la clé `cnc_anass_v2`, avec deux copies de secours. Exporter régulièrement une copie JSON depuis Réglages, notamment avant de changer de navigateur, de fichier ou d’adresse de site. L’import vérifie le format et demande confirmation avant remplacement. La réinitialisation conserve les copies de secours.
 
-Double-clique sur **`CNC_ANASS_App_MOBILE.html`** : l'app s'ouvre dans le navigateur, c'est tout.
-(Ce fichier unique contient tout : styles, données, moteur.)
+Après cette mise à jour : **Ctrl+F5** sur PC. Version 3.5.52, cache `cnc-anass-v92`. Google Analytics 4 suit maintenant les routes internes de la PWA, les clics utiles et les fins de quiz/examens. Le nouvel espace Classement compare les XP hebdomadaires à un groupe d’entraînement simulé, avec ligues, rang et profil candidat local. L’accueil présente les 31 vrais cours avec leurs QCM correspondants ; les annales et banques documentaires restent dans Concours et Cours PDF. La version en ligne doit être publiée séparément ; sa mise à jour n’est pas attestée par le paquet local.
 
-## 2) Sur le PC — version installable (recommandée)
+## Contenu et limites
 
-Pour l'installer comme une vraie application (icône, fenêtre sans barre d'adresse, hors ligne) :
+Les identifiants des modules, l’ordre des questions et les clés de révision sont conservés. La présence d’une source ou d’une explication ne certifie pas l’exactitude médicale ou juridique du contenu. Les 14 modules documentaires restent à enrichir et vérifier.
 
-1. Ouvre un terminal dans ce dossier et lance un petit serveur local :
-   - `python -m http.server 8080`
-2. Va sur **http://localhost:8080** dans Chrome ou Edge.
-3. Clique sur l'icône **« Installer »** dans la barre d'adresse (ou menu ⋮ → *Installer l'application*).
+Google Analytics 4 est chargé lorsque le réseau est disponible ; voir la page À propos et confidentialité. Aucun compte étudiant ni synchronisation de progression entre appareils n’est actuellement implémenté.
 
-## 3) Sur le téléphone (Android / iPhone)
+## Reconstruire et contrôler
 
-**Méthode A — transfert du fichier unique**
+- `node build_single.js` : générer le fichier autonome.
+- `node tools/test_reliability.cjs` : tests de sauvegarde, validation et cache.
+- `node tools/audit_concours.mjs` : catalogue et copies livrées.
+- Depuis le dossier parent : `node audit-prepme.cjs` pour le bilan structurel complet.
+- Depuis le dossier parent : `powershell -File CNC_ANASS_App/tools/package_pwa.ps1` pour créer le ZIP sans historique Git ni sauvegardes.
 
-1. Copie **`CNC_ANASS_App_MOBILE.html`** sur le téléphone (câble USB, WhatsApp « note à moi-même »,
-   Google Drive, Bluetooth…).
-2. Ouvre-le avec **Chrome** (Android) ou **Safari** (iPhone).
-3. Menu **⋮ / Partager → Ajouter à l'écran d'accueil** : tu obtiens une icône comme une vraie app.
-
-**Méthode B — via le PC (même Wi-Fi), pour avoir la vraie installation PWA**
-
-1. Sur le PC, dans ce dossier : `python -m http.server 8080`
-2. Trouve l'adresse IP du PC (`ipconfig` sous Windows, ligne « IPv4 »), par exemple `192.168.1.20`.
-3. Sur le téléphone, ouvre `http://192.168.1.20:8080` puis **Ajouter à l'écran d'accueil**.
-   L'app est alors mise en cache : elle marche ensuite **sans Wi-Fi**.
-
-> **PWA et APK :** la PWA reste la version principale, installable depuis le navigateur. Une
-> version APK Android peut être distribuée en complément pour une installation hors ligne rapide.
-> Chaque mise à jour native nécessite un nouvel APK et une réinstallation manuelle ; la PWA peut
-> être mise à jour depuis le navigateur.
-
----
-
-## Comment ça marche
-
-- **Leçon → quiz** : chaque unité commence par une mini-leçon (chiffres clés, mnémos, pièges),
-  puis un QCM. Chaque réponse fausse coûte **un cœur** (5 max, +1 toutes les 25 min).
-- **Flashcards par unité** : chaque unité a son bouton 🃏 dans la liste du module, et la page de
-  leçon propose « Cartes de cette unité » (recto-verso, notation Raté / Dur / Bien / Facile qui
-  alimente la révision espacée). Une unité qui a peu de cartes est complétée par ses propres QCM,
-  pour au moins 8 cartes par séance. Le bouton « Cartes du module » reste disponible.
-- **Couronnes** : 1 couronne par passage réussi à ≥ 80 %, jusqu'à 5 par unité. La progression d'un
-  module est le pourcentage de couronnes obtenues.
-- **Révision (onglet 🔁)** : répétition espacée à **paliers 0-5** (1 · 3 · 7 · 16 · 35 · 90 jours).
-  Une erreur **descend de 2 paliers** et repasse le jour même — jamais de remise à zéro.
-  La séance n'est pas tirée au hasard : d'abord les **têtues** (ratées ≥ 3 fois), puis les erreurs,
-  puis le reste du dû, et **35 % de questions jamais vues** prises dans tes unités les plus faibles
-  tant que la banque n'est pas couverte à 60 %. Une session **ne coûte pas de cœur** et en **redonne un**.
-- **Examen blanc (onglet 📝)** : 20 / 40 / 60 questions, chronomètre 45 s par question, correction
-  détaillée de chaque erreur et historique des tentatives.
-- **Stats** : XP des 7 derniers jours, taux de réussite, **points faibles** classés, items à réviser.
-- **Plan personnalisé** : date du concours modifiable dans Réglages, compte à rebours et rythme quotidien recalculés automatiquement.
-- **Niveau de préparation** : score sur 100 fondé sur la maîtrise, la couverture de la banque, la réussite et les révisions à jour.
-- **Priorités du jour** : accès direct aux trois étapes utiles — consolider, apprendre, se tester.
-- **Séance express** : 10 questions ciblées sur les révisions dues, les erreurs et les notions jamais vues pour réviser même avec peu de temps.
-- **Rythme hebdomadaire** : suivi des 7 derniers jours et cible XP adaptée à l’objectif quotidien.
-- **Modules à prioriser** : classement automatique des modules selon le taux de réussite aux QCM.
-- **Examen ciblé** : chaque module propose un examen blanc limité à son contenu.
-- **Modes Auto et Manuel** : en Manuel, l’utilisateur voit toutes ses données et choisit librement ; en Auto, PrepMe affiche une seule action recommandée.
-- **Correction QCM mobile** : le panneau de réponse et le bouton « Continuer » restent fixes au-dessus de la navigation.
-- **Mode Auto intelligent** : une seule action calculée selon les révisions dues, les QCM incomplets, les points faibles et l’avancement.
-- **Mise à jour du fichier autonome** : le bouton Téléchargement enregistre directement le nouveau fichier HTML, sans ouvrir la page GitHub brute.
-- **Mise en forme des leçons** : les leçons reprennent la charte de `Doc1_SNS_Maroc_p1-14.html` — 💡 **définition** en jaune, 📅 **date** en bleu, 🔢 **chiffre clé** en vert, ⚖️ **loi / article** en rose, avec la légende en haut de chaque leçon ; **une émoji thématique sur chaque titre et chaque item de liste**, les énumérations en pastilles 1️⃣2️⃣3️⃣, les définitions en bloc citation et les pièges en encadré orange. Désactivable dans Réglages.
-- **Réglages** : objectif quotidien, thème clair/sombre/auto, sons, **cœurs illimités**, **surlignage des leçons**,
-  **export / import** de la progression (pour passer du PC au téléphone).
-
-**Raccourcis clavier (PC)** : `1` à `6` pour répondre, `Entrée` pour continuer, `Espace` pour
-retourner une carte.
-
----
-
-## Fichiers
-
-```
-index.html                    page de l'application (version dossier / PWA)
-app.css                       styles (thème clair et sombre)
-app.js                        moteur : navigation, quiz, cœurs, SRS, examen, stats
-manifest.webmanifest, sw.js   installation PWA + fonctionnement hors ligne
-icons/                        icônes de l'application
-data/doc01.js … doc31.js      contenu : un fichier par module
-build_single.py               reconstruit CNC_ANASS_App_MOBILE.html après une modification
-MES_PREFERENCES.md            ⭐ comment je veux les choses (à relire avant toute modification)
-version.json                  version 3.3.0 et cache `cnc-anass-v27`
-CNC_ANASS_App_MOBILE.html     ⭐ version autonome en un seul fichier (PC + téléphone)
-```
-
-Pour ajouter un module plus tard : déposer `data/docXX.js` dans `data/`, ajouter la ligne
-`<script src="data/docXX.js"></script>` dans `index.html`, puis relancer `python build_single.py`.
-
-Après une mise à jour, faire **Ctrl+F5** au premier chargement pour récupérer la nouvelle version.
-
-Pour l’APK, vérifier le numéro de version dans Réglages avant installation et exporter la
-progression avant chaque mise à jour.
-
-La progression est enregistrée dans le navigateur (localStorage) : elle reste sur l'appareil.
-Utilise **Réglages → Exporter** pour la transférer d'un appareil à l'autre.
+Phase actuelle : PWA. Aucun APK n’est généré par ces outils.

@@ -143,7 +143,7 @@ qs:[
 {q:`La souffrance physique et morale relève d'un coût :`,o:[`Direct`,`Indirect`,`Intangible`,`Fixe`],c:2,e:`Coût intangible : psychologique, pertes d'activités domestiques et de loisir, souffrance.`},
 {q:`Le coût moyen est :`,o:[`Le coût total divisé par le nombre total d'unités de résultat produites`,`Le coût de l'unité suivante`,`Le coût qui ne varie pas`,`La moyenne des prix`],c:0,e:`Coût par unité de résultat produite.`},
 {q:`Le coût marginal est :`,o:[`Le coût supplémentaire d'une unité supplémentaire produite`,`Le coût total`,`Le coût minimal`,`Le coût par patient`],c:0,e:`Coût de production d'une unité supplémentaire de résultat par le même programme.`},
-{q:`Le coût qui ne varie pas avec la quantité produite à court terme est :`,o:[`Le coût fixe`,`Le coût variable`,`Le coût direct`,`Le coût marginal`],c:0,e:`Coût fixe.`},
+{q:`Le coût qui ne varie pas avec la quantité produite à court terme est :`,o:[`Le coût fixe`,`Le coût variable`,`Le coût direct`,`Le coût marginal`],c:0,e:`Le coût fixe reste stable à court terme, même si la quantité produite change ; le coût variable, lui, évolue avec le volume.`},
 {q:`Le coût inclut, en plus des dépenses de production :`,o:[`L'usure ou l'obsolescence (amortissement) des immobilisations`,`Les impôts uniquement`,`La marge bénéficiaire`,`Les subventions`],c:0,e:`Définition du coût : dépenses nécessaires + amortissement des immobilisations nécessaires.`}
 ],
 cards:[

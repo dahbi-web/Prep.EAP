@@ -18,7 +18,7 @@ lesson:`<h3>📊 Les sept textes à connaître par cœur</h3>
 <div class="tip">🧠 <b>Mnémo des chapitres :</b> la <b>06-22</b> est la seule à <b>11 chapitres</b> — c'est la loi-cadre, la plus large. Les trois « agences et autorité » (<b>07, 10, 11</b>) ont toutes <b>6 chapitres</b>. La <b>08-22</b> en a <b>5</b>, la <b>09-22</b> et la <b>09-21</b> en ont <b>4</b>.</div>
 <div class="trap">⚠️ La loi qui a le <b>plus d'articles</b> n'est pas la loi-cadre : c'est la <b>07-22</b> avec <b>36 articles</b>, contre 34 pour la 06-22.</div>`,
 qs:[
-{q:`Combien de chapitres compte la loi-cadre 06-22 ?`,o:[`5`,`6`,`11`,`34`],c:2,e:`11 chapitres et 34 articles — c'est la seule à 11 chapitres.`},
+{q:`Dans le tableau comparatif des lois étudiées, combien de chapitres compte la loi-cadre 06-22 ?`,o:[`5`,`6`,`11`,`34`],c:2,e:`11 chapitres et 34 articles — c'est la seule à 11 chapitres.`},
 {q:`Combien d'articles compte la loi-cadre 06-22 ?`,o:[`23`,`27`,`34`,`36`],c:2,e:`34 articles, répartis en 11 chapitres.`},
 {q:`Quelle loi compte le plus d'articles ?`,o:[`06-22 avec 34`,`07-22 avec 36`,`10-22 avec 27`,`08-22 avec 23`],c:1,e:`La 07-22 (Haute Autorité de Santé) avec 36 articles, devant la 06-22 et ses 34 articles.`},
 {q:`Combien de chapitres et d'articles compte la loi 08-22 sur les GST ?`,o:[`5 chapitres et 23 articles`,`6 chapitres et 25 articles`,`4 chapitres et 27 articles`,`11 chapitres et 34 articles`],c:0,e:`5 chapitres et 23 articles.`},
@@ -128,7 +128,7 @@ lesson:`<h3>📍 Où chaque dahir a été signé</h3>
 <div class="tip">🧠 <b>Mnémo :</b> le <b>GST</b> vient du <b>Nord</b>, il est signé à <b>Tétouan</b> ; la <b>protection sociale</b> vient de <b>Fès</b> ; tout le reste, à <b>Rabat</b>.</div>`,
 qs:[
 {q:`Où a été signé le dahir promulguant la loi 08-22 sur les GST ?`,o:[`Rabat`,`Tétouan`,`Fès`,`Casablanca`],c:1,e:`À Tétouan — l'un des deux seuls textes non signés à Rabat.`},
-{q:`Où a été signé le dahir promulguant la loi-cadre 09-21 sur la protection sociale ?`,o:[`Rabat`,`Tétouan`,`Fès`,`Marrakech`],c:2,e:`À Fès.`},
+{q:`Où a été signé le dahir promulguant la loi-cadre 09-21 sur la protection sociale ?`,o:[`Rabat`,`Tétouan`,`Fès`,`Marrakech`],c:2,e:`Le dahir de la loi-cadre 09-21 a été signé à Fès ; cette information permet de le distinguer des textes signés à Rabat ou à Tétouan.`},
 {q:`Où a été signé le dahir promulguant la loi-cadre 06-22 ?`,o:[`Rabat`,`Tétouan`,`Fès`,`Tanger`],c:0,e:`À Rabat, comme les lois 07-22, 10-22 et 11-22.`},
 {q:`Combien de textes du tableau ont été signés hors de Rabat ?`,o:[`1`,`2`,`3`,`4`],c:1,e:`Deux : la 08-22 à Tétouan et la 09-21 à Fès.`},
 {q:`Quelles lois ont été signées à Rabat ?`,o:[`06-22, 07-22, 10-22 et 11-22`,`06-22 et 08-22`,`08-22 et 09-21`,`Toutes les sept`],c:0,e:`Les quatre : 06-22, 07-22, 10-22 et 11-22.`}
