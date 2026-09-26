@@ -1,6 +1,6 @@
 /* Service worker — mise en cache complète pour usage hors-ligne */
-var CACHE = 'cnc-anass-v92';
-var APP_VERSION = '3.5.52';
+var CACHE = 'cnc-anass-v93';
+var APP_VERSION = '3.5.53';
 var ASSETS = [
   "./cours-pdf/01- SNS Maroc.pdf",
   "./cours-pdf/02- Réglement Intérieur des Hôpitaux.pdf",

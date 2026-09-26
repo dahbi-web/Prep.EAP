@@ -159,7 +159,7 @@ var STORAGE_CORRUPT = false;
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.5.52';
+var APP_VERSION = '3.5.53';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -2103,7 +2103,8 @@ function vStats() {
 function vSettings() {
   var h = bar('Réglages', '') + '<div class="wrap">';
   var analyticsState = window.PREP_ANALYTICS ? window.PREP_ANALYTICS.status() : 'indisponible';
-  h += '<div class="card"><b>Mesure d\'audience Google Analytics</b><div class="sub">État de la balise GA4 : <b>' + esc(analyticsState) + '</b> · identifiant G-6JX59N8YQT</div></div>';
+  var analyticsConsent = window.PREP_ANALYTICS ? window.PREP_ANALYTICS.consentStatus() : 'indisponible';
+  h += '<div class="card"><b>Mesure d\'audience Google Analytics</b><div class="sub">État de la balise GA4 : <b>' + esc(analyticsState) + '</b> · consentement : <b>' + esc(analyticsConsent) + '</b> · identifiant G-6JX59N8YQT</div><div class="spacer"></div><div class="row2"><button class="btn blue sm" data-analytics-consent="accept">Accepter</button><button class="btn ghost sm" data-analytics-consent="refuse">Refuser</button></div></div>';
   var storageState = '✅ Stockage local disponible';
   var storageDetail = '';
   try { localStorage.setItem('__prepme_diag__', '1'); localStorage.removeItem('__prepme_diag__'); } catch (e) { storageState = '⚠️ Stockage local indisponible'; }

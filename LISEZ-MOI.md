@@ -1,4 +1,4 @@
-# PrepMe — version PWA 3.5.52
+# PrepMe — version PWA 3.5.53
 
 Préparation aux concours de santé : 45 modules, 1 459 QCM interactifs et 1 257 cartes. Les modules 32 à 45 sont des documents de consultation sans QCM interactifs ; le module 32 comporte des cartes. Le catalogue Concours regroupe 74 PDF et 1 PPTX.
 
@@ -14,7 +14,7 @@ Un accès HTTP via l’adresse IP du PC ne suffit pas pour activer le service wo
 
 La progression reste locale, sous la clé `cnc_anass_v2`, avec deux copies de secours. Exporter régulièrement une copie JSON depuis Réglages, notamment avant de changer de navigateur, de fichier ou d’adresse de site. L’import vérifie le format et demande confirmation avant remplacement. La réinitialisation conserve les copies de secours.
 
-Après cette mise à jour : **Ctrl+F5** sur PC. Version 3.5.52, cache `cnc-anass-v92`. Google Analytics 4 suit maintenant les routes internes de la PWA, les clics utiles et les fins de quiz/examens. Le nouvel espace Classement compare les XP hebdomadaires à un groupe d’entraînement simulé, avec ligues, rang et profil candidat local. L’accueil présente les 31 vrais cours avec leurs QCM correspondants ; les annales et banques documentaires restent dans Concours et Cours PDF. La version en ligne doit être publiée séparément ; sa mise à jour n’est pas attestée par le paquet local.
+Après cette mise à jour : **Ctrl+F5** sur PC. Version 3.5.53, cache `cnc-anass-v93`. Google Analytics 4 suit les routes internes, les clics utiles et les fins de quiz/examens après consentement explicite ; ce choix reste modifiable dans Réglages. Le nouvel espace Classement compare les XP hebdomadaires à un groupe d’entraînement simulé, avec ligues, rang et profil candidat local. L’accueil présente les 31 vrais cours avec leurs QCM correspondants ; les annales et banques documentaires restent dans Concours et Cours PDF.
 
 ## Contenu et limites
 

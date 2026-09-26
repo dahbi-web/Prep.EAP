@@ -1,10 +1,11 @@
 {
-  "version": "3.5.52",
-  "versionCode": 92,
+  "version": "3.5.53",
+  "versionCode": 93,
   "date": "2026-09-26",
-  "cache": "cnc-anass-v92",
+  "cache": "cnc-anass-v93",
   "modules": 45,
   "nouveautes": [
+    "Consentement Analytics explicite : après acceptation, les visiteurs et pages consultées remontent dans les rapports GA4 en temps réel",
     "Google Analytics 4 fiabilise : suivi des routes de la PWA, clics utiles, fins de quiz et examens, avec diagnostic de chargement",
     "Classement hebdomadaire motivant inspiré des ligues : rang, XP, zones de promotion et de maintien, progression de ligue et accès direct à une séance express",
     "Profil candidat local : prénom ou pseudo, diplôme et concours visé, conservés uniquement sur l’appareil",
