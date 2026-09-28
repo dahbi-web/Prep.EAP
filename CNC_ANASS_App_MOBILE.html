@@ -352,6 +352,18 @@ html[data-theme="dark"] .profile-welcome-form #shareWelcomeProfile{color:var(--g
 .profile-welcome-dialog>.contribution-later{margin-top:9px;padding:10px;border:0;font-size:13px;text-transform:none}
 .profile-welcome-dialog>small{margin-top:8px;text-align:center;font-size:10.5px;line-height:1.4}
 
+/* Premier lancement : profil, concours et plan quotidien en trois étapes. */
+.onboarding-dialog{width:min(100%,520px);max-height:calc(100dvh - 32px);padding:22px;text-align:left;border-color:color-mix(in srgb,var(--green) 45%,var(--line))}
+.onboarding-top{display:flex;align-items:center;gap:14px}.onboarding-top .profile-welcome-icon{width:58px;height:58px;flex:0 0 58px;margin:0;border-radius:18px;font-size:30px}.onboarding-top h2{margin:2px 0 0;text-align:left;font-size:23px}.onboarding-top p{margin:2px 0 0;color:var(--sub);font-size:12.5px}.onboarding-kicker{color:var(--green-dk);font-size:9.5px;font-weight:1000;letter-spacing:.12em}
+.onboarding-progress{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:18px 0}.onboarding-progress span{height:5px;border-radius:99px;background:var(--line);transition:background .2s}.onboarding-progress span.on{background:var(--green)}
+.onboarding-step{display:none}.onboarding-step.on{display:grid;gap:12px;animation:onboardingStepIn .2s ease both}@keyframes onboardingStepIn{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+.onboarding-step-title{display:flex;flex-direction:column;margin-bottom:1px}.onboarding-step-title b{font-size:17px}.onboarding-step-title span{margin-top:2px;color:var(--sub);font-size:11.5px}
+.onboarding-form label>span em{float:right;color:var(--sub);font-size:10px;font-style:normal;font-weight:700}.onboarding-form fieldset{min-width:0;margin:0;padding:0;border:0}.onboarding-form legend{margin-bottom:7px;padding-left:3px;color:var(--ink2);font-size:12px;font-weight:900}
+.onboarding-choices{display:grid;gap:7px}.onboarding-choices.time-choices{grid-template-columns:repeat(5,1fr)}.onboarding-choices.score-choices{grid-template-columns:repeat(4,1fr)}.onboarding-choices label{display:block;cursor:pointer}.onboarding-choices input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.onboarding-choices label>span{display:flex;height:48px;padding:0 4px;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:12px;background:var(--card2);color:var(--ink);font-size:14px;font-weight:1000;transition:border-color .15s,background .15s,color .15s,transform .15s}.onboarding-choices small{margin-left:2px;font-size:9px}.onboarding-choices input:checked+span{border-color:var(--green);background:var(--green-bg);color:var(--green-dk);box-shadow:0 0 0 2px color-mix(in srgb,var(--green) 12%,transparent)}.onboarding-choices input:focus-visible+span{outline:3px solid color-mix(in srgb,var(--blue) 30%,transparent);outline-offset:2px}.onboarding-choices label:active>span{transform:scale(.97)}
+.onboarding-switch{display:flex!important;min-height:62px;padding:10px 12px;align-items:center!important;justify-content:space-between;gap:14px;border:1.5px solid var(--line);border-radius:14px;background:var(--card2)}.onboarding-switch>span{display:flex!important;padding:0!important;flex:1;flex-direction:column;color:var(--ink)!important;font-size:13px!important;letter-spacing:0!important}.onboarding-switch small{margin-top:2px;color:var(--sub);font-size:10.5px;font-weight:700}.onboarding-switch>input{width:24px!important;height:24px;flex:0 0 24px;accent-color:var(--green)}.reminder-switch{border-color:color-mix(in srgb,var(--blue) 45%,var(--line));background:var(--blue-bg)}
+.onboarding-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.onboarding-summary>div{display:flex;min-width:0;padding:12px 8px;align-items:center;gap:8px;border:1px solid var(--line);border-radius:14px;background:var(--card2)}.onboarding-summary>div>span{font-size:20px}.onboarding-summary b{display:flex;min-width:0;flex-direction:column;font-size:13px;line-height:1.25}.onboarding-summary small{margin-top:2px;color:var(--sub);font-size:9.5px;font-weight:700;line-height:1.3}.onboarding-privacy{margin:0;text-align:center;color:var(--sub);font-size:10.5px}
+.onboarding-actions{display:flex;gap:9px;margin-top:3px}.onboarding-actions .btn{min-height:48px;margin:0}.onboarding-actions #welcomeBack{width:auto;flex:0 0 95px}.onboarding-actions #welcomeNext,.onboarding-actions #welcomeFinish{flex:1}.onboarding-later{display:block;margin:10px auto 0;padding:7px 12px;border:0;background:transparent;color:var(--sub);font:inherit;font-size:11.5px;font-weight:800;cursor:pointer}
+
 /* Consentement : carte compacte, masquée tant qu'une autre fenêtre modale est ouverte. */
 .analytics-consent{position:fixed;z-index:10000;left:12px;right:12px;bottom:calc(12px + var(--safe-b));display:flex;gap:12px;width:auto;max-width:600px;margin:auto;padding:16px;border:1px solid #ffffff20;border-radius:18px;background:#17212b;color:#fff;box-shadow:0 14px 42px #0007;font:14px/1.45 'Nunito','Segoe UI',system-ui,sans-serif}
 body:has(.contribution-overlay) .analytics-consent{display:none}
@@ -364,9 +376,11 @@ body:has(.contribution-overlay) .analytics-consent{display:none}
   .profile-welcome-icon{width:56px;height:56px;border-radius:18px;font-size:30px}.profile-welcome-dialog h2{font-size:21px}.profile-welcome-dialog>p{margin-bottom:15px;font-size:13px}
   .profile-welcome-form{gap:10px}.profile-welcome-form input,.profile-welcome-form select{height:47px}.profile-welcome-form .btn{min-height:47px}
   .analytics-consent{gap:10px;padding:14px}.analytics-consent-icon{display:none}.analytics-consent-actions a{margin-left:0;padding:7px 2px}
+  .onboarding-dialog{max-height:calc(100dvh - 20px);padding:18px 16px 14px}.onboarding-top .profile-welcome-icon{width:50px;height:50px;flex-basis:50px;font-size:26px}.onboarding-top h2{font-size:20px}.onboarding-progress{margin:14px 0}.onboarding-summary{grid-template-columns:1fr}.onboarding-summary>div{padding:9px 11px}.onboarding-summary small{font-size:10px}
 }
 @media(max-height:700px){
   .profile-welcome-dialog{padding-top:16px}.profile-welcome-icon{width:46px;height:46px;border-radius:15px;font-size:25px}.profile-welcome-dialog h2{margin-top:7px}.profile-welcome-dialog>p{margin-bottom:11px}.profile-welcome-form{gap:8px}.profile-welcome-form input,.profile-welcome-form select{height:44px}.profile-welcome-form .btn{min-height:44px;padding:9px 12px}.profile-welcome-dialog>small{display:none}
+  .onboarding-dialog{padding-top:14px}.onboarding-progress{margin:10px 0}.onboarding-step{gap:8px}.onboarding-step-title span{display:none}.onboarding-switch{min-height:53px;padding:7px 10px}.onboarding-choices label>span{height:42px}.onboarding-actions .btn{min-height:43px}
 }
 .stat{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px;text-align:center}
 .stat .v{font-size:20px;font-weight:800}
@@ -6859,7 +6873,7 @@ var STORAGE_CORRUPT = false;
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.5.59';
+var APP_VERSION = '3.6.0';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -7021,7 +7035,7 @@ function blank() {
     units: {}, srs: {}, exams: [], sessions: [], lastRoute: '', hist: {}, seen: {},
     autoPlan: { enabled: true, dailyMinutes: 45, targetScore: 80, mode: 'adaptive', weekend: true, focus: 'balanced', focusDate: null, lastGenerated: null },
     tasks: [], reviewLog: [], weakTopics: [],
-    profile: { displayName: '', diploma: '', target: '' }
+    profile: { displayName: '', diploma: '', specialty: '', target: '' }
   };
 }
 var S = load();
@@ -7141,7 +7155,7 @@ function completeProgress(s) {
   if (!Array.isArray(s.reviewLog)) s.reviewLog = [];
   if (!Array.isArray(s.weakTopics)) s.weakTopics = [];
   if (!s.profile || typeof s.profile !== 'object' || Array.isArray(s.profile)) s.profile = b.profile;
-  ['displayName','diploma','target'].forEach(function (field) {
+  ['displayName','diploma','specialty','target'].forEach(function (field) {
     if (typeof s.profile[field] !== 'string') s.profile[field] = '';
     s.profile[field] = s.profile[field].slice(0, 60);
   });
@@ -7179,7 +7193,7 @@ function isValidProgress(s) {
       !['units', 'srs', 'hist', 'seen'].every(function (k) { return record(s[k]); })) return false;
   if (!fields(s, ['xpDay','streak','best','hearts','heartTs','goal']) || (s.hearts !== undefined && s.hearts > HEART_MAX)) return false;
   if (!['sound','unlimited','hl','sns3047Migrated'].every(function (k) { return s[k] === undefined || typeof s[k] === 'boolean'; })) return false;
-  if (s.profile !== undefined && (!record(s.profile) || !['displayName','diploma','target'].every(function (k) { return s.profile[k] === undefined || (typeof s.profile[k] === 'string' && s.profile[k].length <= 60); }))) return false;
+  if (s.profile !== undefined && (!record(s.profile) || !['displayName','diploma','specialty','target'].every(function (k) { return s.profile[k] === undefined || (typeof s.profile[k] === 'string' && s.profile[k].length <= 60); }))) return false;
   if (s.autoPlan !== undefined && (!record(s.autoPlan) ||
       (s.autoPlan.enabled !== undefined && typeof s.autoPlan.enabled !== 'boolean') ||
       (s.autoPlan.weekend !== undefined && typeof s.autoPlan.weekend !== 'boolean') ||
@@ -7307,7 +7321,7 @@ function leagueData() {
     ['Aya', 'Santé mentale', 65, 'A'],
     ['Omar', 'Préparation EAP', 35, 'O']
   ].map(function (p) { return { name: p[0], diploma: p[1], xp: p[2], avatar: p[3], simulated: true }; });
-  peers.push({ name: (profile.displayName || 'Moi').trim() || 'Moi', diploma: [profile.diploma || 'Diplôme non renseigné', profile.target || ''].filter(Boolean).join(' · '), xp: week.total, avatar: '★', me: true });
+  peers.push({ name: (profile.displayName || 'Moi').trim() || 'Moi', diploma: [profile.diploma || 'Diplôme non renseigné', profile.specialty || '', profile.target || ''].filter(Boolean).join(' · '), xp: week.total, avatar: '★', me: true });
   peers.sort(function (a, b) { return b.xp - a.xp || Number(b.me) - Number(a.me) || a.name.localeCompare(b.name); });
   var rank = peers.findIndex(function (p) { return p.me; }) + 1;
   var above = rank > 1 ? peers[rank - 2] : null;
@@ -9012,6 +9026,7 @@ function vLeague() {
   var status = data.rank <= 3 ? 'Zone de promotion' : data.rank <= 7 ? 'Zone de maintien' : 'Remonte au classement';
   var statusClass = data.rank <= 3 ? 'promote' : data.rank <= 7 ? 'safe' : 'push';
   var diplomaOptions = ['','Infirmier(ère)','Technicien(ne) de santé','Sage-femme','Kinésithérapeute','Manipulateur(trice) radio','Laboratoire','Autre diplôme de santé'];
+  var specialtyOptions = ['','Soins infirmiers polyvalents','Anesthésie-réanimation','Urgences et soins intensifs','Santé mentale','Santé communautaire','Sage-femme','Laboratoire','Radiologie / imagerie médicale','Kinésithérapie','Diététique / nutrition','Préparateur en pharmacie','Assistant(e) social(e)','Autre spécialité'];
   var targetOptions = ['','Concours commun','Concours de spécialité','EAP / échelle 11','Autre concours'];
   var h = bar('Classement', '') + '<main class="wrap league-page">';
   h += '<section class="league-hero" style="--league-color:' + tier.color + '"><span class="league-kicker">LIGUE DE LA SEMAINE</span><div class="league-trophy" aria-hidden="true">' + tier.icon + '</div><h1>Ligue ' + esc(tier.name) + '</h1><p>Du lundi ' + esc(dateFr(data.week.start)) + ' au dimanche ' + esc(dateFr(data.week.end)) + '</p><div class="league-rank-summary"><span><b>#' + data.rank + '</b> rang</span><span><b>' + data.week.total + '</b> XP</span><span><b>' + data.week.remaining + '</b> jour' + (data.week.remaining > 1 ? 's' : '') + '</span></div></section>';
@@ -9024,7 +9039,7 @@ function vLeague() {
   });
   h += '</div><p class="league-disclosure">ℹ️ Mode hors ligne : les autres profils sont une simulation d’entraînement, pas de vrais candidats. Ton rang réagit à tes XP réels enregistrés sur cet appareil.</p></section>';
   h += '<div class="league-cta card"><div><b>' + (data.gap ? 'Prêt à gagner ' + Math.min(50, data.gap) + ' XP ?' : 'Défends ta première place !') + '</b><span>Une séance express prend environ 5 minutes.</span></div><button class="btn gold sm" data-act="quick5">Lancer 5 QCM</button></div>';
-  h += '<section class="card league-profile"><div class="league-section-title"><div><h2 id="league-profile-title">Mon profil candidat</h2><p>Personnalise ta ligne dans le classement.</p></div><span aria-hidden="true">🎓</span></div><form id="leagueProfileForm" aria-labelledby="league-profile-title"><label><span>Prénom ou pseudo</span><input id="leagueName" maxlength="30" autocomplete="nickname" placeholder="Ex. Anass" value="' + esc(profile.displayName || '') + '"></label><label><span>Diplôme</span><select id="leagueDiploma">' + options(diplomaOptions, profile.diploma || '', 'Choisir mon diplôme') + '</select></label><label><span>Objectif</span><select id="leagueTarget">' + options(targetOptions, profile.target || '', 'Choisir mon concours') + '</select></label><button class="btn" type="submit">Enregistrer mon profil</button><small>🔒 Ces informations restent uniquement sur cet appareil.</small></form></section></main>';
+  h += '<section class="card league-profile"><div class="league-section-title"><div><h2 id="league-profile-title">Mon profil candidat</h2><p>Personnalise ta ligne dans le classement.</p></div><span aria-hidden="true">🎓</span></div><form id="leagueProfileForm" aria-labelledby="league-profile-title"><label><span>Prénom ou pseudo</span><input id="leagueName" maxlength="30" autocomplete="nickname" placeholder="Ex. Anass" value="' + esc(profile.displayName || '') + '"></label><label><span>Diplôme</span><select id="leagueDiploma">' + options(diplomaOptions, profile.diploma || '', 'Choisir mon diplôme') + '</select></label><label><span>Spécialité / profil</span><select id="leagueSpecialty">' + options(specialtyOptions, profile.specialty || '', 'Choisir ma spécialité') + '</select></label><label><span>Objectif</span><select id="leagueTarget">' + options(targetOptions, profile.target || '', 'Choisir mon concours') + '</select></label><button class="btn" type="submit">Enregistrer mon profil</button><small>🔒 Ces informations restent uniquement sur cet appareil.</small></form></section></main>';
   return h;
 }
 
@@ -9315,7 +9330,7 @@ function bind() {
   var leagueProfileForm = el('leagueProfileForm'); if (leagueProfileForm) leagueProfileForm.onsubmit = function (event) {
     event.preventDefault();
     var name = (el('leagueName').value || '').trim().replace(/\s+/g, ' ').slice(0, 30);
-    S.profile = { displayName: name, diploma: el('leagueDiploma').value || '', target: el('leagueTarget').value || '' };
+    S.profile = { displayName: name, diploma: el('leagueDiploma').value || '', specialty: el('leagueSpecialty').value || '', target: el('leagueTarget').value || '' };
     save(); toast('✅ Profil enregistré sur cet appareil'); render();
   };
   var q = el('q'); if (q) q.onkeyup = function (e) { if (q.value.length >= 2 && (e.key === 'Enter' || q.value.length > 2)) { SQ = q.value; go('/search'); } };
@@ -9479,50 +9494,99 @@ function act(a, b) {
   }
 }
 
-/* Invitation affichée une fois à chaque ouverture de l'application. */
+/* Configuration guidée affichée au premier lancement. */
 function showProfileWelcome() {
   var promptSeen = false;
   try { promptSeen = localStorage.getItem('prepme_profile_prompt_seen') === '1'; } catch (error) { }
   if (el('profileWelcome') || promptSeen || (S.profile && S.profile.displayName && S.profile.diploma && S.profile.target)) return;
+  var diplomas = ['','Infirmier(ère)','Technicien(ne) de santé','Sage-femme','Kinésithérapeute','Manipulateur(trice) radio','Laboratoire','Autre diplôme de santé'];
+  var specialties = ['','Soins infirmiers polyvalents','Anesthésie-réanimation','Urgences et soins intensifs','Santé mentale','Santé communautaire','Sage-femme','Laboratoire','Radiologie / imagerie médicale','Kinésithérapie','Diététique / nutrition','Préparateur en pharmacie','Assistant(e) social(e)','Autre spécialité'];
+  var targets = ['','Concours commun','Concours de spécialité','EAP / échelle 11','Autre concours'];
   var overlay = document.createElement('div');
   overlay.id = 'profileWelcome';
-  overlay.className = 'contribution-overlay';
-  overlay.innerHTML = '<section class="contribution-dialog profile-welcome-dialog" role="dialog" aria-modal="true" aria-labelledby="profileWelcomeTitle" aria-describedby="profileWelcomeIntro">' +
-    '<div class="contribution-icon profile-welcome-icon">🎓</div><h2 id="profileWelcomeTitle">Mon profil candidat</h2><p id="profileWelcomeIntro">Personnalise ta ligne dans le classement.</p>' +
-    '<form id="profileWelcomeForm" class="profile-welcome-form"><label><span>Prénom ou pseudo</span><input id="welcomeProfileName" maxlength="30" autocomplete="nickname" placeholder="Ex. Anass" required></label>' +
-    '<label><span>Diplôme</span><select id="welcomeProfileDiploma" required>' + options(['','Infirmier(ère)','Technicien(ne) de santé','Sage-femme','Kinésithérapeute','Manipulateur(trice) radio','Laboratoire','Autre diplôme de santé'], '', 'Choisir mon diplôme') + '</select></label>' +
-    '<label><span>Objectif</span><select id="welcomeProfileTarget" required>' + options(['','Concours commun','Concours de spécialité','EAP / échelle 11','Autre concours'], '', 'Choisir mon concours') + '</select></label>' +
-    '<button class="btn" type="submit">Enregistrer mon profil</button><button class="btn green" type="button" id="shareWelcomeProfile">Partager volontairement pour améliorer PrepMe</button></form><button class="btn ghost contribution-later" type="button">Plus tard</button>' +
-    '<small>🔒 Ces informations restent uniquement sur cet appareil. Le partage est facultatif.</small></section>';
+  overlay.className = 'contribution-overlay onboarding-overlay';
+  overlay.innerHTML = '<section class="contribution-dialog profile-welcome-dialog onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="profileWelcomeTitle" aria-describedby="profileWelcomeIntro">' +
+    '<div class="onboarding-top"><div class="profile-welcome-icon">🎯</div><div><span class="onboarding-kicker">BIENVENUE SUR PREPME</span><h2 id="profileWelcomeTitle">Préparons ton concours</h2><p id="profileWelcomeIntro">3 étapes, environ une minute.</p></div></div>' +
+    '<div class="onboarding-progress" aria-hidden="true"><span class="on" data-progress="1"></span><span data-progress="2"></span><span data-progress="3"></span></div>' +
+    '<form id="profileWelcomeForm" class="profile-welcome-form onboarding-form">' +
+      '<section class="onboarding-step on" data-step="1"><div class="onboarding-step-title"><b>1. Ton profil</b><span>Pour adapter les contenus proposés</span></div>' +
+        '<label><span>Prénom ou pseudo <em>facultatif</em></span><input id="welcomeProfileName" maxlength="30" autocomplete="nickname" placeholder="Ex. Anass"></label>' +
+        '<label><span>Diplôme</span><select id="welcomeProfileDiploma" required>' + options(diplomas, '', 'Choisir mon diplôme') + '</select></label>' +
+        '<label><span>Spécialité / profil</span><select id="welcomeProfileSpecialty" required>' + options(specialties, '', 'Choisir ma spécialité') + '</select></label>' +
+        '<label><span>Concours préparé</span><select id="welcomeProfileTarget" required>' + options(targets, '', 'Choisir mon concours') + '</select></label></section>' +
+      '<section class="onboarding-step" data-step="2"><div class="onboarding-step-title"><b>2. Ton rythme</b><span>Le programme se recalculera après chaque séance</span></div>' +
+        '<label><span>Date prévue du concours</span><input type="date" id="welcomeContestDate" min="' + today() + '" value="' + esc(S.contestDate || CONTEST_DATE) + '" required></label>' +
+        '<fieldset><legend>Temps disponible par jour</legend><div class="onboarding-choices time-choices">' + [15,30,45,60,90].map(function (n) { return '<label><input type="radio" name="welcomeMinutes" value="' + n + '"' + (n === 45 ? ' checked' : '') + '><span>' + n + '<small>min</small></span></label>'; }).join('') + '</div></fieldset>' +
+        '<fieldset><legend>Score cible</legend><div class="onboarding-choices score-choices">' + [60,70,80,90].map(function (n) { return '<label><input type="radio" name="welcomeScore" value="' + n + '"' + (n === 80 ? ' checked' : '') + '><span>' + n + '%</span></label>'; }).join('') + '</div></fieldset>' +
+        '<label class="onboarding-switch"><span><b>Disponible le week-end</b><small>Inclure samedi et dimanche dans le programme</small></span><input type="checkbox" id="welcomeWeekend" checked></label></section>' +
+      '<section class="onboarding-step" data-step="3"><div class="onboarding-step-title"><b>3. Tout est prêt</b><span>Vérifie ton programme avant de commencer</span></div>' +
+        '<div class="onboarding-summary" id="onboardingSummary" aria-live="polite"></div>' +
+        '<label class="onboarding-switch reminder-switch"><span><b>🔔 Rappels du concours</b><small>Autoriser les rappels de PrepMe sur cet appareil</small></span><input type="checkbox" id="welcomeNotify"></label>' +
+        '<p class="onboarding-privacy">🔒 Tes réglages et ta progression restent sur cet appareil.</p></section>' +
+      '<div class="onboarding-actions"><button class="btn ghost" type="button" id="welcomeBack">Retour</button><button class="btn" type="button" id="welcomeNext">Continuer</button><button class="btn green" type="submit" id="welcomeFinish">Créer mon programme</button></div>' +
+    '</form><button class="onboarding-later" type="button">Configurer plus tard</button></section>';
+  var step = 1;
   function closeWelcome() {
     try { localStorage.setItem('prepme_profile_prompt_seen', '1'); } catch (error) { }
-    overlay.remove(); showContributionWelcome();
+    overlay.remove();
   }
-  overlay.querySelector('#profileWelcomeForm').onsubmit = function (event) {
-    event.preventDefault();
-    S.profile = { displayName: (el('welcomeProfileName').value || '').trim().replace(/\s+/g, ' ').slice(0, 30), diploma: el('welcomeProfileDiploma').value, target: el('welcomeProfileTarget').value };
-    if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('profile_complete', { profile_completed: true });
-    save(); closeWelcome(); render();
-  };
-  overlay.querySelector('#shareWelcomeProfile').onclick = function () {
-    var name = (el('welcomeProfileName').value || '').trim().replace(/\s+/g, ' ').slice(0, 30);
-    var diploma = el('welcomeProfileDiploma').value || 'Non renseigné';
-    var target = el('welcomeProfileTarget').value || 'Non renseigné';
-    if (!name || !el('welcomeProfileDiploma').value || !el('welcomeProfileTarget').value) {
-      overlay.querySelector('#profileWelcomeForm').reportValidity();
-      return;
-    }
-    if (!confirm('Partager volontairement ces informations avec PrepMe via WhatsApp ?')) return;
-    S.profile = { displayName: name, diploma: diploma, target: target };
-    save();
-    try { localStorage.setItem('prepme_profile_prompt_seen', '1'); } catch (error) { }
-    var message = 'Bonjour, je souhaite aider à améliorer PrepMe.\nPrénom/pseudo : ' + name + '\nDiplôme : ' + diploma + '\nObjectif : ' + target;
-    if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('profile_share', { profile_shared: true });
-    location.href = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent(message);
-  };
-  overlay.querySelector('.contribution-later').onclick = closeWelcome;
-  overlay.onclick = function (event) { if (event.target === overlay) closeWelcome(); };
   document.body.appendChild(overlay);
+  var form = overlay.querySelector('#profileWelcomeForm');
+  var back = overlay.querySelector('#welcomeBack'), next = overlay.querySelector('#welcomeNext'), finish = overlay.querySelector('#welcomeFinish');
+  function selected(name) { var input = form.querySelector('input[name="' + name + '"]:checked'); return input ? +input.value : 0; }
+  function updateSummary() {
+    var date = el('welcomeContestDate').value, days = date ? Math.max(0, dayDiff(today(), date)) : 0;
+    var minutes = selected('welcomeMinutes') || 45, score = selected('welcomeScore') || 80;
+    el('onboardingSummary').innerHTML = '<div><span>📅</span><b>' + days + ' jour' + (days !== 1 ? 's' : '') + '<small>avant le concours · ' + esc(dateFr(date)) + '</small></b></div>' +
+      '<div><span>⏱️</span><b>' + minutes + ' min / jour<small>' + (el('welcomeWeekend').checked ? '7 jours sur 7' : 'du lundi au vendredi') + '</small></b></div>' +
+      '<div><span>🎯</span><b>' + score + ' %<small>objectif de maîtrise</small></b></div>';
+  }
+  function setStep(n) {
+    step = Math.max(1, Math.min(3, n));
+    Array.prototype.forEach.call(overlay.querySelectorAll('.onboarding-step'), function (section) { section.classList.toggle('on', +section.getAttribute('data-step') === step); });
+    Array.prototype.forEach.call(overlay.querySelectorAll('[data-progress]'), function (item) { item.classList.toggle('on', +item.getAttribute('data-progress') <= step); });
+    back.style.display = step === 1 ? 'none' : '';
+    next.style.display = step === 3 ? 'none' : '';
+    finish.style.display = step === 3 ? '' : 'none';
+    if (step === 3) updateSummary();
+    overlay.querySelector('.onboarding-dialog').scrollTop = 0;
+  }
+  function stepValid() {
+    var current = overlay.querySelector('.onboarding-step[data-step="' + step + '"]');
+    var fields = current.querySelectorAll('input[required],select[required]');
+    for (var i = 0; i < fields.length; i++) if (!fields[i].checkValidity()) { fields[i].reportValidity(); return false; }
+    if (step === 2 && el('welcomeContestDate').value < today()) { el('welcomeContestDate').setCustomValidity('Choisis une date à partir d’aujourd’hui.'); el('welcomeContestDate').reportValidity(); return false; }
+    el('welcomeContestDate').setCustomValidity('');
+    return true;
+  }
+  next.onclick = function () { if (stepValid()) setStep(step + 1); };
+  back.onclick = function () { setStep(step - 1); };
+  form.onchange = updateSummary;
+  form.onsubmit = function (event) {
+    event.preventDefault();
+    if (!stepValid()) return;
+    S.profile = {
+      displayName: (el('welcomeProfileName').value || '').trim().replace(/\s+/g, ' ').slice(0, 30),
+      diploma: el('welcomeProfileDiploma').value,
+      specialty: el('welcomeProfileSpecialty').value,
+      target: el('welcomeProfileTarget').value
+    };
+    S.contestDate = el('welcomeContestDate').value;
+    S.planStart = today();
+    S.autoPlan.dailyMinutes = selected('welcomeMinutes') || 45;
+    S.autoPlan.targetScore = selected('welcomeScore') || 80;
+    S.autoPlan.weekend = el('welcomeWeekend').checked;
+    regenerateAutoPlan();
+    if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('onboarding_complete', { profile_completed: true, daily_minutes: S.autoPlan.dailyMinutes, target_score: S.autoPlan.targetScore });
+    var wantsNotifications = el('welcomeNotify').checked;
+    closeWelcome(); render();
+    if (wantsNotifications) requestNotifications();
+    else toast('✅ Ton programme personnalisé est prêt');
+  };
+  overlay.querySelector('.onboarding-later').onclick = closeWelcome;
+  overlay.onclick = function (event) { if (event.target === overlay) closeWelcome(); };
+  overlay.addEventListener('keydown', function (event) { if (event.key === 'Escape') closeWelcome(); });
+  setStep(1);
   el('welcomeProfileName').focus();
 }
 

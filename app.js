@@ -159,7 +159,7 @@ var STORAGE_CORRUPT = false;
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.5.59';
+var APP_VERSION = '3.6.0';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -321,7 +321,7 @@ function blank() {
     units: {}, srs: {}, exams: [], sessions: [], lastRoute: '', hist: {}, seen: {},
     autoPlan: { enabled: true, dailyMinutes: 45, targetScore: 80, mode: 'adaptive', weekend: true, focus: 'balanced', focusDate: null, lastGenerated: null },
     tasks: [], reviewLog: [], weakTopics: [],
-    profile: { displayName: '', diploma: '', target: '' }
+    profile: { displayName: '', diploma: '', specialty: '', target: '' }
   };
 }
 var S = load();
@@ -441,7 +441,7 @@ function completeProgress(s) {
   if (!Array.isArray(s.reviewLog)) s.reviewLog = [];
   if (!Array.isArray(s.weakTopics)) s.weakTopics = [];
   if (!s.profile || typeof s.profile !== 'object' || Array.isArray(s.profile)) s.profile = b.profile;
-  ['displayName','diploma','target'].forEach(function (field) {
+  ['displayName','diploma','specialty','target'].forEach(function (field) {
     if (typeof s.profile[field] !== 'string') s.profile[field] = '';
     s.profile[field] = s.profile[field].slice(0, 60);
   });
@@ -479,7 +479,7 @@ function isValidProgress(s) {
       !['units', 'srs', 'hist', 'seen'].every(function (k) { return record(s[k]); })) return false;
   if (!fields(s, ['xpDay','streak','best','hearts','heartTs','goal']) || (s.hearts !== undefined && s.hearts > HEART_MAX)) return false;
   if (!['sound','unlimited','hl','sns3047Migrated'].every(function (k) { return s[k] === undefined || typeof s[k] === 'boolean'; })) return false;
-  if (s.profile !== undefined && (!record(s.profile) || !['displayName','diploma','target'].every(function (k) { return s.profile[k] === undefined || (typeof s.profile[k] === 'string' && s.profile[k].length <= 60); }))) return false;
+  if (s.profile !== undefined && (!record(s.profile) || !['displayName','diploma','specialty','target'].every(function (k) { return s.profile[k] === undefined || (typeof s.profile[k] === 'string' && s.profile[k].length <= 60); }))) return false;
   if (s.autoPlan !== undefined && (!record(s.autoPlan) ||
       (s.autoPlan.enabled !== undefined && typeof s.autoPlan.enabled !== 'boolean') ||
       (s.autoPlan.weekend !== undefined && typeof s.autoPlan.weekend !== 'boolean') ||
@@ -607,7 +607,7 @@ function leagueData() {
     ['Aya', 'Santé mentale', 65, 'A'],
     ['Omar', 'Préparation EAP', 35, 'O']
   ].map(function (p) { return { name: p[0], diploma: p[1], xp: p[2], avatar: p[3], simulated: true }; });
-  peers.push({ name: (profile.displayName || 'Moi').trim() || 'Moi', diploma: [profile.diploma || 'Diplôme non renseigné', profile.target || ''].filter(Boolean).join(' · '), xp: week.total, avatar: '★', me: true });
+  peers.push({ name: (profile.displayName || 'Moi').trim() || 'Moi', diploma: [profile.diploma || 'Diplôme non renseigné', profile.specialty || '', profile.target || ''].filter(Boolean).join(' · '), xp: week.total, avatar: '★', me: true });
   peers.sort(function (a, b) { return b.xp - a.xp || Number(b.me) - Number(a.me) || a.name.localeCompare(b.name); });
   var rank = peers.findIndex(function (p) { return p.me; }) + 1;
   var above = rank > 1 ? peers[rank - 2] : null;
@@ -2312,6 +2312,7 @@ function vLeague() {
   var status = data.rank <= 3 ? 'Zone de promotion' : data.rank <= 7 ? 'Zone de maintien' : 'Remonte au classement';
   var statusClass = data.rank <= 3 ? 'promote' : data.rank <= 7 ? 'safe' : 'push';
   var diplomaOptions = ['','Infirmier(ère)','Technicien(ne) de santé','Sage-femme','Kinésithérapeute','Manipulateur(trice) radio','Laboratoire','Autre diplôme de santé'];
+  var specialtyOptions = ['','Soins infirmiers polyvalents','Anesthésie-réanimation','Urgences et soins intensifs','Santé mentale','Santé communautaire','Sage-femme','Laboratoire','Radiologie / imagerie médicale','Kinésithérapie','Diététique / nutrition','Préparateur en pharmacie','Assistant(e) social(e)','Autre spécialité'];
   var targetOptions = ['','Concours commun','Concours de spécialité','EAP / échelle 11','Autre concours'];
   var h = bar('Classement', '') + '<main class="wrap league-page">';
   h += '<section class="league-hero" style="--league-color:' + tier.color + '"><span class="league-kicker">LIGUE DE LA SEMAINE</span><div class="league-trophy" aria-hidden="true">' + tier.icon + '</div><h1>Ligue ' + esc(tier.name) + '</h1><p>Du lundi ' + esc(dateFr(data.week.start)) + ' au dimanche ' + esc(dateFr(data.week.end)) + '</p><div class="league-rank-summary"><span><b>#' + data.rank + '</b> rang</span><span><b>' + data.week.total + '</b> XP</span><span><b>' + data.week.remaining + '</b> jour' + (data.week.remaining > 1 ? 's' : '') + '</span></div></section>';
@@ -2324,7 +2325,7 @@ function vLeague() {
   });
   h += '</div><p class="league-disclosure">ℹ️ Mode hors ligne : les autres profils sont une simulation d’entraînement, pas de vrais candidats. Ton rang réagit à tes XP réels enregistrés sur cet appareil.</p></section>';
   h += '<div class="league-cta card"><div><b>' + (data.gap ? 'Prêt à gagner ' + Math.min(50, data.gap) + ' XP ?' : 'Défends ta première place !') + '</b><span>Une séance express prend environ 5 minutes.</span></div><button class="btn gold sm" data-act="quick5">Lancer 5 QCM</button></div>';
-  h += '<section class="card league-profile"><div class="league-section-title"><div><h2 id="league-profile-title">Mon profil candidat</h2><p>Personnalise ta ligne dans le classement.</p></div><span aria-hidden="true">🎓</span></div><form id="leagueProfileForm" aria-labelledby="league-profile-title"><label><span>Prénom ou pseudo</span><input id="leagueName" maxlength="30" autocomplete="nickname" placeholder="Ex. Anass" value="' + esc(profile.displayName || '') + '"></label><label><span>Diplôme</span><select id="leagueDiploma">' + options(diplomaOptions, profile.diploma || '', 'Choisir mon diplôme') + '</select></label><label><span>Objectif</span><select id="leagueTarget">' + options(targetOptions, profile.target || '', 'Choisir mon concours') + '</select></label><button class="btn" type="submit">Enregistrer mon profil</button><small>🔒 Ces informations restent uniquement sur cet appareil.</small></form></section></main>';
+  h += '<section class="card league-profile"><div class="league-section-title"><div><h2 id="league-profile-title">Mon profil candidat</h2><p>Personnalise ta ligne dans le classement.</p></div><span aria-hidden="true">🎓</span></div><form id="leagueProfileForm" aria-labelledby="league-profile-title"><label><span>Prénom ou pseudo</span><input id="leagueName" maxlength="30" autocomplete="nickname" placeholder="Ex. Anass" value="' + esc(profile.displayName || '') + '"></label><label><span>Diplôme</span><select id="leagueDiploma">' + options(diplomaOptions, profile.diploma || '', 'Choisir mon diplôme') + '</select></label><label><span>Spécialité / profil</span><select id="leagueSpecialty">' + options(specialtyOptions, profile.specialty || '', 'Choisir ma spécialité') + '</select></label><label><span>Objectif</span><select id="leagueTarget">' + options(targetOptions, profile.target || '', 'Choisir mon concours') + '</select></label><button class="btn" type="submit">Enregistrer mon profil</button><small>🔒 Ces informations restent uniquement sur cet appareil.</small></form></section></main>';
   return h;
 }
 
@@ -2615,7 +2616,7 @@ function bind() {
   var leagueProfileForm = el('leagueProfileForm'); if (leagueProfileForm) leagueProfileForm.onsubmit = function (event) {
     event.preventDefault();
     var name = (el('leagueName').value || '').trim().replace(/\s+/g, ' ').slice(0, 30);
-    S.profile = { displayName: name, diploma: el('leagueDiploma').value || '', target: el('leagueTarget').value || '' };
+    S.profile = { displayName: name, diploma: el('leagueDiploma').value || '', specialty: el('leagueSpecialty').value || '', target: el('leagueTarget').value || '' };
     save(); toast('✅ Profil enregistré sur cet appareil'); render();
   };
   var q = el('q'); if (q) q.onkeyup = function (e) { if (q.value.length >= 2 && (e.key === 'Enter' || q.value.length > 2)) { SQ = q.value; go('/search'); } };
@@ -2779,50 +2780,99 @@ function act(a, b) {
   }
 }
 
-/* Invitation affichée une fois à chaque ouverture de l'application. */
+/* Configuration guidée affichée au premier lancement. */
 function showProfileWelcome() {
   var promptSeen = false;
   try { promptSeen = localStorage.getItem('prepme_profile_prompt_seen') === '1'; } catch (error) { }
   if (el('profileWelcome') || promptSeen || (S.profile && S.profile.displayName && S.profile.diploma && S.profile.target)) return;
+  var diplomas = ['','Infirmier(ère)','Technicien(ne) de santé','Sage-femme','Kinésithérapeute','Manipulateur(trice) radio','Laboratoire','Autre diplôme de santé'];
+  var specialties = ['','Soins infirmiers polyvalents','Anesthésie-réanimation','Urgences et soins intensifs','Santé mentale','Santé communautaire','Sage-femme','Laboratoire','Radiologie / imagerie médicale','Kinésithérapie','Diététique / nutrition','Préparateur en pharmacie','Assistant(e) social(e)','Autre spécialité'];
+  var targets = ['','Concours commun','Concours de spécialité','EAP / échelle 11','Autre concours'];
   var overlay = document.createElement('div');
   overlay.id = 'profileWelcome';
-  overlay.className = 'contribution-overlay';
-  overlay.innerHTML = '<section class="contribution-dialog profile-welcome-dialog" role="dialog" aria-modal="true" aria-labelledby="profileWelcomeTitle" aria-describedby="profileWelcomeIntro">' +
-    '<div class="contribution-icon profile-welcome-icon">🎓</div><h2 id="profileWelcomeTitle">Mon profil candidat</h2><p id="profileWelcomeIntro">Personnalise ta ligne dans le classement.</p>' +
-    '<form id="profileWelcomeForm" class="profile-welcome-form"><label><span>Prénom ou pseudo</span><input id="welcomeProfileName" maxlength="30" autocomplete="nickname" placeholder="Ex. Anass" required></label>' +
-    '<label><span>Diplôme</span><select id="welcomeProfileDiploma" required>' + options(['','Infirmier(ère)','Technicien(ne) de santé','Sage-femme','Kinésithérapeute','Manipulateur(trice) radio','Laboratoire','Autre diplôme de santé'], '', 'Choisir mon diplôme') + '</select></label>' +
-    '<label><span>Objectif</span><select id="welcomeProfileTarget" required>' + options(['','Concours commun','Concours de spécialité','EAP / échelle 11','Autre concours'], '', 'Choisir mon concours') + '</select></label>' +
-    '<button class="btn" type="submit">Enregistrer mon profil</button><button class="btn green" type="button" id="shareWelcomeProfile">Partager volontairement pour améliorer PrepMe</button></form><button class="btn ghost contribution-later" type="button">Plus tard</button>' +
-    '<small>🔒 Ces informations restent uniquement sur cet appareil. Le partage est facultatif.</small></section>';
+  overlay.className = 'contribution-overlay onboarding-overlay';
+  overlay.innerHTML = '<section class="contribution-dialog profile-welcome-dialog onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="profileWelcomeTitle" aria-describedby="profileWelcomeIntro">' +
+    '<div class="onboarding-top"><div class="profile-welcome-icon">🎯</div><div><span class="onboarding-kicker">BIENVENUE SUR PREPME</span><h2 id="profileWelcomeTitle">Préparons ton concours</h2><p id="profileWelcomeIntro">3 étapes, environ une minute.</p></div></div>' +
+    '<div class="onboarding-progress" aria-hidden="true"><span class="on" data-progress="1"></span><span data-progress="2"></span><span data-progress="3"></span></div>' +
+    '<form id="profileWelcomeForm" class="profile-welcome-form onboarding-form">' +
+      '<section class="onboarding-step on" data-step="1"><div class="onboarding-step-title"><b>1. Ton profil</b><span>Pour adapter les contenus proposés</span></div>' +
+        '<label><span>Prénom ou pseudo <em>facultatif</em></span><input id="welcomeProfileName" maxlength="30" autocomplete="nickname" placeholder="Ex. Anass"></label>' +
+        '<label><span>Diplôme</span><select id="welcomeProfileDiploma" required>' + options(diplomas, '', 'Choisir mon diplôme') + '</select></label>' +
+        '<label><span>Spécialité / profil</span><select id="welcomeProfileSpecialty" required>' + options(specialties, '', 'Choisir ma spécialité') + '</select></label>' +
+        '<label><span>Concours préparé</span><select id="welcomeProfileTarget" required>' + options(targets, '', 'Choisir mon concours') + '</select></label></section>' +
+      '<section class="onboarding-step" data-step="2"><div class="onboarding-step-title"><b>2. Ton rythme</b><span>Le programme se recalculera après chaque séance</span></div>' +
+        '<label><span>Date prévue du concours</span><input type="date" id="welcomeContestDate" min="' + today() + '" value="' + esc(S.contestDate || CONTEST_DATE) + '" required></label>' +
+        '<fieldset><legend>Temps disponible par jour</legend><div class="onboarding-choices time-choices">' + [15,30,45,60,90].map(function (n) { return '<label><input type="radio" name="welcomeMinutes" value="' + n + '"' + (n === 45 ? ' checked' : '') + '><span>' + n + '<small>min</small></span></label>'; }).join('') + '</div></fieldset>' +
+        '<fieldset><legend>Score cible</legend><div class="onboarding-choices score-choices">' + [60,70,80,90].map(function (n) { return '<label><input type="radio" name="welcomeScore" value="' + n + '"' + (n === 80 ? ' checked' : '') + '><span>' + n + '%</span></label>'; }).join('') + '</div></fieldset>' +
+        '<label class="onboarding-switch"><span><b>Disponible le week-end</b><small>Inclure samedi et dimanche dans le programme</small></span><input type="checkbox" id="welcomeWeekend" checked></label></section>' +
+      '<section class="onboarding-step" data-step="3"><div class="onboarding-step-title"><b>3. Tout est prêt</b><span>Vérifie ton programme avant de commencer</span></div>' +
+        '<div class="onboarding-summary" id="onboardingSummary" aria-live="polite"></div>' +
+        '<label class="onboarding-switch reminder-switch"><span><b>🔔 Rappels du concours</b><small>Autoriser les rappels de PrepMe sur cet appareil</small></span><input type="checkbox" id="welcomeNotify"></label>' +
+        '<p class="onboarding-privacy">🔒 Tes réglages et ta progression restent sur cet appareil.</p></section>' +
+      '<div class="onboarding-actions"><button class="btn ghost" type="button" id="welcomeBack">Retour</button><button class="btn" type="button" id="welcomeNext">Continuer</button><button class="btn green" type="submit" id="welcomeFinish">Créer mon programme</button></div>' +
+    '</form><button class="onboarding-later" type="button">Configurer plus tard</button></section>';
+  var step = 1;
   function closeWelcome() {
     try { localStorage.setItem('prepme_profile_prompt_seen', '1'); } catch (error) { }
-    overlay.remove(); showContributionWelcome();
+    overlay.remove();
   }
-  overlay.querySelector('#profileWelcomeForm').onsubmit = function (event) {
-    event.preventDefault();
-    S.profile = { displayName: (el('welcomeProfileName').value || '').trim().replace(/\s+/g, ' ').slice(0, 30), diploma: el('welcomeProfileDiploma').value, target: el('welcomeProfileTarget').value };
-    if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('profile_complete', { profile_completed: true });
-    save(); closeWelcome(); render();
-  };
-  overlay.querySelector('#shareWelcomeProfile').onclick = function () {
-    var name = (el('welcomeProfileName').value || '').trim().replace(/\s+/g, ' ').slice(0, 30);
-    var diploma = el('welcomeProfileDiploma').value || 'Non renseigné';
-    var target = el('welcomeProfileTarget').value || 'Non renseigné';
-    if (!name || !el('welcomeProfileDiploma').value || !el('welcomeProfileTarget').value) {
-      overlay.querySelector('#profileWelcomeForm').reportValidity();
-      return;
-    }
-    if (!confirm('Partager volontairement ces informations avec PrepMe via WhatsApp ?')) return;
-    S.profile = { displayName: name, diploma: diploma, target: target };
-    save();
-    try { localStorage.setItem('prepme_profile_prompt_seen', '1'); } catch (error) { }
-    var message = 'Bonjour, je souhaite aider à améliorer PrepMe.\nPrénom/pseudo : ' + name + '\nDiplôme : ' + diploma + '\nObjectif : ' + target;
-    if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('profile_share', { profile_shared: true });
-    location.href = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent(message);
-  };
-  overlay.querySelector('.contribution-later').onclick = closeWelcome;
-  overlay.onclick = function (event) { if (event.target === overlay) closeWelcome(); };
   document.body.appendChild(overlay);
+  var form = overlay.querySelector('#profileWelcomeForm');
+  var back = overlay.querySelector('#welcomeBack'), next = overlay.querySelector('#welcomeNext'), finish = overlay.querySelector('#welcomeFinish');
+  function selected(name) { var input = form.querySelector('input[name="' + name + '"]:checked'); return input ? +input.value : 0; }
+  function updateSummary() {
+    var date = el('welcomeContestDate').value, days = date ? Math.max(0, dayDiff(today(), date)) : 0;
+    var minutes = selected('welcomeMinutes') || 45, score = selected('welcomeScore') || 80;
+    el('onboardingSummary').innerHTML = '<div><span>📅</span><b>' + days + ' jour' + (days !== 1 ? 's' : '') + '<small>avant le concours · ' + esc(dateFr(date)) + '</small></b></div>' +
+      '<div><span>⏱️</span><b>' + minutes + ' min / jour<small>' + (el('welcomeWeekend').checked ? '7 jours sur 7' : 'du lundi au vendredi') + '</small></b></div>' +
+      '<div><span>🎯</span><b>' + score + ' %<small>objectif de maîtrise</small></b></div>';
+  }
+  function setStep(n) {
+    step = Math.max(1, Math.min(3, n));
+    Array.prototype.forEach.call(overlay.querySelectorAll('.onboarding-step'), function (section) { section.classList.toggle('on', +section.getAttribute('data-step') === step); });
+    Array.prototype.forEach.call(overlay.querySelectorAll('[data-progress]'), function (item) { item.classList.toggle('on', +item.getAttribute('data-progress') <= step); });
+    back.style.display = step === 1 ? 'none' : '';
+    next.style.display = step === 3 ? 'none' : '';
+    finish.style.display = step === 3 ? '' : 'none';
+    if (step === 3) updateSummary();
+    overlay.querySelector('.onboarding-dialog').scrollTop = 0;
+  }
+  function stepValid() {
+    var current = overlay.querySelector('.onboarding-step[data-step="' + step + '"]');
+    var fields = current.querySelectorAll('input[required],select[required]');
+    for (var i = 0; i < fields.length; i++) if (!fields[i].checkValidity()) { fields[i].reportValidity(); return false; }
+    if (step === 2 && el('welcomeContestDate').value < today()) { el('welcomeContestDate').setCustomValidity('Choisis une date à partir d’aujourd’hui.'); el('welcomeContestDate').reportValidity(); return false; }
+    el('welcomeContestDate').setCustomValidity('');
+    return true;
+  }
+  next.onclick = function () { if (stepValid()) setStep(step + 1); };
+  back.onclick = function () { setStep(step - 1); };
+  form.onchange = updateSummary;
+  form.onsubmit = function (event) {
+    event.preventDefault();
+    if (!stepValid()) return;
+    S.profile = {
+      displayName: (el('welcomeProfileName').value || '').trim().replace(/\s+/g, ' ').slice(0, 30),
+      diploma: el('welcomeProfileDiploma').value,
+      specialty: el('welcomeProfileSpecialty').value,
+      target: el('welcomeProfileTarget').value
+    };
+    S.contestDate = el('welcomeContestDate').value;
+    S.planStart = today();
+    S.autoPlan.dailyMinutes = selected('welcomeMinutes') || 45;
+    S.autoPlan.targetScore = selected('welcomeScore') || 80;
+    S.autoPlan.weekend = el('welcomeWeekend').checked;
+    regenerateAutoPlan();
+    if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('onboarding_complete', { profile_completed: true, daily_minutes: S.autoPlan.dailyMinutes, target_score: S.autoPlan.targetScore });
+    var wantsNotifications = el('welcomeNotify').checked;
+    closeWelcome(); render();
+    if (wantsNotifications) requestNotifications();
+    else toast('✅ Ton programme personnalisé est prêt');
+  };
+  overlay.querySelector('.onboarding-later').onclick = closeWelcome;
+  overlay.onclick = function (event) { if (event.target === overlay) closeWelcome(); };
+  overlay.addEventListener('keydown', function (event) { if (event.key === 'Escape') closeWelcome(); });
+  setStep(1);
   el('welcomeProfileName').focus();
 }
 

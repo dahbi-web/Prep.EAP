@@ -1,4 +1,4 @@
-# PrepMe — version PWA 3.5.59
+# PrepMe — version PWA 3.6.0
 
 Préparation aux concours de santé : 76 modules, 1 459 QCM interactifs et 1 257 cartes. Les modules 32 à 76 sont des documents de consultation ; les modules 46 à 76 reprennent les 31 sources CNC sous forme de 388 pages transcrites et reliées au PDF original. Le catalogue Concours regroupe 95 PDF distincts et 1 PPTX.
 
@@ -14,7 +14,7 @@ Un accès HTTP via l’adresse IP du PC ne suffit pas pour activer le service wo
 
 La progression reste locale, sous la clé `cnc_anass_v2`, avec deux copies de secours. Exporter régulièrement une copie JSON depuis Réglages, notamment avant de changer de navigateur, de fichier ou d’adresse de site. L’import vérifie le format et demande confirmation avant remplacement. La réinitialisation conserve les copies de secours.
 
-Après cette mise à jour : **Ctrl+F5** sur PC. Version 3.5.59, cache `cnc-anass-v99`. Les 31 sources CNC sont présentes dans la section Concours et dans Cours PDF, où chaque page est consultable comme unité de lecture avec retour au PDF original. Les sujets ne fournissant pas de corrigé vérifié restent sans notation automatique. La version en ligne doit être publiée séparément ; sa mise à jour n’est pas attestée par le paquet local.
+Après cette mise à jour : **Ctrl+F5** sur PC. Version 3.6.0, cache `cnc-anass-v100`. Le premier lancement configure maintenant le profil, la spécialité, la date du concours, le temps quotidien, le score cible, le week-end et les rappels avant de créer le programme. Les 31 sources CNC sont présentes dans la section Concours et dans Cours PDF, où chaque page est consultable comme unité de lecture avec retour au PDF original. Les sujets ne fournissant pas de corrigé vérifié restent sans notation automatique. La version en ligne doit être publiée séparément ; sa mise à jour n’est pas attestée par le paquet local.
 
 ## Contenu et limites
 
