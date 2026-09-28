@@ -1,0 +1,281 @@
+[
+  {
+    "id": 46,
+    "source": "01- CNC Draa Tafilalet - Commun ITS 2024.pdf",
+    "title": "CNC Draa Tafilalet - Commun ITS 2024",
+    "courseFile": "46- CNC Draa Tafilalet - Commun ITS 2024.pdf",
+    "pages": 9,
+    "ocrChars": 9541,
+    "dataFile": "doc46.js"
+  },
+  {
+    "id": 47,
+    "source": "02- CNC Nationale ITS Commun 2026 (1).pdf",
+    "title": "CNC Nationale ITS Commun 2026 (1)",
+    "courseFile": "47- CNC Nationale ITS Commun 2026 (1).pdf",
+    "pages": 9,
+    "ocrChars": 9387,
+    "dataFile": "doc47.js"
+  },
+  {
+    "id": 48,
+    "source": "03- CNC Draa Tafilalet - Commun 2023.pdf",
+    "title": "CNC Draa Tafilalet - Commun 2023",
+    "courseFile": "48- CNC Draa Tafilalet - Commun 2023.pdf",
+    "pages": 10,
+    "ocrChars": 9321,
+    "dataFile": "doc48.js"
+  },
+  {
+    "id": 49,
+    "source": "04- CNC Draa Tafilalet - Specialite 2023.pdf",
+    "title": "CNC Draa Tafilalet - Specialite 2023",
+    "courseFile": "49- CNC Draa Tafilalet - Specialite 2023.pdf",
+    "pages": 13,
+    "ocrChars": 12532,
+    "dataFile": "doc49.js"
+  },
+  {
+    "id": 50,
+    "source": "05- CNC Souss Massa - Commun 2024.pdf",
+    "title": "CNC Souss Massa - Commun 2024",
+    "courseFile": "50- CNC Souss Massa - Commun 2024.pdf",
+    "pages": 13,
+    "ocrChars": 15976,
+    "dataFile": "doc50.js"
+  },
+  {
+    "id": 51,
+    "source": "06- CNC TTH - Commun 2023.pdf",
+    "title": "CNC TTH - Commun 2023",
+    "courseFile": "51- CNC TTH - Commun 2023.pdf",
+    "pages": 17,
+    "ocrChars": 18028,
+    "dataFile": "doc51.js"
+  },
+  {
+    "id": 52,
+    "source": "07- CNC TTH - Commun 2025.pdf",
+    "title": "CNC TTH - Commun 2025",
+    "courseFile": "52- CNC TTH - Commun 2025.pdf",
+    "pages": 8,
+    "ocrChars": 8244,
+    "dataFile": "doc52.js"
+  },
+  {
+    "id": 53,
+    "source": "08- CNC Marrakech - Commun 2024-1.pdf",
+    "title": "CNC Marrakech - Commun 2024-1",
+    "courseFile": "53- CNC Marrakech - Commun 2024-1.pdf",
+    "pages": 11,
+    "ocrChars": 18060,
+    "dataFile": "doc53.js"
+  },
+  {
+    "id": 54,
+    "source": "09- CNC CHU Hassan II - Commun 2022.pdf",
+    "title": "CNC CHU Hassan II - Commun 2022",
+    "courseFile": "54- CNC CHU Hassan II - Commun 2022.pdf",
+    "pages": 13,
+    "ocrChars": 12532,
+    "dataFile": "doc54.js"
+  },
+  {
+    "id": 55,
+    "source": "10- CNC Dakhla - Commun 2025-1.pdf",
+    "title": "CNC Dakhla - Commun 2025-1",
+    "courseFile": "55- CNC Dakhla - Commun 2025-1.pdf",
+    "pages": 9,
+    "ocrChars": 10477,
+    "dataFile": "doc55.js"
+  },
+  {
+    "id": 56,
+    "source": "11- CNC Casa - Commun 2025.pdf",
+    "title": "CNC Casa - Commun 2025",
+    "courseFile": "56- CNC Casa - Commun 2025.pdf",
+    "pages": 9,
+    "ocrChars": 12593,
+    "dataFile": "doc56.js"
+  },
+  {
+    "id": 57,
+    "source": "12- CNC Bni-Mellal - Commun 2025.pdf",
+    "title": "CNC Bni-Mellal - Commun 2025",
+    "courseFile": "57- CNC Bni-Mellal - Commun 2025.pdf",
+    "pages": 10,
+    "ocrChars": 8967,
+    "dataFile": "doc57.js"
+  },
+  {
+    "id": 58,
+    "source": "13- CNC Draa Tafilalet - Specialite 2024.pdf",
+    "title": "CNC Draa Tafilalet - Specialite 2024",
+    "courseFile": "58- CNC Draa Tafilalet - Specialite 2024.pdf",
+    "pages": 12,
+    "ocrChars": 11134,
+    "dataFile": "doc58.js"
+  },
+  {
+    "id": 59,
+    "source": "14- CNC CHU Rabat - Commun 2025.pdf",
+    "title": "CNC CHU Rabat - Commun 2025",
+    "courseFile": "59- CNC CHU Rabat - Commun 2025.pdf",
+    "pages": 7,
+    "ocrChars": 7338,
+    "dataFile": "doc59.js"
+  },
+  {
+    "id": 60,
+    "source": "15- CNC Marrakech - Commun 2025-2.pdf",
+    "title": "CNC Marrakech - Commun 2025-2",
+    "courseFile": "60- CNC Marrakech - Commun 2025-2.pdf",
+    "pages": 9,
+    "ocrChars": 11912,
+    "dataFile": "doc60.js"
+  },
+  {
+    "id": 61,
+    "source": "16- CNC Rabat - Commun 2025.pdf",
+    "title": "CNC Rabat - Commun 2025",
+    "courseFile": "61- CNC Rabat - Commun 2025.pdf",
+    "pages": 11,
+    "ocrChars": 10542,
+    "dataFile": "doc61.js"
+  },
+  {
+    "id": 62,
+    "source": "17- CNC Laayoune - Commun 2025-1.pdf",
+    "title": "CNC Laayoune - Commun 2025-1",
+    "courseFile": "62- CNC Laayoune - Commun 2025-1.pdf",
+    "pages": 16,
+    "ocrChars": 16907,
+    "dataFile": "doc62.js"
+  },
+  {
+    "id": 63,
+    "source": "18- CNC TTH - Commun 2024.pdf",
+    "title": "CNC TTH - Commun 2024",
+    "courseFile": "63- CNC TTH - Commun 2024.pdf",
+    "pages": 8,
+    "ocrChars": 8812,
+    "dataFile": "doc63.js"
+  },
+  {
+    "id": 64,
+    "source": "19- CNC Dakhla - Sage-Femme 2025.pdf",
+    "title": "CNC Dakhla - Sage-Femme 2025",
+    "courseFile": "64- CNC Dakhla - Sage-Femme 2025.pdf",
+    "pages": 8,
+    "ocrChars": 8166,
+    "dataFile": "doc64.js"
+  },
+  {
+    "id": 65,
+    "source": "20- CNC Draa Tafilalet - Commun 2025.pdf",
+    "title": "CNC Draa Tafilalet - Commun 2025",
+    "courseFile": "65- CNC Draa Tafilalet - Commun 2025.pdf",
+    "pages": 9,
+    "ocrChars": 10036,
+    "dataFile": "doc65.js"
+  },
+  {
+    "id": 66,
+    "source": "21- CNC TTH - Specialite 2025-1.pdf",
+    "title": "CNC TTH - Specialite 2025-1",
+    "courseFile": "66- CNC TTH - Specialite 2025-1.pdf",
+    "pages": 9,
+    "ocrChars": 10605,
+    "dataFile": "doc66.js"
+  },
+  {
+    "id": 67,
+    "source": "22- CNC Rabat, Agadir, Laayoune - Commun 2026-1.pdf",
+    "title": "CNC Rabat, Agadir, Laayoune - Commun 2026-1",
+    "courseFile": "67- CNC Rabat, Agadir, Laayoune - Commun 2026-1.pdf",
+    "pages": 8,
+    "ocrChars": 14450,
+    "dataFile": "doc67.js"
+  },
+  {
+    "id": 68,
+    "source": "23- CNC Dakhla - Commun 2026.pdf",
+    "title": "CNC Dakhla - Commun 2026",
+    "courseFile": "68- CNC Dakhla - Commun 2026.pdf",
+    "pages": 9,
+    "ocrChars": 8853,
+    "dataFile": "doc68.js"
+  },
+  {
+    "id": 69,
+    "source": "24- CNC Goulmim - Commun 2023.pdf",
+    "title": "CNC Goulmim - Commun 2023",
+    "courseFile": "69- CNC Goulmim - Commun 2023.pdf",
+    "pages": 9,
+    "ocrChars": 13135,
+    "dataFile": "doc69.js"
+  },
+  {
+    "id": 70,
+    "source": "25- CNC CHU Fes - Commun 2023.pdf",
+    "title": "CNC CHU Fes - Commun 2023",
+    "courseFile": "70- CNC CHU Fes - Commun 2023.pdf",
+    "pages": 8,
+    "ocrChars": 6086,
+    "dataFile": "doc70.js"
+  },
+  {
+    "id": 71,
+    "source": "26- CNC Fes - Commun 2025.pdf",
+    "title": "CNC Fes - Commun 2025",
+    "courseFile": "71- CNC Fes - Commun 2025.pdf",
+    "pages": 9,
+    "ocrChars": 10019,
+    "dataFile": "doc71.js"
+  },
+  {
+    "id": 72,
+    "source": "27- CNC Casa - Commun 2024.pdf",
+    "title": "CNC Casa - Commun 2024",
+    "courseFile": "72- CNC Casa - Commun 2024.pdf",
+    "pages": 9,
+    "ocrChars": 11134,
+    "dataFile": "doc72.js"
+  },
+  {
+    "id": 73,
+    "source": "28- CNC Fes - Commun 2024.pdf",
+    "title": "CNC Fes - Commun 2024",
+    "courseFile": "73- CNC Fes - Commun 2024.pdf",
+    "pages": 8,
+    "ocrChars": 7997,
+    "dataFile": "doc73.js"
+  },
+  {
+    "id": 74,
+    "source": "29- CNC Casa, Fes - Commun 2026.pdf",
+    "title": "CNC Casa, Fes - Commun 2026",
+    "courseFile": "74- CNC Casa, Fes - Commun 2026.pdf",
+    "pages": 7,
+    "ocrChars": 11684,
+    "dataFile": "doc74.js"
+  },
+  {
+    "id": 75,
+    "source": "Concours Recrutement CHUs_.pdf",
+    "title": "Concours Recrutement CHUs",
+    "courseFile": "75- Concours Recrutement CHUs.pdf",
+    "pages": 69,
+    "ocrChars": 71975,
+    "dataFile": "doc75.js"
+  },
+  {
+    "id": 76,
+    "source": "QCMs Des Lois 06-22. 07-22. 08-22.pdf",
+    "title": "QCMs Des Lois 06-22. 07-22. 08-22",
+    "courseFile": "76- QCMs Des Lois 06-22. 07-22. 08-22.pdf",
+    "pages": 32,
+    "ocrChars": 56616,
+    "dataFile": "doc76.js"
+  }
+]

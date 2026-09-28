@@ -1,0 +1,7 @@
+# Sauvegardes locales et sorties temporaires
+*.bak_*
+.pdfjs-extract/
+pdfjs-dist-*.tgz
+
+# Captures générées par les tests navigateur
+tools/concours-*.png

@@ -13,7 +13,7 @@ connecté** et, si possible, le dossier `CNC_ANASS_App` pour qu'il puisse lire l
 
 ```text
 J'ai une app d'apprentissage qui marche (dossier CNC_ANASS_App : index.html + app.css + app.js
-+ data/doc01.js … doc31.js + manifest.webmanifest + sw.js + icons/ + build_single.py).
++ data/doc01.js … doc32.js + manifest.webmanifest + sw.js + icons/ + build_single.py).
 Je veux la MÊME app, même moteur, mais pour un autre contenu.
 
 NOUVEAU SUJET : {SUJET — ex. : concours infirmier / droit du travail / anatomie}

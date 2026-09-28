@@ -1,6 +1,6 @@
 /* ==========================================================================
    Concours de santé — moteur de l'application
-   Révision type "Duolingo" pour le concours (licence) — 45 modules
+   Révision type "Duolingo" pour le concours (licence) — 76 modules
    Aucune dépendance externe. Fonctionne hors-ligne.
    ========================================================================== */
 (function () {
@@ -70,7 +70,7 @@ if (SNS_DOC) {
 if (window.CNC_APPLY_CONTENT_REVIEW) window.CNC_APPLY_CONTENT_REVIEW(DOCS);
 DOCS.sort(function (a, b) { return a.id - b.id; });
 
-/* Les modules 1 à 31 sont les vrais cours du parcours. Les modules 32 à 45
+/* Les modules 1 à 31 sont les vrais cours du parcours. Les modules 32 à 76
    sont des annales, banques de QCM ou textes sources : ils restent dans
    Concours et Cours PDF, mais ne sont pas présentés comme des cours. */
 var COURSE_DOCS = DOCS.filter(function (d) { return +d.id >= 1 && +d.id <= 31; });
@@ -159,7 +159,7 @@ var STORAGE_CORRUPT = false;
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.5.54';
+var APP_VERSION = '3.5.59';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -218,7 +218,38 @@ var DOC_SOURCES = {
   42: [{label:'EAP téléchargé — 42- EAP - qcm-us-corrige.pdf', local:true}],
   43: [{label:'Document officiel téléchargé — 43- EAP - decret-2-93-308.pdf', local:true}],
   44: [{label:'Document officiel téléchargé — 44- EAP - EXA-CON2.pdf', local:true}],
-  45: [{label:'Document officiel téléchargé — 45- EAP - STATUINF.pdf', local:true}]
+  45: [{label:'Document officiel téléchargé — 45- EAP - STATUINF.pdf', local:true}],
+  46: [{label:'Annale fournie — 01- CNC Draa Tafilalet - Commun ITS 2024.pdf', local:true}],
+  47: [{label:'Annale fournie — 02- CNC Nationale ITS Commun 2026 (1).pdf', local:true}],
+  48: [{label:'Annale fournie — 03- CNC Draa Tafilalet - Commun 2023.pdf', local:true}],
+  49: [{label:'Annale fournie — 04- CNC Draa Tafilalet - Specialite 2023.pdf', local:true}],
+  50: [{label:'Annale fournie — 05- CNC Souss Massa - Commun 2024.pdf', local:true}],
+  51: [{label:'Annale fournie — 06- CNC TTH - Commun 2023.pdf', local:true}],
+  52: [{label:'Annale fournie — 07- CNC TTH - Commun 2025.pdf', local:true}],
+  53: [{label:'Annale fournie — 08- CNC Marrakech - Commun 2024-1.pdf', local:true}],
+  54: [{label:'Annale fournie — 09- CNC CHU Hassan II - Commun 2022.pdf', local:true}],
+  55: [{label:'Annale fournie — 10- CNC Dakhla - Commun 2025-1.pdf', local:true}],
+  56: [{label:'Annale fournie — 11- CNC Casa - Commun 2025.pdf', local:true}],
+  57: [{label:'Annale fournie — 12- CNC Bni-Mellal - Commun 2025.pdf', local:true}],
+  58: [{label:'Annale fournie — 13- CNC Draa Tafilalet - Specialite 2024.pdf', local:true}],
+  59: [{label:'Annale fournie — 14- CNC CHU Rabat - Commun 2025.pdf', local:true}],
+  60: [{label:'Annale fournie — 15- CNC Marrakech - Commun 2025-2.pdf', local:true}],
+  61: [{label:'Annale fournie — 16- CNC Rabat - Commun 2025.pdf', local:true}],
+  62: [{label:'Annale fournie — 17- CNC Laayoune - Commun 2025-1.pdf', local:true}],
+  63: [{label:'Annale fournie — 18- CNC TTH - Commun 2024.pdf', local:true}],
+  64: [{label:'Annale fournie — 19- CNC Dakhla - Sage-Femme 2025.pdf', local:true}],
+  65: [{label:'Annale fournie — 20- CNC Draa Tafilalet - Commun 2025.pdf', local:true}],
+  66: [{label:'Annale fournie — 21- CNC TTH - Specialite 2025-1.pdf', local:true}],
+  67: [{label:'Annale fournie — 22- CNC Rabat, Agadir, Laayoune - Commun 2026-1.pdf', local:true}],
+  68: [{label:'Annale fournie — 23- CNC Dakhla - Commun 2026.pdf', local:true}],
+  69: [{label:'Annale fournie — 24- CNC Goulmim - Commun 2023.pdf', local:true}],
+  70: [{label:'Annale fournie — 25- CNC CHU Fes - Commun 2023.pdf', local:true}],
+  71: [{label:'Annale fournie — 26- CNC Fes - Commun 2025.pdf', local:true}],
+  72: [{label:'Annale fournie — 27- CNC Casa - Commun 2024.pdf', local:true}],
+  73: [{label:'Annale fournie — 28- CNC Fes - Commun 2024.pdf', local:true}],
+  74: [{label:'Annale fournie — 29- CNC Casa, Fes - Commun 2026.pdf', local:true}],
+  75: [{label:'Annale fournie — Concours Recrutement CHUs_.pdf', local:true}],
+  76: [{label:'Annale fournie — QCMs Des Lois 06-22. 07-22. 08-22.pdf', local:true}]
 };
 var ABBREVIATIONS = {
   'SNS':'Système National de Santé','OMS':'Organisation Mondiale de la Santé','MSPS':'Ministère de la Santé et de la Protection Sociale','GST':'Groupement Sanitaire Territorial','HAS':'Haute Autorité de Santé','CHU':'Centre Hospitalier Universitaire','ESSP':'Établissements de Soins de Santé Primaires','RESSP':'Réseau des Établissements de Soins de Santé Primaires','RH':'Réseau Hospitalier','RISUM':'Réseau Intégré des Soins d’Urgence Médicale','REMS':'Réseau des Établissements Médico-Sociaux','SROS':'Schéma Régional de l’Offre de Soins','SRES':'Service du Réseau des Établissements Sanitaires','DRS':'Direction Régionale de la Santé','DPRF':'Direction de la Planification et des Ressources Financières','DRH':'Direction des Ressources Humaines','DELM':'Direction de l’Épidémiologie et de la Lutte contre les Maladies','DMP':'Direction du Médicament et de la Pharmacie','DHSA':'Direction des Hôpitaux et des Soins Ambulatoires','DEM':'Direction des Équipements et de la Maintenance','INH':'Institut National d’Hygiène','CNTSH':'Centre National de Transfusion Sanguine et d’Hématologie','CAPM':'Centre Anti Poison et de Pharmacovigilance du Maroc','LNCM':'Laboratoire National de Contrôle des Médicaments','ENSP':'École Nationale de Santé Publique','ISPITS':'Instituts Supérieurs des Professions Infirmières et Techniques de Santé','CMDP':'Conseil des Médecins, Dentistes et Pharmaciens','PEH':'Projet d’Établissement Hospitalier','PMR':'Projet Médical Régional','AMO':'Assurance Maladie Obligatoire','CNSS':'Caisse Nationale de Sécurité Sociale','CNOPS':'Caisse Nationale des Organismes de Prévoyance Sociale','ANAM':'Agence Nationale de l’Assurance Maladie','RAMED':'Régime d’Assistance Médicale','CMB':'Couverture Médicale de Base','RSU':'Registre Social Unifié','AMO-TNS':'AMO des Travailleurs Non-Salariés','AMO-TADAMON':'AMO destinée aux personnes incapables d’acquitter les cotisations','ALD':'Affection de Longue Durée','ALC':'Affection Lourde et Coûteuse','AES':'Accident d’Exposition au Sang','MDO':'Maladie à Déclaration Obligatoire','VIH':'Virus de l’Immunodéficience Humaine','SIDA':'Syndrome d’Immunodéficience Acquise','VHB':'Virus de l’Hépatite B','VHC':'Virus de l’Hépatite C','HBV':'Hepatitis B Virus','HIV':'Human Immunodeficiency Virus','HPV':'Papillomavirus Humain','SRAS':'Syndrome Respiratoire Aigu Sévère','TIAC':'Toxi-Infection Alimentaire Collective','PNI':'Programme National d’Immunisation','HTA':'Hypertension Artérielle','BPCO':'Bronchopneumopathie Chronique Obstructive','AVC':'Accident Vasculaire Cérébral','IVG':'Interruption Volontaire de Grossesse','SAMU':'Service d’Aide Médicale Urgente','PEC':'Prise En Charge','IEC':'Information, Éducation et Communication','PIB':'Produit Intérieur Brut','PNB':'Produit National Brut','IDH':'Indice de Développement Humain','HCP':'Haut-Commissariat au Plan','ODD':'Objectifs de Développement Durable','OMD':'Objectifs du Millénaire pour le Développement','OIT':'Organisation Internationale du Travail','OCDE':'Organisation de Coopération et de Développement Économiques','ONG':'Organisation Non Gouvernementale','PPP':'Partenariat Public-Privé','TNR':'Tarif National de Référence','TNS':'Travailleur Non-Salarié','PDCA':'Planifier, Déployer, Contrôler, Agir','ISO':'Organisation Internationale de Normalisation','QCM':'Questionnaire à Choix Multiple','CSU':'Centre de Santé Urbain','CSR':'Centre de Santé Rural','CSN':'Carte Sanitaire Nationale','PAA':'Plan d’Action Annuel','PA':'Plan d’Action','EIG':'Événement Indésirable Grave'
@@ -288,6 +319,8 @@ function blank() {
     hearts: HEART_MAX, heartTs: Date.now(),
     goal: 50, contestDate: CONTEST_DATE, planStart: '2026-09-10', homeMode: 'auto', sound: true, theme: 'auto', fontScale: 'normal', unlimited: true, hl: true,
     units: {}, srs: {}, exams: [], sessions: [], lastRoute: '', hist: {}, seen: {},
+    autoPlan: { enabled: true, dailyMinutes: 45, targetScore: 80, mode: 'adaptive', weekend: true, focus: 'balanced', focusDate: null, lastGenerated: null },
+    tasks: [], reviewLog: [], weakTopics: [],
     profile: { displayName: '', diploma: '', target: '' }
   };
 }
@@ -398,6 +431,15 @@ function completeProgress(s) {
   if (!isValidProgress(s)) return null;
   var b = blank();
   for (var k in b) if (!(k in s)) s[k] = b[k];
+  if (!s.autoPlan || typeof s.autoPlan !== 'object' || Array.isArray(s.autoPlan)) s.autoPlan = b.autoPlan;
+  Object.keys(b.autoPlan).forEach(function (field) { if (s.autoPlan[field] === undefined) s.autoPlan[field] = b.autoPlan[field]; });
+  s.autoPlan.dailyMinutes = Math.max(10, Math.min(180, Math.round(+s.autoPlan.dailyMinutes || 45)));
+  s.autoPlan.targetScore = Math.max(50, Math.min(100, Math.round(+s.autoPlan.targetScore || 80)));
+  if (['adaptive','learn','review'].indexOf(s.autoPlan.mode) < 0) s.autoPlan.mode = 'adaptive';
+  if (['balanced','qcm'].indexOf(s.autoPlan.focus) < 0) s.autoPlan.focus = 'balanced';
+  if (!Array.isArray(s.tasks)) s.tasks = [];
+  if (!Array.isArray(s.reviewLog)) s.reviewLog = [];
+  if (!Array.isArray(s.weakTopics)) s.weakTopics = [];
   if (!s.profile || typeof s.profile !== 'object' || Array.isArray(s.profile)) s.profile = b.profile;
   ['displayName','diploma','target'].forEach(function (field) {
     if (typeof s.profile[field] !== 'string') s.profile[field] = '';
@@ -406,7 +448,7 @@ function completeProgress(s) {
   // Les cœurs sont toujours illimités, y compris pour les anciennes sauvegardes.
   s.unlimited = true;
   Object.keys(s.units).forEach(function (key) {
-    ['runs','best','crowns','lesson','ok','ko'].forEach(function (field) { if (s.units[key][field] === undefined) s.units[key][field] = 0; });
+    ['runs','best','lastScore','crowns','lesson','ok','ko'].forEach(function (field) { if (s.units[key][field] === undefined) s.units[key][field] = 0; });
   });
   migrateSns3047Progress(s);
   return s;
@@ -438,9 +480,17 @@ function isValidProgress(s) {
   if (!fields(s, ['xpDay','streak','best','hearts','heartTs','goal']) || (s.hearts !== undefined && s.hearts > HEART_MAX)) return false;
   if (!['sound','unlimited','hl','sns3047Migrated'].every(function (k) { return s[k] === undefined || typeof s[k] === 'boolean'; })) return false;
   if (s.profile !== undefined && (!record(s.profile) || !['displayName','diploma','target'].every(function (k) { return s.profile[k] === undefined || (typeof s.profile[k] === 'string' && s.profile[k].length <= 60); }))) return false;
+  if (s.autoPlan !== undefined && (!record(s.autoPlan) ||
+      (s.autoPlan.enabled !== undefined && typeof s.autoPlan.enabled !== 'boolean') ||
+      (s.autoPlan.weekend !== undefined && typeof s.autoPlan.weekend !== 'boolean') ||
+      (s.autoPlan.dailyMinutes !== undefined && !number(s.autoPlan.dailyMinutes, 180)) ||
+      (s.autoPlan.targetScore !== undefined && !number(s.autoPlan.targetScore, 100)) ||
+      (s.autoPlan.mode !== undefined && ['adaptive','learn','review'].indexOf(s.autoPlan.mode) < 0) ||
+      (s.autoPlan.focus !== undefined && ['balanced','qcm'].indexOf(s.autoPlan.focus) < 0))) return false;
+  if (!['tasks','reviewLog','weakTopics'].every(function (k) { return s[k] === undefined || Array.isArray(s[k]); })) return false;
   if (!['day','lastDay','contestDate','planStart'].every(function (k) { return s[k] == null || (typeof s[k] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s[k])); })) return false;
   if (!Object.keys(s.units).every(function (k) {
-    var u = s.units[k]; return record(u) && fields(u, ['runs','best','crowns','lesson','ok','ko']) &&
+    var u = s.units[k]; return record(u) && fields(u, ['runs','best','lastScore','crowns','lesson','ok','ko']) &&
       (u.crowns === undefined || (Number.isInteger(u.crowns) && u.crowns <= CROWN_MAX));
   })) return false;
   if (!Object.keys(s.srs).every(function (k) {
@@ -627,7 +677,8 @@ function heartIn() {
 /* --- progression unité --- */
 function ust(did, ui) {
   var k = uKey(did, ui);
-  if (!S.units[k]) S.units[k] = { runs: 0, best: 0, crowns: 0, lesson: 0, ok: 0, ko: 0 };
+  if (!S.units[k]) S.units[k] = { runs: 0, best: 0, lastScore: 0, crowns: 0, lesson: 0, ok: 0, ko: 0 };
+  if (S.units[k].lastScore == null) S.units[k].lastScore = 0;
   return S.units[k];
 }
 function docPct(d) {
@@ -649,6 +700,173 @@ function planInfo() {
   return { date: contestDate, expired: rawLeft < 0, left: left, remaining: remaining, total: total, done: done, perDay: perDay,
     targetDone: targetDone, delta: delta, ahead: delta >= 0,
     status: delta > 0 ? 'En avance' : delta < 0 ? 'En retard' : 'Dans le rythme' };
+}
+
+/* --- Auto PrepMe : planificateur quotidien explicable et adaptatif --- */
+var AUTO_PHASES = {
+  foundation: { label: 'Comprendre et couvrir le programme', mix: { learn: .60, flashcards: .25, qcm: .15 } },
+  completion: { label: 'Terminer le programme et mémoriser', mix: { learn: .40, qcm: .35, review: .25 } },
+  consolidation: { label: 'Consolider les connaissances', mix: { learn: .20, qcm: .50, errors: .20, flashcards: .10 } },
+  lastWeek: { label: 'Optimiser la performance', mix: { learn: .10, qcm: .60, errors: .20, mock_exam: .10 } },
+  lastDay: { label: 'Révision légère et confiance', mix: { errors: .40, flashcards: .35, qcm: .25 } }
+};
+function getExamPhase(daysLeft) {
+  if (daysLeft <= 1) return 'lastDay';
+  if (daysLeft <= 7) return 'lastWeek';
+  if (daysLeft <= 14) return 'consolidation';
+  if (daysLeft <= 30) return 'completion';
+  return 'foundation';
+}
+function urgencyScore(daysLeft) {
+  return daysLeft <= 3 ? 100 : daysLeft <= 7 ? 90 : daysLeft <= 14 ? 75 : daysLeft <= 30 ? 50 : 25;
+}
+function autoTypeLabel(type) {
+  return ({ learn: 'Apprendre', review: 'Réviser', flashcards: 'Flashcards', qcm: 'Faire les QCM', errors: 'Revoir les erreurs', mock_exam: 'Examen blanc' })[type] || 'Réviser';
+}
+function autoTypeIcon(type) {
+  return ({ learn: '📚', review: '🔁', flashcards: '🃏', qcm: '⚡', errors: '🎯', mock_exam: '📝' })[type] || '🎯';
+}
+function autoUnitMetrics(d, u, ui, daysLeft) {
+  var state = S.units[uKey(d.id, ui)] || {}, ok = +(state.ok || 0), ko = +(state.ko || 0), attempts = ok + ko;
+  var tracked = 0, due = 0, errors = 0, repeated = 0, t = today();
+  u.qs.forEach(function (_, qi) {
+    var item = S.srs[qKey(d.id, ui, qi)];
+    if (!item) return;
+    tracked++;
+    if (item.due <= t) due++;
+    errors += +(item.lap || 0);
+    if ((item.lap || 0) >= 2) repeated++;
+  });
+  var accuracy = attempts ? Math.round(ok / attempts * 100) : null;
+  var unseen = !state.lesson && !attempts && !tracked;
+  var weakness = accuracy == null ? 55 : 100 - accuracy;
+  var importance = Math.min(100, 35 + Math.min(45, u.qs.length * 4) + Math.min(20, u.cards.length * 2));
+  var forgettingRisk = due ? Math.min(100, 55 + Math.round(due / Math.max(1, tracked) * 45)) : tracked ? 20 : 35;
+  var priority = urgencyScore(daysLeft) * .30 + weakness * .30 + importance * .20 + forgettingRisk * .10 + (unseen ? 100 : 0) * .10;
+  if (repeated >= 2 || errors >= 3) priority += 20;
+  return { state: state, attempts: attempts, accuracy: accuracy, lastScore: state.runs ? +(state.lastScore || 0) : null, tracked: tracked, due: due, errors: errors, repeated: repeated,
+    unseen: unseen, weakness: weakness, importance: importance, forgettingRisk: forgettingRisk, priority: Math.min(100, Math.round(priority)) };
+}
+function chooseAutoTaskType(item, phase) {
+  var m = item.metrics, u = item.unit, target = +(S.autoPlan.targetScore || 80);
+  if (phase === 'lastDay') {
+    if (m.errors) return 'errors';
+    if (u.cards.length) return 'flashcards';
+    return 'qcm';
+  }
+  if (m.repeated >= 2 || m.errors >= 3) return 'errors';
+  if (m.due) return 'review';
+  if (m.unseen && (phase !== 'lastWeek' || m.importance >= 75)) return 'learn';
+  if (m.accuracy != null && m.accuracy < target) return 'qcm';
+  if (phase === 'lastWeek' || phase === 'consolidation') return 'qcm';
+  if (u.cards.length) return 'flashcards';
+  return m.unseen ? 'learn' : 'qcm';
+}
+function autoTaskMinutes(type, u, metrics) {
+  if (type === 'learn') return Math.min(20, Math.max(8, unitMinutes(u)));
+  if (type === 'errors') return Math.min(15, Math.max(5, (metrics.errors || 3) * 2));
+  if (type === 'flashcards') return Math.min(12, Math.max(5, Math.ceil(Math.max(1, u.cards.length) * .7)));
+  if (type === 'review') return Math.min(12, Math.max(6, (metrics.due || 3) * 2));
+  return Math.min(15, Math.max(7, Math.ceil(Math.max(5, u.qs.length) * .7)));
+}
+function autoTaskReason(item, type, daysLeft) {
+  var m = item.metrics, parts = [];
+  if (m.lastScore != null && m.lastScore < (S.autoPlan.targetScore || 80)) parts.push('dernier score ' + m.lastScore + ' %');
+  else if (m.accuracy != null && m.accuracy < (S.autoPlan.targetScore || 80)) parts.push('réussite cumulée ' + m.accuracy + ' %');
+  if (m.errors) parts.push(m.errors + ' erreur' + (m.errors > 1 ? 's' : '') + ' enregistrée' + (m.errors > 1 ? 's' : ''));
+  if (m.due) parts.push(m.due + ' révision' + (m.due > 1 ? 's' : '') + ' prévue' + (m.due > 1 ? 's' : '') + ' aujourd’hui');
+  if (m.unseen) parts.push('unité jamais étudiée');
+  if (!parts.length && type === 'flashcards') parts.push('notions à entretenir par répétition espacée');
+  if (!parts.length) parts.push('unité importante à consolider');
+  parts.push(daysLeft <= 1 ? 'concours demain ou aujourd’hui' : 'concours dans ' + daysLeft + ' jours');
+  return parts.join(' · ');
+}
+function autoTaskRoute(type, did, ui) {
+  if (type === 'learn') return 'lesson/' + did + '/' + ui;
+  if (type === 'flashcards') return 'cards/' + did + '/' + ui;
+  if (type === 'mock_exam') return 'exam';
+  return 'quiz/' + did + '/' + ui;
+}
+function fillDailyTime(candidates, minutes, phase) {
+  var chosen = [], used = 0, mix = AUTO_PHASES[phase].mix, limits = {}, completed = {}, completedUnits = {};
+  (S.reviewLog || []).forEach(function (entry) {
+    if (entry.date !== today()) return;
+    completed[entry.taskId] = true;
+    var unitMatch = /^auto-\d{4}-\d{2}-\d{2}-(?:learn|review|flashcards|qcm|errors)-(\d+)-(\d+)$/.exec(entry.taskId || '');
+    if (unitMatch) completedUnits[unitMatch[1] + '.' + unitMatch[2]] = true;
+  });
+  Object.keys(mix).forEach(function (type) { limits[type] = Math.max(5, Math.round(minutes * mix[type])); });
+  candidates = candidates.filter(function (x) { return !completed[x.id] && !completedUnits[x.docId + '.' + x.unitIndex]; });
+  while (candidates.length && chosen.length < 6) {
+    candidates.sort(function (a, b) {
+      var aRoom = (limits[a.type] || 0) - chosen.filter(function (x) { return x.type === a.type; }).reduce(function (n, x) { return n + x.estimatedMinutes; }, 0);
+      var bRoom = (limits[b.type] || 0) - chosen.filter(function (x) { return x.type === b.type; }).reduce(function (n, x) { return n + x.estimatedMinutes; }, 0);
+      return (b.priority + (bRoom > 0 ? 12 : 0)) - (a.priority + (aRoom > 0 ? 12 : 0));
+    });
+    var pickIndex = candidates.findIndex(function (x) { return !chosen.some(function (y) { return y.docId === x.docId && y.unitIndex === x.unitIndex; }) && (used + x.estimatedMinutes <= minutes || !chosen.length); });
+    if (pickIndex < 0) break;
+    var pick = candidates.splice(pickIndex, 1)[0];
+    chosen.push(pick); used += pick.estimatedMinutes;
+  }
+  return chosen;
+}
+function generateAutoPlan() {
+  var contestDate = /^\d{4}-\d{2}-\d{2}$/.test(S.contestDate || '') ? S.contestDate : CONTEST_DATE;
+  var daysLeft = Math.max(0, dayDiff(today(), contestDate));
+  var phase = getExamPhase(daysLeft), minutes = +(S.autoPlan.dailyMinutes || 45), candidates = [], weak = [];
+  var now = new Date(), isWeekend = now.getDay() === 0 || now.getDay() === 6;
+  if (isWeekend && S.autoPlan.weekend === false) return { tasks: [], phase: phase, daysLeft: daysLeft, minutes: minutes, restDay: true };
+  COURSE_DOCS.forEach(function (d) {
+    d.units.forEach(function (u, ui) {
+      if (!u.qs.length && !u.cards.length) return;
+      var metrics = autoUnitMetrics(d, u, ui, daysLeft), item = { doc: d, unit: u, unitIndex: ui, metrics: metrics };
+      var type = chooseAutoTaskType(item, phase);
+      if (S.autoPlan.mode === 'learn' && metrics.unseen && phase !== 'lastDay') type = 'learn';
+      if (S.autoPlan.mode === 'review' && !metrics.unseen) type = metrics.errors ? 'errors' : metrics.due ? 'review' : 'qcm';
+      if (S.autoPlan.focus === 'qcm' && u.qs.length) type = metrics.errors ? 'errors' : 'qcm';
+      var priority = metrics.priority + (S.autoPlan.focus === 'qcm' && (type === 'qcm' || type === 'errors') ? 25 : 0);
+      var id = 'auto-' + today() + '-' + type + '-' + d.id + '-' + ui;
+      candidates.push({ id: id, type: type, title: u.t, docId: d.id, unitIndex: ui, priority: Math.min(100, priority),
+        estimatedMinutes: autoTaskMinutes(type, u, metrics), reason: autoTaskReason(item, type, daysLeft), status: 'pending',
+        scheduledDate: today(), route: autoTaskRoute(type, d.id, ui), accuracy: metrics.accuracy, errors: metrics.errors,
+        questionCount: type === 'qcm' || type === 'errors' || type === 'review' ? Math.min(20, Math.max(1, u.qs.length)) : 0,
+        cardCount: type === 'flashcards' ? Math.min(20, u.cards.length || u.qs.length) : 0 });
+      if (metrics.accuracy != null && metrics.accuracy < (S.autoPlan.targetScore || 80)) weak.push({ docId: d.id, unitIndex: ui, title: u.t, accuracy: metrics.accuracy, errors: metrics.errors });
+    });
+  });
+  if ((phase === 'lastWeek' || phase === 'consolidation') && daysLeft > 1) {
+    candidates.push({ id: 'auto-' + today() + '-mock', type: 'mock_exam', title: 'Examen blanc mélangé', docId: 0, unitIndex: 0,
+      priority: phase === 'lastWeek' ? 88 : 72, estimatedMinutes: Math.min(20, Math.max(10, Math.round(minutes * .25))),
+      reason: 'Mesurer les progrès en conditions réelles · concours dans ' + daysLeft + ' jours', status: 'pending', scheduledDate: today(), route: 'exam', questionCount: 20, cardCount: 0 });
+  }
+  weak.sort(function (a, b) { return a.accuracy - b.accuracy || b.errors - a.errors; });
+  S.weakTopics = weak.slice(0, 12);
+  return { tasks: fillDailyTime(candidates, minutes, phase), phase: phase, daysLeft: daysLeft, minutes: minutes, restDay: false };
+}
+function regenerateAutoPlan() {
+  var plan = generateAutoPlan();
+  S.tasks = plan.tasks;
+  S.autoPlan.lastGenerated = today();
+  S.autoPlan.phase = plan.phase;
+  S.autoPlan.restDay = plan.restDay;
+  save();
+  return plan;
+}
+function ensureAutoPlan() {
+  if (!S.autoPlan || !S.autoPlan.enabled) return { tasks: [], phase: getExamPhase(planInfo().left), daysLeft: planInfo().left, minutes: 0 };
+  if (S.autoPlan.focusDate !== today()) { S.autoPlan.focus = 'balanced'; S.autoPlan.focusDate = today(); }
+  if (S.autoPlan.lastGenerated !== today() || !Array.isArray(S.tasks)) return regenerateAutoPlan();
+  return { tasks: S.tasks, phase: S.autoPlan.phase || getExamPhase(planInfo().left), daysLeft: planInfo().left, minutes: S.autoPlan.dailyMinutes, restDay: !!S.autoPlan.restDay };
+}
+function completeAutoTask(taskId, score) {
+  if (!taskId) return;
+  if (!Array.isArray(S.reviewLog)) S.reviewLog = [];
+  if (!S.reviewLog.some(function (x) { return x.date === today() && x.taskId === taskId; })) {
+    var task = (S.tasks || []).find(function (x) { return x.id === taskId; });
+    S.reviewLog.push({ date: today(), taskId: taskId, type: task ? task.type : 'review', score: Math.max(0, Math.round(score || 0)) });
+    if (S.reviewLog.length > 200) S.reviewLog = S.reviewLog.slice(-200);
+  }
+  regenerateAutoPlan();
 }
 function dateFr(s) {
   var p = String(s || '').split('-');
@@ -773,9 +991,9 @@ function dailyReminder() {
   }
 }
 
-/* --- SRS : paliers 0-5, intervalles 1 / 3 / 7 / 16 / 35 / 90 jours ---
+/* --- SRS : paliers 0-5, intervalles 1 / 3 / 7 / 14 / 30 / 60 jours ---
    Règle : une erreur DESCEND DE 2 PALIERS, elle ne remet jamais à zéro. */
-var BOX_IV = [1, 3, 7, 16, 35, 90];
+var BOX_IV = [1, 3, 7, 14, 30, 60];
 function srs(k) {
   if (!S.srs[k]) S.srs[k] = { b: 0, due: today(), lap: 0, seen: 0 };
   if (S.srs[k].b == null) S.srs[k].b = 0;        // reprise d'une ancienne sauvegarde
@@ -787,7 +1005,7 @@ function grade(k, g) {                      // g : 0 = raté, 3 dur, 4 bien, 5 f
   if (g < 3) {
     it.b = Math.max(0, it.b - 2);           // jamais de remise à zéro
     it.lap = (it.lap || 0) + 1;
-    it.due = today();                       // repasse dans la séance du jour
+    it.due = dayShift(today(), 1);          // reprise courte le lendemain
   } else if (g === 3) {
     it.due = dayShift(today(), Math.max(1, Math.round(BOX_IV[it.b] / 2)));
   } else {
@@ -1107,6 +1325,25 @@ function trackPageView() {
     page_path: location.pathname + location.search + (location.hash || '#/')
   });
 }
+function trackEvent(name, parameters) {
+  if (window.PREP_ANALYTICS && typeof window.PREP_ANALYTICS.track === 'function') {
+    return window.PREP_ANALYTICS.track(name, parameters || {});
+  }
+  return false;
+}
+var LAST_ANALYTICS_ROUTE = '';
+function trackRouteOpen(parts) {
+  var key = parts.join('/');
+  if (key === LAST_ANALYTICS_ROUTE) return;
+  LAST_ANALYTICS_ROUTE = key;
+  if (parts[0] !== 'doc' && parts[0] !== 'lesson') return;
+  var did = +parts[1], parameters = {
+    course_id: String(did),
+    view_type: parts[0] === 'lesson' ? 'lesson' : 'module'
+  };
+  if (parts[0] === 'lesson' && parts[2] != null) parameters.unit_index = +parts[2];
+  trackEvent('course_open', parameters);
+}
 document.addEventListener('click', function (event) {
   var button = event.target.closest && event.target.closest('button, a');
   if (!button) return;
@@ -1133,6 +1370,7 @@ function render() {
   trackPageView();
   rollDay(); hearts();
   var r = route(), v = r[0] || '';
+  trackRouteOpen(r);
   window.scrollTo(0, 0);
   var html;
   switch (v) {
@@ -1188,12 +1426,17 @@ function navBar(v) {
 }
 function vPdfs() {
   var list = window.PREP_PDFS || [];
-  var h = bar('Cours PDF', '') + '<div class="wrap"><h1>📚 Cours PDF</h1><div class="sub">Les documents sont intégrés au fichier autonome. En PWA, laisse le premier téléchargement se terminer avant de passer hors ligne.</div><div class="spacer"></div>';
+  var h = bar('Cours PDF', '') + '<div class="wrap"><h1>📚 Cours PDF</h1><div class="sub">Les documents sont conservés hors ligne et chargés uniquement lorsque tu les ouvres.</div><div class="spacer"></div>';
   list.forEach(function (p, i) {
     var href = 'cours-pdf/' + encodeURIComponent(p[2]);
-    h += '<article class="card pdf-course"><div class="pdf-course-main"><div class="pdf-course-icon">📄</div><div class="pdf-course-copy"><b>' + esc(p[0] + '. ' + p[1]) + '</b><div class="sub">Lecture dans PrepMe · disponible hors ligne</div></div></div><div class="pdf-course-actions"><button class="btn blue sm" data-go="pdfview/' + i + '">👁️ Visualiser</button><a class="btn ghost sm" data-course-download="' + i + '" download href="' + href + '">⬇️ Télécharger</a></div></article>';
+    h += '<article class="card pdf-course"><div class="pdf-course-main"><div class="pdf-course-icon">📄</div><div class="pdf-course-copy"><b>' + esc(p[0] + '. ' + p[1]) + '</b><div class="sub">Lecture dans PrepMe · disponible hors ligne</div></div></div><div class="pdf-course-actions">' +
+      (p[3] ? '<button class="btn sm" data-go="doc/' + p[3] + '">📖 Lire le cours</button>' : '') +
+      '<button class="btn blue sm" data-go="pdfview/' + i + '">👁️ Visualiser</button><a class="btn ghost sm" data-course-download="' + i + '" download href="' + href + '">⬇️ Télécharger</a></div></article>';
   });
   return h + '</div>';
+}
+function nativeFilePdfHtml(title, href, back) {
+  return bar(title, back) + '<div class="pdf-native-reader"><iframe class="pdf-native-frame" src="' + esc(href) + '" title="' + esc('PDF — ' + title) + '"></iframe><div class="pdf-download"><a class="btn blue sm" href="' + esc(href) + '" target="_blank" rel="noopener">Ouvrir le PDF</a><a class="btn ghost sm" download href="' + esc(href) + '">⬇️ Télécharger</a></div></div>';
 }
 function vPdfView(index, startPage, backDid, backUi) {
   var p = (window.PREP_PDFS || [])[+index];
@@ -1201,6 +1444,7 @@ function vPdfView(index, startPage, backDid, backUi) {
   var href = 'cours-pdf/' + encodeURIComponent(p[2]);
   var fallback = githubRawFile('cours-pdf', p[2]);
   var back = backDid !== undefined && backUi !== undefined ? 'lesson/' + backDid + '/' + backUi : 'pdf';
+  if (location.protocol === 'file:' && !window.PrepMeAPK) return nativeFilePdfHtml(p[1], href, back);
   return bar(p[1], back) + '<div class="pdf-reader" data-pdf-src="' + href + '" data-pdf-embedded="' + esc(p[2]) + '" data-pdf-fallback="' + esc(fallback) + '" data-pdf-page="' + Math.max(1, +(startPage || 1)) + '">' +
     '<div class="pdf-toolbar"><button class="pdf-tool" id="pdfPrev">←</button><span id="pdfPage">Page…</span><button class="pdf-tool" id="pdfNext">→</button><button class="pdf-tool" id="pdfZoomOut">−</button><span id="pdfZoom">100%</span><button class="pdf-tool" id="pdfZoomIn">+</button></div>' +
     '<div class="pdf-status" id="pdfStatus">Chargement du PDF…</div><div class="pdf-canvas-wrap"><canvas id="pdfCanvas"></canvas></div>' +
@@ -1401,6 +1645,7 @@ function vConcoursPdfView(index) {
   if (!p || p.format !== 'PDF') return vConcours();
   var href = concoursPdfHref(p);
   var fallback = githubRawFile(p.folder || 'concours-commun', p.file);
+  if (location.protocol === 'file:' && !window.PrepMeAPK) return nativeFilePdfHtml(p.title, href, 'concours');
   return bar(p.title, 'concours') + '<div class="pdf-reader" data-pdf-src="' + href + '" data-pdf-embedded="' + esc(concoursEmbeddedKey(p)) + '" data-pdf-fallback="' + esc(fallback) + '">' +
     '<div class="pdf-toolbar"><button class="pdf-tool" id="pdfPrev">←</button><span id="pdfPage">Page…</span><button class="pdf-tool" id="pdfNext">→</button><button class="pdf-tool" id="pdfZoomOut">−</button><span id="pdfZoom">100%</span><button class="pdf-tool" id="pdfZoomIn">+</button></div>' +
     '<div class="pdf-status" id="pdfStatus">Chargement du PDF…</div><div class="pdf-canvas-wrap"><canvas id="pdfCanvas"></canvas></div>' +
@@ -1423,6 +1668,32 @@ function jobAlertHtml() {
     '</article>';
 }
 
+function autoPlanCardHtml(plan) {
+  var tasks = plan.tasks || [], first = tasks[0], totalMinutes = tasks.reduce(function (n, task) { return n + task.estimatedMinutes; }, 0);
+  var qcm = tasks.reduce(function (n, task) { return n + (task.questionCount || 0); }, 0);
+  var cards = tasks.reduce(function (n, task) { return n + (task.cardCount || 0); }, 0);
+  var progress = progressDashboardInfo(), phase = AUTO_PHASES[plan.phase] || AUTO_PHASES.foundation;
+  var h = '<section class="card auto-plan-card" aria-labelledby="auto-plan-title"><div class="auto-plan-head"><div><span class="auto-plan-kicker">🎯 Auto PrepMe décide</span><h2 id="auto-plan-title">Ton plan utile du jour</h2><p>' + (plan.daysLeft <= 1 ? 'Dernier jour avant l’échéance' : 'Concours dans ' + plan.daysLeft + ' jours') + ' · ' + esc(phase.label) + '</p></div><span class="auto-plan-time">' + totalMinutes + '<small>min</small></span></div>';
+  h += '<div class="auto-plan-signals"><span>⚠️ <b>' + progress.groups.fragile.length + '</b> fragile' + (progress.groups.fragile.length > 1 ? 's' : '') + '</span><span>🔁 <b>' + dueList().length + '</b> à revoir</span><span>📚 <b>' + progress.groups.unseen.length + '</b> jamais vue' + (progress.groups.unseen.length > 1 ? 's' : '') + '</span></div>';
+  if (plan.restDay) {
+    h += '<div class="auto-plan-empty"><b>Week-end libre</b><p>Tu as choisi de ne pas planifier de séance le week-end. Tu peux modifier ce choix dans Réglages.</p></div>';
+  } else if (!tasks.length) {
+    h += '<div class="auto-plan-empty"><b>Programme du jour terminé ✅</b><p>Les priorités prévues ont été accomplies. Une séance libre reste disponible si tu veux continuer.</p><button class="btn blue" data-act="freeplay">Faire 15 QCM libres</button></div>';
+  } else {
+    h += '<div class="auto-plan-summary"><b>' + tasks.length + ' tâche' + (tasks.length > 1 ? 's' : '') + '</b><span>' + qcm + ' QCM' + (cards ? ' · ' + cards + ' flashcards' : '') + '</span></div><div class="auto-task-list">';
+    tasks.forEach(function (task, index) {
+      var d = task.docId ? doc(task.docId) : null;
+      h += '<article class="auto-task"><button class="auto-task-main" data-auto-task="' + esc(task.id) + '"><span class="auto-task-rank">' + (index + 1) + '</span><span class="auto-task-icon">' + autoTypeIcon(task.type) + '</span><span class="auto-task-copy"><b>' + esc(autoTypeLabel(task.type) + ' · ' + task.title) + '</b><small>' + (d ? esc(d.code + '. ' + d.title) + ' · ' : '') + task.estimatedMinutes + ' min · priorité ' + task.priority + '/100</small></span><strong>›</strong></button>' +
+        '<details><summary>Pourquoi cette tâche ?</summary><p>' + esc(task.reason) + '.</p></details></article>';
+    });
+    h += '</div><button class="btn auto-plan-primary" data-auto-task="' + esc(first.id) + '">▶ Commencer la session recommandée</button>';
+  }
+  h += '<div class="auto-plan-controls"><button class="btn ghost sm" data-act="preferQcm">⚡ Je préfère faire des QCM</button><label><span>Temps disponible</span><select id="autoDailyMinutes">' +
+    [15,30,45,60,90].map(function (n) { return '<option value="' + n + '"' + (S.autoPlan.dailyMinutes === n ? ' selected' : '') + '>' + n + ' min</option>'; }).join('') +
+    '</select></label></div></section>';
+  return h;
+}
+
 /* ------------------------------------------------------------ vue ACCUEIL */
 function vHome() {
   var due = dueList().length;
@@ -1431,6 +1702,7 @@ function vHome() {
   var week = weeklyInfo();
   var league = leagueData();
   var autoMode = S.homeMode !== 'manual';
+  var autoPlan = autoMode ? ensureAutoPlan() : null;
   var totQ = 0; COURSE_DOCS.forEach(function (d) { d.units.forEach(function (u) { totQ += u.qs.length; }); });
   var nextU = firstUnfinished();
   var focusTarget = reviewTargets()[0];
@@ -1462,7 +1734,8 @@ function vHome() {
   h += '<div class="wrap">';
   h += jobAlertHtml();
   if (resume) h += '<div class="card resume-card" style="border-color:var(--blue)"><div class="row"><div style="flex:1"><b>▶️ Reprendre</b><div class="sub">' + esc(resumeLabel) + ' · dernière activité conservée sur cet appareil</div></div><button class="btn blue sm" data-go="' + esc(resume) + '">Reprendre</button></div></div>';
-  h += '<div class="mode-switch" role="group" aria-label="Mode de préparation"><button class="' + (autoMode ? 'on' : '') + '" data-home-mode="auto"><b>✨ Auto</b><small>PrepMe décide</small></button><button class="' + (!autoMode ? 'on' : '') + '" data-home-mode="manual"><b>🖐️ Manuel</b><small>Je vois tout et je choisis</small></button></div>';
+  h += '<div class="mode-switch" role="group" aria-label="Mode de préparation"><button class="' + (autoMode ? 'on' : '') + '" data-home-mode="auto"><b>✨ Auto</b><small>PrepMe te guide</small></button><button class="' + (!autoMode ? 'on' : '') + '" data-home-mode="manual"><b>🖐️ Manuel</b><small>Je choisis mon rythme</small></button></div>';
+  if (autoMode) h += autoPlanCardHtml(autoPlan);
   h += '<button class="card league-teaser" data-go="league"><span class="league-teaser-icon">' + league.tier.icon + '</span><span><b>Ligue ' + esc(league.tier.name) + ' · #' + league.rank + '</b><small>' + league.week.total + ' XP cette semaine' + (league.gap ? ' · ' + league.gap + ' XP pour dépasser le suivant' : ' · tu es en tête') + '</small></span><strong>›</strong></button>';
   if (!autoMode) {
   var paceLabel = plan.delta > 0 ? plan.delta + ' unité' + (plan.delta > 1 ? 's' : '') + ' d’avance' :
@@ -1495,14 +1768,6 @@ function vHome() {
     });
     if (targets.length > 6) h += '<div class="sub">+' + (targets.length - 6) + ' autres cours à revoir</div>';
   }
-  } else {
-    var autoLearnGo = nextU ? 'lesson/' + nextU.d + '/' + nextU.u : 'doc/1';
-    var autoLearnText = nextU ? 'Prochaine unité du chemin' : 'Revoir un module déjà parcouru';
-    h += '<div class="card auto-action"><div class="auto-action-icon">✨</div><b>PrepMe te conseille</b><div class="auto-action-title">' + nextAction.title + '</div><div class="sub">' + nextAction.detail + '</div><div class="auto-meta"><span>🎯 ' + nextAction.why + '</span><span>⏱️ ' + nextAction.time + '</span></div><div class="spacer"></div><button class="btn" data-go="' + nextAction.go + '">' + nextAction.title + '</button></div>' +
-      '<h2>✅ Priorités du jour</h2><div class="sub daily-intro">Voici tout ce que tu peux faire aujourd’hui. PrepMe choisit automatiquement la prochaine leçon.</div><div class="daily-plan">' +
-      '<button class="daily-step" data-go="review" aria-label="Consolider les révisions"><span class="daily-num">1</span><span><b>Consolider</b><small>' + (due ? due + ' révision' + (due > 1 ? 's' : '') + ' à faire' : 'Révisions à jour') + '</small></span><strong>›</strong></button>' +
-      '<button class="daily-step" data-go="' + autoLearnGo + '" aria-label="Apprendre la prochaine unité"><span class="daily-num">2</span><span><b>Apprendre</b><small>' + autoLearnText + '</small></span><strong>›</strong></button>' +
-      '<button class="daily-step" data-go="exam" aria-label="Se tester avec un examen blanc"><span class="daily-num">3</span><span><b>Se tester</b><small>Examen blanc chronométré</small></span><strong>›</strong></button></div>';
   }
   if (!autoMode) {
   h += '<div class="qa-grid">' +
@@ -1615,10 +1880,14 @@ function vLesson(did, ui) {
   var d = doc(did), u = unit(did, ui); if (!u) return vHome();
   window.PREP_SPEAK_TEXT = (u.lesson || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   var s = ust(d.id, ui); s.lesson = 1; save();
-  return bar(u.t, 'doc/' + d.id) + '<div class="wrap">' + legendHL() +
+  var autoTask = activeAutoTask(d.id, +ui);
+  var guidedStep = autoTask ? '<div class="auto-lesson-step"><span>1/2</span><div><b>D’abord, revois cette fiche</b><small>Ensuite, poursuis avec ' + esc(autoTaskActivityLabel(autoTask)) + '.</small></div></div>' : '';
+  var nextButton = autoTask ? '<button class="btn auto-lesson-next" data-auto-continue="' + esc(autoTask.id) + '">Étape 2/2 · ' + esc(autoTaskButtonLabel(autoTask)) + ' →</button>' :
+    (u.qs.length ? '<button class="btn" data-go="quiz/' + d.id + '/' + ui + '">Passer au quiz →</button>' : '<div class="card sub">📖 Consultation du document source. Aucun QCM interactif validé pour cette page.</div>');
+  return bar(u.t, autoTask ? 'home' : 'doc/' + d.id) + '<div class="wrap">' + guidedStep + legendHL() +
     abbreviationBox(u) + sourceBox(d.id, ui) + '<div class="card lesson">' +
     rich(decorate(u.lesson) || '<p class="muted">Pas de leçon pour cette unité.</p>') + '</div>' +
-    (u.qs.length ? '<button class="btn" data-go="quiz/' + d.id + '/' + ui + '">Passer au quiz →</button>' : '<div class="card sub">📖 Consultation du document source. Aucun QCM interactif validé pour cette page.</div>') +
+    nextButton +
     '<div class="spacer"></div>' +
     '<div class="row2">' +
     '<button class="btn ghost sm" data-act="speak">🔊 Écouter</button>' +
@@ -1640,10 +1909,36 @@ function vQuizStart(did, ui) {
   RUN = {
     mode: 'lesson', items: shuffle(pool).slice(0, n), i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0,
     xp: 0, back: ui === 'all' ? 'doc/' + d.id : 'doc/' + d.id, title: ui === 'all' ? d.title : unit(did, ui).t,
-    did: d.id, ui: ui === 'all' ? null : +ui, wrong: [], t0: Date.now()
+    did: d.id, ui: ui === 'all' ? null : +ui, wrong: [], t0: Date.now(), autoTaskId: activeAutoTaskId(d.id, ui === 'all' ? null : +ui)
   };
   if (!S.unlimited && hearts() <= 0) return vNoHearts();
+  trackQcmStart(RUN);
   return quizFrame();
+}
+function qcmAnalyticsParameters(R, item) {
+  var parameters = {
+    qcm_mode: R.mode,
+    question_count: R.items.length
+  };
+  if (R.did != null) parameters.course_id = String(R.did);
+  if (R.ui != null) parameters.unit_index = +R.ui;
+  if (item) {
+    parameters.question_id = item.k || '';
+    parameters.question_number = R.i + 1;
+    if (item.d != null) parameters.course_id = String(item.d);
+    if (item.u != null) parameters.unit_index = +item.u;
+  }
+  return parameters;
+}
+var LAST_QCM_START_KEY = '', LAST_QCM_START_AT = 0;
+function trackQcmStart(R) {
+  var parameters = qcmAnalyticsParameters(R);
+  var key = [parameters.qcm_mode, parameters.course_id || '', parameters.unit_index == null ? '' : parameters.unit_index, parameters.question_count].join(':');
+  var now = Date.now();
+  if (key === LAST_QCM_START_KEY && now - LAST_QCM_START_AT < 3000) return;
+  LAST_QCM_START_KEY = key;
+  LAST_QCM_START_AT = now;
+  trackEvent('qcm_start', parameters);
 }
 function vNoHearts() {
   return bar('Plus de cœurs', '') + '<div class="wrap center">' +
@@ -1714,6 +2009,10 @@ function answer(chosen) {
     var w = ROOT.querySelector('.qtext'); if (w) { w.classList.add('shake'); setTimeout(function () { w.classList.remove('shake'); }, 400); }
   }
   var us = ust(it.d, it.u); if (correct) us.ok++; else us.ko++; save();
+  var answerParameters = qcmAnalyticsParameters(R, it);
+  answerParameters.correct = correct;
+  trackEvent('question_answered', answerParameters);
+  trackEvent(correct ? 'answer_correct' : 'answer_wrong', answerParameters);
 
   var fb = document.createElement('div');
   fb.className = 'fbbar ' + (correct ? 'ok' : 'ko');
@@ -1742,18 +2041,20 @@ function quizEnd() {
   addXP(R.xp + (R.mode === 'lesson' ? 10 : 0) + (pct === 100 ? 5 : 0));
   if (R.mode === 'lesson' && R.ui != null) {
     var s = ust(R.did, R.ui);
-    s.runs++; s.best = Math.max(s.best, pct);
+    s.runs++; s.lastScore = pct; s.best = Math.max(s.best, pct);
     if (pct >= CROWN_PCT * 100 && s.crowns < CROWN_MAX) { s.crowns++; beep('up'); confetti(); }
     save();
   }
   if (pct >= 80) { beep('up'); if (pct === 100) confetti(); }
   var secs = Math.round((Date.now() - R.t0) / 1000);
   recordSession(R.mode === 'lesson' ? 'quiz' : 'revision', R.ok, tot, secs, R.title || '');
-  if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('quiz_completed', {
-    mode: R.mode,
+  completeAutoTask(R.autoTaskId, pct);
+  trackEvent('qcm_completed', {
+    quiz_mode: R.mode,
+    course_id: R.did != null ? String(R.did) : '',
+    unit_index: R.ui != null ? +R.ui : -1,
+    score: pct,
     question_count: tot,
-    correct_count: R.ok,
-    score_percent: pct,
     duration_seconds: secs
   });
   var h = bar('Résultat', '') + '<div class="wrap center">' +
@@ -1831,6 +2132,7 @@ function vReview() {
     mode: 'review', items: plan.items, i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0,
     wrong: [], t0: Date.now(), back: '', title: 'Révision', did: null, ui: null, plan: plan
   };
+  if (RUN.items.some(function (item) { return item.type === 'q'; })) trackQcmStart(RUN);
   return reviewFrame();
 }
 function reviewFrame() {
@@ -1866,7 +2168,15 @@ function cardGrade(g) {
 }
 function reviewEnd() {
   var R = RUN;
-  recordSession('revision', R.ok, R.items.length, (Date.now() - R.t0) / 1000, 'Révision espacée');
+  var revisionSeconds = Math.round((Date.now() - R.t0) / 1000);
+  recordSession('revision', R.ok, R.items.length, revisionSeconds, 'Révision espacée');
+  completeAutoTask(R.autoTaskId, R.items.length ? R.ok / R.items.length * 100 : 0);
+  trackEvent('revision_completed', {
+    item_count: R.items.length,
+    correct_count: R.ok,
+    score: R.items.length ? Math.round(R.ok / R.items.length * 100) : 0,
+    duration_seconds: revisionSeconds
+  });
   addXP(R.xp + 5);
   if (!S.unlimited && S.hearts < HEART_MAX && R.items.length >= 5) { gainHeart(1); }
   beep('up');
@@ -1897,7 +2207,7 @@ function vCardsStart(did, ui) {
     mode: 'review',
     items: shuffle(pool).map(function (p) { return { type: 'c', c: p.c, k: p.k, d: p.d, u: p.u }; }).slice(0, one ? 20 : 30),
     i: 0, ok: 0, ko: 0, xp: 0, combo: 0, maxCombo: 0, wrong: [], t0: Date.now(),
-    back: back, did: d ? d.id : null, ui: one ? +ui : null
+    back: back, did: d ? d.id : null, ui: one ? +ui : null, autoTaskId: activeAutoTaskId(d ? d.id : null, one ? +ui : null)
   };
   return reviewFrame();
 }
@@ -1935,8 +2245,9 @@ function startExam() {
     mode: 'exam', items: shuffle(pool).slice(0, n), i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [],
     t0: Date.now(), back: 'exam', did: null, ui: null,
     scope: scope ? doc(scope).code + '. ' + doc(scope).title : 'Tous les modules',
-    end: chrono ? Date.now() + n * 45000 : 0
+    end: chrono ? Date.now() + n * 45000 : 0, autoTaskId: activeAutoTaskId(0, 0, 'mock_exam')
   };
+  trackQcmStart(RUN);
   ROOT.innerHTML = quizFrame() + navBar('exam'); bind(); tickExam();
 }
 function tickExam() {
@@ -1956,10 +2267,10 @@ function examEnd() {
   var R = RUN, tot = R.items.length, pct = tot ? Math.round(R.ok / tot * 100) : 0;
   var secs = Math.round((Date.now() - R.t0) / 1000);
   recordSession('examen', R.ok, tot, secs, R.scope);
-  if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('exam_completed', {
+  completeAutoTask(R.autoTaskId, pct);
+  if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('exam_complete', {
+    score: pct,
     question_count: tot,
-    correct_count: R.ok,
-    score_percent: pct,
     duration_seconds: secs
   });
   addXP(R.xp + 25);
@@ -1989,6 +2300,12 @@ function examEnd() {
 }
 
 /* -------------------------------------------------------- vue CLASSEMENT */
+function options(list, selected, placeholder) {
+  return list.map(function (value) {
+    var label = value || placeholder;
+    return '<option value="' + esc(value) + '"' + (value === selected ? ' selected' : '') + '>' + esc(label) + '</option>';
+  }).join('');
+}
 function vLeague() {
   var data = leagueData(), tier = data.tier, profile = S.profile || {};
   var nextPct = tier.next ? Math.max(0, Math.min(100, Math.round((S.xp - tier.min) / (tier.next - tier.min) * 100))) : 100;
@@ -1996,12 +2313,6 @@ function vLeague() {
   var statusClass = data.rank <= 3 ? 'promote' : data.rank <= 7 ? 'safe' : 'push';
   var diplomaOptions = ['','Infirmier(ère)','Technicien(ne) de santé','Sage-femme','Kinésithérapeute','Manipulateur(trice) radio','Laboratoire','Autre diplôme de santé'];
   var targetOptions = ['','Concours commun','Concours de spécialité','EAP / échelle 11','Autre concours'];
-  function options(list, selected, placeholder) {
-    return list.map(function (value) {
-      var label = value || placeholder;
-      return '<option value="' + esc(value) + '"' + (value === selected ? ' selected' : '') + '>' + esc(label) + '</option>';
-    }).join('');
-  }
   var h = bar('Classement', '') + '<main class="wrap league-page">';
   h += '<section class="league-hero" style="--league-color:' + tier.color + '"><span class="league-kicker">LIGUE DE LA SEMAINE</span><div class="league-trophy" aria-hidden="true">' + tier.icon + '</div><h1>Ligue ' + esc(tier.name) + '</h1><p>Du lundi ' + esc(dateFr(data.week.start)) + ' au dimanche ' + esc(dateFr(data.week.end)) + '</p><div class="league-rank-summary"><span><b>#' + data.rank + '</b> rang</span><span><b>' + data.week.total + '</b> XP</span><span><b>' + data.week.remaining + '</b> jour' + (data.week.remaining > 1 ? 's' : '') + '</span></div></section>';
   h += '<section class="card league-season"><div class="row"><div style="flex:1"><b>' + esc(status) + '</b><div class="sub">' + (data.gap ? 'Encore ' + data.gap + ' XP pour dépasser la personne juste devant toi.' : 'Bravo, tu occupes la première place cette semaine.') + '</div></div><span class="league-status ' + statusClass + '">#' + data.rank + '</span></div>' +
@@ -2103,8 +2414,7 @@ function vStats() {
 function vSettings() {
   var h = bar('Réglages', '') + '<div class="wrap">';
   var analyticsState = window.PREP_ANALYTICS ? window.PREP_ANALYTICS.status() : 'indisponible';
-  var analyticsConsent = window.PREP_ANALYTICS ? window.PREP_ANALYTICS.consentStatus() : 'indisponible';
-  h += '<div class="card"><b>Mesure d\'audience Google Analytics</b><div class="sub">État de la balise GA4 : <b>' + esc(analyticsState) + '</b> · consentement : <b>' + esc(analyticsConsent) + '</b> · identifiant G-6JX59N8YQT</div><div class="spacer"></div><div class="row2"><button class="btn blue sm" data-analytics-consent="accept">Accepter</button><button class="btn ghost sm" data-analytics-consent="refuse">Refuser</button></div></div>';
+  h += '<div class="card"><b>Mesure d\'audience Google Analytics</b><div class="sub">État de la balise GA4 : <b>' + esc(analyticsState) + '</b> · identifiant G-6JX59N8YQT</div></div>';
   var storageState = '✅ Stockage local disponible';
   var storageDetail = '';
   try { localStorage.setItem('__prepme_diag__', '1'); localStorage.removeItem('__prepme_diag__'); } catch (e) { storageState = '⚠️ Stockage local indisponible'; }
@@ -2116,6 +2426,10 @@ function vSettings() {
   } catch (e2) { storageDetail = '<br>⚠️ détails du stockage indisponibles'; }
   var networkState = navigator.onLine ? '🌐 Connexion disponible' : '📴 Fonctionnement hors ligne';
   h += '<div class="card"><b>🗓️ Date de mon concours</b><div class="sub">Le rythme quotidien et le compte à rebours s’adaptent automatiquement.</div><div class="spacer"></div><label class="date-field"><span>Date prévue</span><input type="date" id="contestDate" value="' + esc(S.contestDate || CONTEST_DATE) + '"></label></div>';
+  h += '<div class="card auto-settings"><b>🎯 Auto PrepMe décide</b><div class="sub">Personnalise le temps disponible et le niveau de maîtrise visé. Le plan est recalculé après chaque séance.</div><div class="spacer"></div><div class="auto-settings-grid">' +
+    '<label><span>Temps par jour</span><select id="autoDailyMinutesSettings">' + [15,30,45,60,90].map(function (n) { return '<option value="' + n + '"' + (S.autoPlan.dailyMinutes === n ? ' selected' : '') + '>' + n + ' minutes</option>'; }).join('') + '</select></label>' +
+    '<label><span>Score cible</span><select id="autoTargetScore">' + [60,70,80,90].map(function (n) { return '<option value="' + n + '"' + (S.autoPlan.targetScore === n ? ' selected' : '') + '>' + n + ' %</option>'; }).join('') + '</select></label></div>' +
+    '<div class="hr"></div><label class="row" style="justify-content:space-between"><span><b>Disponible le week-end</b><div class="sub">Créer aussi un programme samedi et dimanche</div></span><input type="checkbox" id="autoWeekend"' + (S.autoPlan.weekend ? ' checked' : '') + ' style="width:22px;height:22px"></label></div>';
   h += '<div class="card"><b>Objectif quotidien</b><div class="sub">XP à gagner chaque jour pour garder ta série</div>' +
     '<div class="spacer"></div><div class="row3">' +
     [20, 50, 100].map(function (g) { return '<button class="btn ' + (S.goal === g ? '' : 'ghost') + ' sm" data-goal="' + g + '">' + g + ' XP</button>'; }).join('') +
@@ -2161,6 +2475,7 @@ function vAbout() {
 
 /* ---------------------------------------------------------- vue RECHERCHE */
 var SQ = '';
+var LAST_TRACKED_SEARCH = '';
 function vSearch() {
   var q = SQ.toLowerCase().trim();
   var h = bar('Recherche', '') + '<div class="wrap">' +
@@ -2179,6 +2494,10 @@ function vSearch() {
     });
   });
   res.sort(function (a, b) { return b.score - a.score; });
+  if (q !== LAST_TRACKED_SEARCH) {
+    LAST_TRACKED_SEARCH = q;
+    trackEvent('search_used', { search_location: 'courses', query_length: q.length, result_count: res.length });
+  }
   h += '<div class="sub">' + res.length + ' unité(s) trouvée(s)</div><div class="spacer"></div>';
   res.slice(0, 30).forEach(function (r) {
     h += '<div class="mod" data-go="lesson/' + r.d.id + '/' + r.ui + '"><div class="bub">' + (r.u.ic || '📘') + '</div>' +
@@ -2188,6 +2507,46 @@ function vSearch() {
   });
   h += '</div>';
   return h;
+}
+
+function activeAutoTask(did, ui, type) {
+  return (S.tasks || []).find(function (x) {
+    return x.status === 'in_progress' && (type ? x.type === type : x.docId === +did && (ui == null || x.unitIndex === +ui));
+  });
+}
+function activeAutoTaskId(did, ui, type) {
+  var task = activeAutoTask(did, ui, type);
+  return task ? task.id : null;
+}
+function autoTaskActivityLabel(task) {
+  return task.type === 'flashcards' ? 'les flashcards' : task.type === 'errors' ? 'les QCM de tes erreurs' : task.type === 'review' ? 'les QCM à revoir' : 'les QCM';
+}
+function autoTaskButtonLabel(task) {
+  return task.type === 'flashcards' ? 'Réviser avec les cartes' : task.type === 'errors' ? 'Faire les QCM de mes erreurs' : task.type === 'review' ? 'Faire les QCM à revoir' : 'Passer aux QCM';
+}
+function startAutoTask(taskId) {
+  var task = (S.tasks || []).find(function (x) { return x.id === taskId; });
+  if (!task) { regenerateAutoPlan(); toast('Le plan vient d’être actualisé'); render(); return; }
+  task.status = 'in_progress'; save();
+  if (task.type === 'mock_exam') { go('/' + task.route); return; }
+  var u = unit(task.docId, task.unitIndex), d = doc(task.docId);
+  if (!u || !d) { toast('Cette unité n’est plus disponible'); return; }
+  go('/lesson/' + d.id + '/' + task.unitIndex);
+}
+function continueAutoTask(taskId) {
+  var task = (S.tasks || []).find(function (x) { return x.id === taskId && x.status === 'in_progress'; });
+  if (!task) { toast('Cette tâche n’est plus active'); go('/'); return; }
+  var u = unit(task.docId, task.unitIndex), d = doc(task.docId);
+  if (!u || !d) { toast('Cette unité n’est plus disponible'); return; }
+  if (task.type === 'flashcards' || !u.qs.length) { go('/cards/' + d.id + '/' + task.unitIndex); return; }
+  var pool = u.qs.map(function (q, qi) { return { q: q, k: qKey(d.id, task.unitIndex, qi), d: d.id, u: +task.unitIndex }; });
+  if (task.type === 'errors') pool = pool.filter(function (x) { return S.srs[x.k] && S.srs[x.k].lap; });
+  if (task.type === 'review') pool = pool.filter(function (x) { return S.srs[x.k] && S.srs[x.k].due <= today(); });
+  if (!pool.length) pool = u.qs.map(function (q, qi) { return { q: q, k: qKey(d.id, task.unitIndex, qi), d: d.id, u: +task.unitIndex }; });
+  RUN = { mode: 'lesson', items: shuffle(pool).slice(0, 20), i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0,
+    back: '', title: task.title, did: d.id, ui: +task.unitIndex, wrong: [], t0: Date.now(), autoTaskId: task.id };
+  trackQcmStart(RUN);
+  ROOT.innerHTML = quizFrame() + navBar('review'); bind();
 }
 
 /* ------------------------------------------------------------- bindings */
@@ -2209,6 +2568,12 @@ function bind() {
   });
   Array.prototype.forEach.call(ROOT.querySelectorAll('[data-act]'), function (b) {
     b.onclick = function () { act(b.getAttribute('data-act'), b); };
+  });
+  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-auto-task]'), function (b) {
+    b.onclick = function () { startAutoTask(b.getAttribute('data-auto-task')); };
+  });
+  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-auto-continue]'), function (b) {
+    b.onclick = function () { continueAutoTask(b.getAttribute('data-auto-continue')); };
   });
   Array.prototype.forEach.call(ROOT.querySelectorAll('.nsel'), function (b) {
     b.onclick = function () {
@@ -2234,8 +2599,19 @@ function bind() {
   var hlx = el('hlx'); if (hlx) hlx.onchange = function () { S.hl = hlx.checked; save(); toast(hlx.checked ? '🖍️ Mise en forme activée' : 'Mise en forme désactivée'); };
   var contestDate = el('contestDate'); if (contestDate) contestDate.onchange = function () {
     if (!contestDate.value) return;
-    S.contestDate = contestDate.value; S.planStart = today(); save(); toast('🗓️ Date du concours enregistrée'); render();
+    S.contestDate = contestDate.value; S.planStart = today(); regenerateAutoPlan(); toast('🗓️ Date du concours enregistrée'); render();
   };
+  var autoDailyMinutes = el('autoDailyMinutes'); if (autoDailyMinutes) autoDailyMinutes.onchange = function () {
+    S.autoPlan.dailyMinutes = Math.max(10, Math.min(180, +autoDailyMinutes.value || 45));
+    regenerateAutoPlan(); toast('⏱️ Temps quotidien mis à jour'); render();
+  };
+  var autoDailyMinutesSettings = el('autoDailyMinutesSettings'); if (autoDailyMinutesSettings) autoDailyMinutesSettings.onchange = function () {
+    S.autoPlan.dailyMinutes = Math.max(10, Math.min(180, +autoDailyMinutesSettings.value || 45)); regenerateAutoPlan(); render();
+  };
+  var autoTargetScore = el('autoTargetScore'); if (autoTargetScore) autoTargetScore.onchange = function () {
+    S.autoPlan.targetScore = Math.max(50, Math.min(100, +autoTargetScore.value || 80)); regenerateAutoPlan(); render();
+  };
+  var autoWeekend = el('autoWeekend'); if (autoWeekend) autoWeekend.onchange = function () { S.autoPlan.weekend = autoWeekend.checked; regenerateAutoPlan(); render(); };
   var leagueProfileForm = el('leagueProfileForm'); if (leagueProfileForm) leagueProfileForm.onsubmit = function (event) {
     event.preventDefault();
     var name = (el('leagueName').value || '').trim().replace(/\s+/g, ' ').slice(0, 30);
@@ -2304,25 +2680,31 @@ function act(a, b) {
     case 'startexam': startExam(); break;
     case 'notify': requestNotifications(); break;
     case 'install': installApp(); break;
+    case 'preferQcm':
+      S.autoPlan.focus = 'qcm'; S.autoPlan.focusDate = today(); regenerateAutoPlan(); toast('⚡ Les QCM sont prioritaires aujourd’hui'); render(); break;
     case 'unlimited': S.unlimited = true; save(); toast('♾️ Cœurs illimités activés'); go('/'); break;
     case 'freeplay': {
       var pool = allQuestions(null);
       RUN = { mode: 'review', items: shuffle(pool).slice(0, 15), i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [], t0: Date.now(), back: '', did: null, ui: null };
+      trackQcmStart(RUN);
       ROOT.innerHTML = quizFrame() + navBar('review'); bind(); break;
     }
     case 'quick': {
       var quick = quickQuestions();
       RUN = { mode: 'review', items: quick, i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [], t0: Date.now(), back: '', did: null, ui: null };
+      trackQcmStart(RUN);
       ROOT.innerHTML = quizFrame() + navBar('review'); bind(); break;
     }
     case 'quick5': {
       var quick5 = quickQuestions().slice(0, 5);
       RUN = { mode: 'review', items: quick5, i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [], t0: Date.now(), back: '', did: null, ui: null };
+      trackQcmStart(RUN);
       ROOT.innerHTML = quizFrame() + navBar('review'); bind(); break;
     }
     case 'diagnostic': {
       var diagnostic = diagnosticQuestions();
       RUN = { mode: 'review', diagnostic: true, items: diagnostic, i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [], t0: Date.now(), back: 'settings', did: null, ui: null };
+      trackQcmStart(RUN);
       ROOT.innerHTML = quizFrame() + navBar('settings'); bind(); break;
     }
     case 'export': {
@@ -2398,6 +2780,52 @@ function act(a, b) {
 }
 
 /* Invitation affichée une fois à chaque ouverture de l'application. */
+function showProfileWelcome() {
+  var promptSeen = false;
+  try { promptSeen = localStorage.getItem('prepme_profile_prompt_seen') === '1'; } catch (error) { }
+  if (el('profileWelcome') || promptSeen || (S.profile && S.profile.displayName && S.profile.diploma && S.profile.target)) return;
+  var overlay = document.createElement('div');
+  overlay.id = 'profileWelcome';
+  overlay.className = 'contribution-overlay';
+  overlay.innerHTML = '<section class="contribution-dialog profile-welcome-dialog" role="dialog" aria-modal="true" aria-labelledby="profileWelcomeTitle" aria-describedby="profileWelcomeIntro">' +
+    '<div class="contribution-icon profile-welcome-icon">🎓</div><h2 id="profileWelcomeTitle">Mon profil candidat</h2><p id="profileWelcomeIntro">Personnalise ta ligne dans le classement.</p>' +
+    '<form id="profileWelcomeForm" class="profile-welcome-form"><label><span>Prénom ou pseudo</span><input id="welcomeProfileName" maxlength="30" autocomplete="nickname" placeholder="Ex. Anass" required></label>' +
+    '<label><span>Diplôme</span><select id="welcomeProfileDiploma" required>' + options(['','Infirmier(ère)','Technicien(ne) de santé','Sage-femme','Kinésithérapeute','Manipulateur(trice) radio','Laboratoire','Autre diplôme de santé'], '', 'Choisir mon diplôme') + '</select></label>' +
+    '<label><span>Objectif</span><select id="welcomeProfileTarget" required>' + options(['','Concours commun','Concours de spécialité','EAP / échelle 11','Autre concours'], '', 'Choisir mon concours') + '</select></label>' +
+    '<button class="btn" type="submit">Enregistrer mon profil</button><button class="btn green" type="button" id="shareWelcomeProfile">Partager volontairement pour améliorer PrepMe</button></form><button class="btn ghost contribution-later" type="button">Plus tard</button>' +
+    '<small>🔒 Ces informations restent uniquement sur cet appareil. Le partage est facultatif.</small></section>';
+  function closeWelcome() {
+    try { localStorage.setItem('prepme_profile_prompt_seen', '1'); } catch (error) { }
+    overlay.remove(); showContributionWelcome();
+  }
+  overlay.querySelector('#profileWelcomeForm').onsubmit = function (event) {
+    event.preventDefault();
+    S.profile = { displayName: (el('welcomeProfileName').value || '').trim().replace(/\s+/g, ' ').slice(0, 30), diploma: el('welcomeProfileDiploma').value, target: el('welcomeProfileTarget').value };
+    if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('profile_complete', { profile_completed: true });
+    save(); closeWelcome(); render();
+  };
+  overlay.querySelector('#shareWelcomeProfile').onclick = function () {
+    var name = (el('welcomeProfileName').value || '').trim().replace(/\s+/g, ' ').slice(0, 30);
+    var diploma = el('welcomeProfileDiploma').value || 'Non renseigné';
+    var target = el('welcomeProfileTarget').value || 'Non renseigné';
+    if (!name || !el('welcomeProfileDiploma').value || !el('welcomeProfileTarget').value) {
+      overlay.querySelector('#profileWelcomeForm').reportValidity();
+      return;
+    }
+    if (!confirm('Partager volontairement ces informations avec PrepMe via WhatsApp ?')) return;
+    S.profile = { displayName: name, diploma: diploma, target: target };
+    save();
+    try { localStorage.setItem('prepme_profile_prompt_seen', '1'); } catch (error) { }
+    var message = 'Bonjour, je souhaite aider à améliorer PrepMe.\nPrénom/pseudo : ' + name + '\nDiplôme : ' + diploma + '\nObjectif : ' + target;
+    if (window.PREP_ANALYTICS) window.PREP_ANALYTICS.track('profile_share', { profile_shared: true });
+    location.href = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent(message);
+  };
+  overlay.querySelector('.contribution-later').onclick = closeWelcome;
+  overlay.onclick = function (event) { if (event.target === overlay) closeWelcome(); };
+  document.body.appendChild(overlay);
+  el('welcomeProfileName').focus();
+}
+
 function showContributionWelcome() {
   if (el('contributionWelcome')) return;
   var overlay = document.createElement('div');
@@ -2457,9 +2885,13 @@ document.addEventListener('keydown', function (e) {
 function boot() {
   ROOT = el('app');
   applyTheme();
+  trackEvent('app_open', { entry_path: location.pathname + location.search + (location.hash || '#/'), app_version: APP_VERSION });
   if (!DOCS.length) { ROOT.innerHTML = '<div class="wrap"><div class="card">Aucune donnée chargée. Vérifie que les fichiers du dossier <b>data/</b> sont bien présents à côté de index.html.</div></div>'; return; }
   render();
-  showContributionWelcome();
+  var profilePromptSeen = false;
+  try { profilePromptSeen = localStorage.getItem('prepme_profile_prompt_seen') === '1'; } catch (error) { }
+  if (profilePromptSeen || (S.profile && S.profile.displayName && S.profile.diploma && S.profile.target)) showContributionWelcome();
+  else showProfileWelcome();
   dailyReminder();
   setInterval(function () { if ((route()[0] || '') === '' ) { /* rafraîchit les cœurs sur l'accueil */ if (!S.unlimited && S.hearts < HEART_MAX) render(); } }, 60000);
   watchAppUpdates();
