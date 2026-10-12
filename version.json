@@ -1,10 +1,12 @@
 {
-  "version": "3.6.0",
-  "versionCode": 100,
-  "date": "2026-09-28",
-  "cache": "cnc-anass-v100",
+  "version": "3.6.2",
+  "versionCode": 102,
+  "date": "2026-10-12",
+  "cache": "cnc-anass-v102",
   "modules": 76,
   "nouveautes": [
+    "Accueil Prep.EAP inspiré du visuel fourni et guide application/web : cours, QCM, planning, progression, installation et sauvegarde.",
+    "Séances express de 5 ou 10 QCM : priorité aux erreurs répétées dues, 40 % de nouvelles questions tant que moins de 60 % des QCM ont été vus, puis complément selon les points faibles",
     "Premier lancement guidé en 3 étapes : profil et spécialité, date du concours et rythme quotidien, puis résumé du programme et choix des rappels",
     "Mesure GA4 dédiée à Prep.EAP : consentement explicite, exclusion du développement local et événements anonymes pour les cours, QCM, réponses, révisions et recherches",
     "Catalogue Concours dédupliqué et livraison mobile allégée : les documents hors ligne sont chargés à la demande au lieu d’être encodés dans un HTML géant",

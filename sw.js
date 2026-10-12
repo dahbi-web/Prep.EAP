@@ -1,7 +1,8 @@
 /* Service worker — mise en cache complète pour usage hors-ligne */
-var CACHE = 'cnc-anass-v100';
-var APP_VERSION = '3.6.0';
+var CACHE = 'cnc-anass-v102';
+var APP_VERSION = '3.6.2';
 var ASSETS = [
+  './assets/prep-eap-accueil.jpg',
   "./cours-pdf/01- SNS Maroc.pdf",
   "./cours-pdf/02- Réglement Intérieur des Hôpitaux.pdf",
   "./cours-pdf/03- La Loi 08-22 GST.pdf",

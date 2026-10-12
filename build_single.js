@@ -13,6 +13,7 @@ html = html.replace(/<link rel="(icon|apple-touch-icon)" href="[^"]*"[^>]*>/g, (
 html = html.replace(/<script src="([^"]+)"><\/script>/g, (_, src) => {
   let code = fs.readFileSync(path.join(base, src), 'utf8');
   if (src === 'app.js') {
+    code = code.replaceAll('assets/prep-eap-accueil.jpg', 'data:image/jpeg;base64,' + fs.readFileSync(path.join(base, 'assets', 'prep-eap-accueil.jpg')).toString('base64'));
     code = code.replaceAll('assets/recrutement-huism6.jpg', 'data:image/jpeg;base64,' + jobAlert);
   }
   return '<script>\n' + code.replace(/<\/script/gi, '<\\/script') + '\n</script>';

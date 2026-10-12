@@ -5,7 +5,7 @@ $appRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $workspaceRoot = [IO.Path]::GetFullPath((Join-Path $appRoot '..'))
 $archivePath = Join-Path $workspaceRoot 'CNC_ANASS_App.zip'
 $temporaryPath = Join-Path $workspaceRoot 'CNC_ANASS_App.audit-new.zip'
-$files = @('index.html','app.js','app.css','sw.js','version.json','manifest.webmanifest','pdfs.js','favicon.ico','privacy-policy.html','LISEZ-MOI.md','local-server.js','build_single.js','build_single.py')
+$files = @('index.html','analytics.js','app.js','app.css','sw.js','version.json','manifest.webmanifest','pdfs.js','favicon.ico','privacy-policy.html','LISEZ-MOI.md','local-server.js','build_single.js','build_single.py')
 $directories = @('data','vendor','icons','assets','cours-pdf','concours-commun','tools')
 $zip = [IO.Compression.ZipFile]::Open($temporaryPath, [IO.Compression.ZipArchiveMode]::Create)
 try {

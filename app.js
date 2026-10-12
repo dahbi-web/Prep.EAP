@@ -127,16 +127,34 @@ function allQuestions(filterDocId) {
   });
   return out;
 }
-function quickQuestions() {
-  var all = allQuestions(null), picked = [], used = {};
-  function add(it) { if (it && !used[it.k] && picked.length < 10) { used[it.k] = 1; picked.push(it); } }
-  dueList().forEach(function (k) { var it = resolveKey(k); if (it && it.type === 'q') add({ q: it.q, k: k, d: it.d, u: it.u }); });
-  all.slice().sort(function (a, b) {
-    var sa = ust(a.d, a.u), sb = ust(b.d, b.u);
-    return ((sa.ok + sa.ko ? sa.ok / (sa.ok + sa.ko) : 0) - (sb.ok + sb.ko ? sb.ok / (sb.ok + sb.ko) : 0));
-  }).forEach(add);
-  shuffle(all).forEach(function (it) { if (!S.srs[it.k]) add(it); });
-  return picked.length ? picked : shuffle(all).slice(0, 10);
+function quickQuestions(limit) {
+  limit = limit === 5 ? 5 : 10;
+  var all = allQuestions(null), due = {}, old = [], fresh = [];
+  dueList().forEach(function (k) { due[k] = true; });
+  shuffle(all).forEach(function (it) { (S.srs[it.k] ? old : fresh).push(it); });
+  function priority(it) {
+    var s = S.srs[it.k];
+    return due[it.k] ? (s.lap >= 3 ? 0 : s.lap ? 1 : 2) : s.lap ? 3 : 4;
+  }
+  function score(it) {
+    var s = S.units[uKey(it.d, it.u)] || {}, n = (s.ok || 0) + (s.ko || 0);
+    return n ? s.ok / n : 0.5;
+  }
+  old.sort(function (a, b) {
+    return priority(a) - priority(b) || score(a) - score(b);
+  });
+  // Réserver le neuf avant de remplir : le format 5 QCM a son propre quota.
+  var quota = all.length && old.length / all.length < 0.6 ? Math.round(limit * 0.35) : 0;
+  var freshCount = Math.min(fresh.length, Math.max(quota, limit - old.length));
+  old = old.slice(0, limit - freshCount);
+  fresh = fresh.slice(0, freshCount);
+  var picked = [], oi = 0, ni = 0;
+  while (oi < old.length || ni < fresh.length) {
+    if (oi < old.length) picked.push(old[oi++]);
+    if (oi < old.length) picked.push(old[oi++]);
+    if (ni < fresh.length) picked.push(fresh[ni++]);
+  }
+  return picked;
 }
 function diagnosticQuestions() {
   return shuffle(allQuestions(null)).slice(0, 20);
@@ -159,7 +177,7 @@ var STORAGE_CORRUPT = false;
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.6.0';
+var APP_VERSION = '3.6.2';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
 var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
@@ -726,25 +744,32 @@ function autoTypeLabel(type) {
 function autoTypeIcon(type) {
   return ({ learn: '📚', review: '🔁', flashcards: '🃏', qcm: '⚡', errors: '🎯', mock_exam: '📝' })[type] || '🎯';
 }
+function autoActiveError(item) {
+  return !!item && +(item.lap || 0) > 0 && +(item.b || 0) < 4;
+}
 function autoUnitMetrics(d, u, ui, daysLeft) {
   var state = S.units[uKey(d.id, ui)] || {}, ok = +(state.ok || 0), ko = +(state.ko || 0), attempts = ok + ko;
-  var tracked = 0, due = 0, errors = 0, repeated = 0, t = today();
+  var tracked = 0, due = 0, errors = 0, errorQuestions = 0, repeated = 0, t = today();
   u.qs.forEach(function (_, qi) {
     var item = S.srs[qKey(d.id, ui, qi)];
     if (!item) return;
     tracked++;
     if (item.due <= t) due++;
-    errors += +(item.lap || 0);
-    if ((item.lap || 0) >= 2) repeated++;
+    if (autoActiveError(item)) {
+      errors += +(item.lap || 0);
+      errorQuestions++;
+      if (item.lap >= 2) repeated++;
+    }
   });
   var accuracy = attempts ? Math.round(ok / attempts * 100) : null;
   var unseen = !state.lesson && !attempts && !tracked;
-  var weakness = accuracy == null ? 55 : 100 - accuracy;
+  var lastScore = state.runs ? +(state.lastScore || 0) : null;
+  var weakness = Math.max(accuracy == null ? 55 : 100 - accuracy, lastScore == null ? 0 : 100 - lastScore);
   var importance = Math.min(100, 35 + Math.min(45, u.qs.length * 4) + Math.min(20, u.cards.length * 2));
   var forgettingRisk = due ? Math.min(100, 55 + Math.round(due / Math.max(1, tracked) * 45)) : tracked ? 20 : 35;
   var priority = urgencyScore(daysLeft) * .30 + weakness * .30 + importance * .20 + forgettingRisk * .10 + (unseen ? 100 : 0) * .10;
   if (repeated >= 2 || errors >= 3) priority += 20;
-  return { state: state, attempts: attempts, accuracy: accuracy, lastScore: state.runs ? +(state.lastScore || 0) : null, tracked: tracked, due: due, errors: errors, repeated: repeated,
+  return { state: state, attempts: attempts, accuracy: accuracy, lastScore: lastScore, tracked: tracked, due: due, errors: errors, errorQuestions: errorQuestions, repeated: repeated,
     unseen: unseen, weakness: weakness, importance: importance, forgettingRisk: forgettingRisk, priority: Math.min(100, Math.round(priority)) };
 }
 function chooseAutoTaskType(item, phase) {
@@ -757,14 +782,17 @@ function chooseAutoTaskType(item, phase) {
   if (m.repeated >= 2 || m.errors >= 3) return 'errors';
   if (m.due) return 'review';
   if (m.unseen && (phase !== 'lastWeek' || m.importance >= 75)) return 'learn';
-  if (m.accuracy != null && m.accuracy < target) return 'qcm';
+  if (u.qs.length && ((m.lastScore != null && m.lastScore < target) || (m.accuracy != null && m.accuracy < target))) return 'qcm';
   if (phase === 'lastWeek' || phase === 'consolidation') return 'qcm';
   if (u.cards.length) return 'flashcards';
   return m.unseen ? 'learn' : 'qcm';
 }
+function autoAvailableTaskType(type, u) {
+  return !u.qs.length && type !== 'learn' ? 'flashcards' : type;
+}
 function autoTaskMinutes(type, u, metrics) {
   if (type === 'learn') return Math.min(20, Math.max(8, unitMinutes(u)));
-  if (type === 'errors') return Math.min(15, Math.max(5, (metrics.errors || 3) * 2));
+  if (type === 'errors') return Math.min(15, Math.max(5, (metrics.errorQuestions || 3) * 2));
   if (type === 'flashcards') return Math.min(12, Math.max(5, Math.ceil(Math.max(1, u.cards.length) * .7)));
   if (type === 'review') return Math.min(12, Math.max(6, (metrics.due || 3) * 2));
   return Math.min(15, Math.max(7, Math.ceil(Math.max(5, u.qs.length) * .7)));
@@ -773,7 +801,7 @@ function autoTaskReason(item, type, daysLeft) {
   var m = item.metrics, parts = [];
   if (m.lastScore != null && m.lastScore < (S.autoPlan.targetScore || 80)) parts.push('dernier score ' + m.lastScore + ' %');
   else if (m.accuracy != null && m.accuracy < (S.autoPlan.targetScore || 80)) parts.push('réussite cumulée ' + m.accuracy + ' %');
-  if (m.errors) parts.push(m.errors + ' erreur' + (m.errors > 1 ? 's' : '') + ' enregistrée' + (m.errors > 1 ? 's' : ''));
+  if (m.errorQuestions) parts.push(m.errorQuestions + ' question' + (m.errorQuestions > 1 ? 's' : '') + ' encore fragile' + (m.errorQuestions > 1 ? 's' : ''));
   if (m.due) parts.push(m.due + ' révision' + (m.due > 1 ? 's' : '') + ' prévue' + (m.due > 1 ? 's' : '') + ' aujourd’hui');
   if (m.unseen) parts.push('unité jamais étudiée');
   if (!parts.length && type === 'flashcards') parts.push('notions à entretenir par répétition espacée');
@@ -792,6 +820,7 @@ function fillDailyTime(candidates, minutes, phase) {
   (S.reviewLog || []).forEach(function (entry) {
     if (entry.date !== today()) return;
     completed[entry.taskId] = true;
+    used += Math.max(0, Math.min(180, Math.round(+entry.estimatedMinutes || 0)));
     var unitMatch = /^auto-\d{4}-\d{2}-\d{2}-(?:learn|review|flashcards|qcm|errors)-(\d+)-(\d+)$/.exec(entry.taskId || '');
     if (unitMatch) completedUnits[unitMatch[1] + '.' + unitMatch[2]] = true;
   });
@@ -803,7 +832,13 @@ function fillDailyTime(candidates, minutes, phase) {
       var bRoom = (limits[b.type] || 0) - chosen.filter(function (x) { return x.type === b.type; }).reduce(function (n, x) { return n + x.estimatedMinutes; }, 0);
       return (b.priority + (bRoom > 0 ? 12 : 0)) - (a.priority + (aRoom > 0 ? 12 : 0));
     });
-    var pickIndex = candidates.findIndex(function (x) { return !chosen.some(function (y) { return y.docId === x.docId && y.unitIndex === x.unitIndex; }) && (used + x.estimatedMinutes <= minutes || !chosen.length); });
+    var pickIndex = candidates.findIndex(function (x) { return !chosen.some(function (y) { return y.docId === x.docId && y.unitIndex === x.unitIndex; }) && used + x.estimatedMinutes <= minutes; });
+    if (pickIndex < 0 && !chosen.length && !used) {
+      // Si aucune tâche ne tient dans le budget, limiter au moins le dépassement.
+      pickIndex = candidates.reduce(function (best, x, index) {
+        return best < 0 || x.estimatedMinutes < candidates[best].estimatedMinutes ? index : best;
+      }, -1);
+    }
     if (pickIndex < 0) break;
     var pick = candidates.splice(pickIndex, 1)[0];
     chosen.push(pick); used += pick.estimatedMinutes;
@@ -824,19 +859,20 @@ function generateAutoPlan() {
       if (S.autoPlan.mode === 'learn' && metrics.unseen && phase !== 'lastDay') type = 'learn';
       if (S.autoPlan.mode === 'review' && !metrics.unseen) type = metrics.errors ? 'errors' : metrics.due ? 'review' : 'qcm';
       if (S.autoPlan.focus === 'qcm' && u.qs.length) type = metrics.errors ? 'errors' : 'qcm';
+      type = autoAvailableTaskType(type, u);
       var priority = metrics.priority + (S.autoPlan.focus === 'qcm' && (type === 'qcm' || type === 'errors') ? 25 : 0);
       var id = 'auto-' + today() + '-' + type + '-' + d.id + '-' + ui;
       candidates.push({ id: id, type: type, title: u.t, docId: d.id, unitIndex: ui, priority: Math.min(100, priority),
         estimatedMinutes: autoTaskMinutes(type, u, metrics), reason: autoTaskReason(item, type, daysLeft), status: 'pending',
         scheduledDate: today(), route: autoTaskRoute(type, d.id, ui), accuracy: metrics.accuracy, errors: metrics.errors,
-        questionCount: type === 'qcm' || type === 'errors' || type === 'review' ? Math.min(20, Math.max(1, u.qs.length)) : 0,
+        questionCount: type === 'errors' ? Math.min(20, metrics.errorQuestions) : type === 'review' ? Math.min(20, metrics.due) : type === 'qcm' ? Math.min(20, u.qs.length) : 0,
         cardCount: type === 'flashcards' ? Math.min(20, u.cards.length || u.qs.length) : 0 });
       if (metrics.accuracy != null && metrics.accuracy < (S.autoPlan.targetScore || 80)) weak.push({ docId: d.id, unitIndex: ui, title: u.t, accuracy: metrics.accuracy, errors: metrics.errors });
     });
   });
   if ((phase === 'lastWeek' || phase === 'consolidation') && daysLeft > 1) {
     candidates.push({ id: 'auto-' + today() + '-mock', type: 'mock_exam', title: 'Examen blanc mélangé', docId: 0, unitIndex: 0,
-      priority: phase === 'lastWeek' ? 88 : 72, estimatedMinutes: Math.min(20, Math.max(10, Math.round(minutes * .25))),
+      priority: phase === 'lastWeek' ? 88 : 72, estimatedMinutes: 15,
       reason: 'Mesurer les progrès en conditions réelles · concours dans ' + daysLeft + ' jours', status: 'pending', scheduledDate: today(), route: 'exam', questionCount: 20, cardCount: 0 });
   }
   weak.sort(function (a, b) { return a.accuracy - b.accuracy || b.errors - a.errors; });
@@ -859,11 +895,12 @@ function ensureAutoPlan() {
   return { tasks: S.tasks, phase: S.autoPlan.phase || getExamPhase(planInfo().left), daysLeft: planInfo().left, minutes: S.autoPlan.dailyMinutes, restDay: !!S.autoPlan.restDay };
 }
 function completeAutoTask(taskId, score) {
-  if (!taskId) return;
+  if (!taskId) { regenerateAutoPlan(); return; }
   if (!Array.isArray(S.reviewLog)) S.reviewLog = [];
   if (!S.reviewLog.some(function (x) { return x.date === today() && x.taskId === taskId; })) {
     var task = (S.tasks || []).find(function (x) { return x.id === taskId; });
-    S.reviewLog.push({ date: today(), taskId: taskId, type: task ? task.type : 'review', score: Math.max(0, Math.round(score || 0)) });
+    S.reviewLog.push({ date: today(), taskId: taskId, type: task ? task.type : 'review', score: Math.max(0, Math.round(score || 0)),
+      estimatedMinutes: task ? task.estimatedMinutes : 0 });
     if (S.reviewLog.length > 200) S.reviewLog = S.reviewLog.slice(-200);
   }
   regenerateAutoPlan();
@@ -1388,6 +1425,7 @@ function render() {
     case 'league': html = vLeague(); break;
     case 'stats': html = vStats(); break;
     case 'set': html = vSettings(); break;
+    case 'guide': html = vGuide(); break;
     case 'about': html = vAbout(); break;
     case 'search': html = vSearch(); break;
     default: html = vHome();
@@ -1695,6 +1733,23 @@ function autoPlanCardHtml(plan) {
 }
 
 /* ------------------------------------------------------------ vue ACCUEIL */
+
+/* Accueil et guide de prise en main Prep.EAP. */
+function prepWelcome() {
+  return '<section class="prep-welcome" aria-labelledby="prepWelcomeTitle"><div class="prep-copy"><span class="prep-kicker">🎓 INFIRMIERS · TECHNICIENS DE SANTÉ</span><h2 id="prepWelcomeTitle">Prep.<em>EAP</em></h2><p class="prep-tagline">Votre allié pour réussir les concours EAP au Maroc</p><p>Un cours, quelques QCM, une révision : avancez chaque jour à votre rythme.</p><div class="prep-features"><span>📖 Cours</span><span>🎯 QCM</span><span>📅 Planning</span><span>📊 Progression</span></div><div class="prep-actions"><button class="btn blue" data-go="search">Commencer maintenant →</button><button class="btn ghost" data-go="guide">Découvrir l’application et le web</button></div></div><img class="prep-reference" src="assets/prep-eap-accueil.jpg" alt="Présentation de Prep.EAP : étudier, s’entraîner et réviser" width="853" height="1280"></section>';
+}
+function vGuide() {
+  var steps = [
+    ['⚙️', 'Préparer votre programme', 'Dans Réglages, renseignez votre profil, votre concours et sa date. Sur l’accueil, le mode Auto propose une session et permet de choisir votre temps disponible. Le mode Manuel vous laisse choisir votre rythme.', 'set', 'Régler mon profil'],
+    ['📖', 'Lire un cours', 'Recherchez un sujet, ouvrez son module puis une leçon. Repérez les définitions, dates, chiffres et lois surlignés. Les documents sources se trouvent aussi dans Cours PDF.', 'search', 'Trouver un cours'],
+    ['🎯', 'S’entraîner avec les QCM', 'Depuis un cours, choisissez son quiz. Lisez la consigne, sélectionnez votre réponse puis consultez la correction disponible avant de continuer. Certains documents et annales ne disposent pas de corrigé : ne les considérez pas comme des réponses validées.', 'home', 'Choisir un module'],
+    ['🧠', 'Réviser au bon moment', 'Ouvrez Évaluation pour retrouver les révisions prévues. Utilisez aussi les Cartes pour essayer de retrouver une réponse avant de retourner la carte. Une courte séance régulière aide à consolider les acquis.', 'review', 'Ouvrir mes révisions'],
+    ['📊', 'Comprendre votre progression', 'Dans Statistiques, consultez votre activité et vos points faibles. Les XP suivent votre activité ; les scores des quiz et examens indiquent vos résultats. Ils ne garantissent pas la réussite au concours.', 'stats', 'Voir mes statistiques'],
+    ['📝', 'Se tester en conditions de concours', 'Dans Examen blanc, choisissez le périmètre, le nombre de questions et le chronomètre. À la fin, consultez votre résultat et les corrections pour cibler la prochaine révision.', 'exam', 'Préparer un examen blanc']
+  ];
+  return bar('Guide · application et web', 'home') + '<main class="wrap prep-guide"><header class="prep-guide-intro"><span class="prep-kicker">BIENVENUE SUR PREP.EAP</span><h1>Votre première séance, pas à pas</h1><p>Sur téléphone ou ordinateur, retrouvez les mêmes étapes pour étudier, vous entraîner et suivre vos progrès.</p><p>Retrouvez les conseils d’installation et de sauvegarde après les six étapes.</p></header><div class="prep-guide-grid">' + steps.map(function (s, i) { return '<section class="card prep-guide-step"><span class="prep-step-number">' + (i + 1) + ' / 6</span><h2>' + s[0] + ' ' + s[1] + '</h2><p>' + s[2] + '</p><button class="btn ghost sm" data-go="' + s[3] + '">' + s[4] + ' →</button></section>'; }).join('') + '</div><section class="card" id="guide-devices"><h2>📱 Application ou site web</h2><p><b>Sur le web :</b> ouvrez le site dans votre navigateur sur téléphone, tablette ou ordinateur.</p><p><b>Sur téléphone :</b> utilisez le bouton ci-dessous pour afficher les options d’installation. Vous pourrez ensuite ouvrir l’application depuis son icône.</p><button class="btn blue" data-act="install">Installer / voir les instructions</button><p><b>Sans Internet :</b> préparez les contenus depuis les options hors ligne et vérifiez leur disponibilité avant de vous déconnecter. Les PDF non téléchargés peuvent nécessiter une connexion.</p></section><section class="card"><h2>💾 Retrouver et protéger vos progrès</h2><p>La progression est enregistrée localement dans ce navigateur ou cette application. Elle ne se synchronise pas automatiquement entre votre téléphone et votre ordinateur.</p><p>Dans <b>Réglages → Exporter</b>, gardez une copie de votre progression. Sur le second appareil, utilisez <b>Réglages → Importer</b> et choisissez ce fichier. L’import remplace la progression de cet appareil après confirmation.</p><button class="btn ghost" data-go="set">Ouvrir les réglages et sauvegardes</button></section><section class="prep-guide-intro"><h2>Une routine simple pour commencer</h2><p>10 minutes de cours, 5 QCM, puis une courte révision de vos erreurs. Adaptez ensuite le rythme à vos disponibilités.</p><button class="btn blue" data-go="home">Commencer ma préparation →</button></section></main>';
+}
+
 function vHome() {
   var due = dueList().length;
   var plan = planInfo();
@@ -1716,7 +1771,7 @@ function vHome() {
   var resume = S.lastRoute && /^(?:lesson|quiz|review|exam|cards)(?:\/|$)/.test(S.lastRoute) ? S.lastRoute : '';
   var resumeLabel = resume ? (resume.indexOf('lesson/') === 0 ? 'Reprendre la leçon' : resume.indexOf('quiz/') === 0 ? 'Reprendre le quiz' : resume.indexOf('review') === 0 ? 'Reprendre les révisions' : resume.indexOf('exam') === 0 ? 'Reprendre l’examen' : 'Reprendre les cartes') : '';
 
-  var h = '<div class="card"><b>📲 Utiliser hors ligne</b><div class="sub">Installe l’application pour réviser sans Internet.</div><div class="spacer"></div><button class="btn blue sm" data-act="install">⬇️ Télécharger / installer</button></div>' +
+  var h = prepWelcome() +
     '<div class="hero">' +
     '<div class="row" style="justify-content:space-between">' +
     '<span class="pill">🔥 ' + S.streak + '</span>' +
@@ -1773,7 +1828,7 @@ function vHome() {
   h += '<div class="qa-grid">' +
     '<div class="qa" data-go="review"><div class="ic">🔁</div><div class="t">Révision</div><div class="d">' + (due ? due + ' à revoir' : 'à jour ✅') + '</div></div>' +
     '<div class="qa" data-go="exam"><div class="ic">📝</div><div class="t">Examen blanc</div><div class="d">chronométré</div></div>' +
-    '</div><div class="card quick-card"><div class="row"><div class="quick-icon">⚡</div><div style="flex:1"><b>Séance express</b><div class="sub">5 questions en 5 minutes, ou 10 questions pour une révision complète.</div></div></div><div class="spacer"></div><div class="row2"><button class="btn purple sm" data-act="quick5">⏱️ 5 minutes</button><button class="btn ghost sm" data-act="quick">10 questions</button></div></div><div class="spacer"></div>' +
+    '</div><div class="card quick-card"><div class="row"><div class="quick-icon">⚡</div><div style="flex:1"><b>Séance express</b><div class="sub">5 ou 10 QCM ciblés : erreurs répétées à revoir en priorité, puis nouvelles notions et points faibles.</div></div></div><div class="spacer"></div><div class="row2"><button class="btn purple sm" data-act="quick5">⏱️ 5 minutes</button><button class="btn ghost sm" data-act="quick">10 questions</button></div></div><div class="spacer"></div>' +
     '<input class="search" id="q" placeholder="🔎 Chercher une notion, une loi, un chiffre…">' +
     '<h2>📚 Cours et QCM associés</h2><div class="course-list-intro">Chaque banque de QCM est rattachée à son cours. Les annales complètes restent accessibles dans la section <b>Concours</b>.</div>';
 
@@ -2414,6 +2469,7 @@ function vStats() {
 /* ---------------------------------------------------------- vue RÉGLAGES */
 function vSettings() {
   var h = bar('Réglages', '') + '<div class="wrap">';
+  h += '<div class="card"><h2>❔ Guide de prise en main</h2><p>Découvrez les cours, QCM, révisions et sauvegardes sur téléphone et ordinateur.</p><button class="btn blue" data-go="guide">Ouvrir le guide application et web</button></div>';
   var analyticsState = window.PREP_ANALYTICS ? window.PREP_ANALYTICS.status() : 'indisponible';
   h += '<div class="card"><b>Mesure d\'audience Google Analytics</b><div class="sub">État de la balise GA4 : <b>' + esc(analyticsState) + '</b> · identifiant G-6JX59N8YQT</div></div>';
   var storageState = '✅ Stockage local disponible';
@@ -2529,7 +2585,7 @@ function startAutoTask(taskId) {
   var task = (S.tasks || []).find(function (x) { return x.id === taskId; });
   if (!task) { regenerateAutoPlan(); toast('Le plan vient d’être actualisé'); render(); return; }
   task.status = 'in_progress'; save();
-  if (task.type === 'mock_exam') { go('/' + task.route); return; }
+  if (task.type === 'mock_exam') { EXN = task.questionCount; go('/' + task.route); return; }
   var u = unit(task.docId, task.unitIndex), d = doc(task.docId);
   if (!u || !d) { toast('Cette unité n’est plus disponible'); return; }
   go('/lesson/' + d.id + '/' + task.unitIndex);
@@ -2541,7 +2597,7 @@ function continueAutoTask(taskId) {
   if (!u || !d) { toast('Cette unité n’est plus disponible'); return; }
   if (task.type === 'flashcards' || !u.qs.length) { go('/cards/' + d.id + '/' + task.unitIndex); return; }
   var pool = u.qs.map(function (q, qi) { return { q: q, k: qKey(d.id, task.unitIndex, qi), d: d.id, u: +task.unitIndex }; });
-  if (task.type === 'errors') pool = pool.filter(function (x) { return S.srs[x.k] && S.srs[x.k].lap; });
+  if (task.type === 'errors') pool = pool.filter(function (x) { return autoActiveError(S.srs[x.k]); });
   if (task.type === 'review') pool = pool.filter(function (x) { return S.srs[x.k] && S.srs[x.k].due <= today(); });
   if (!pool.length) pool = u.qs.map(function (q, qi) { return { q: q, k: qKey(d.id, task.unitIndex, qi), d: d.id, u: +task.unitIndex }; });
   RUN = { mode: 'lesson', items: shuffle(pool).slice(0, 20), i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0,
@@ -2697,7 +2753,7 @@ function act(a, b) {
       ROOT.innerHTML = quizFrame() + navBar('review'); bind(); break;
     }
     case 'quick5': {
-      var quick5 = quickQuestions().slice(0, 5);
+      var quick5 = quickQuestions(5);
       RUN = { mode: 'review', items: quick5, i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0, wrong: [], t0: Date.now(), back: '', did: null, ui: null };
       trackQcmStart(RUN);
       ROOT.innerHTML = quizFrame() + navBar('review'); bind(); break;
@@ -2810,7 +2866,7 @@ function showProfileWelcome() {
         '<label class="onboarding-switch reminder-switch"><span><b>🔔 Rappels du concours</b><small>Autoriser les rappels de PrepMe sur cet appareil</small></span><input type="checkbox" id="welcomeNotify"></label>' +
         '<p class="onboarding-privacy">🔒 Tes réglages et ta progression restent sur cet appareil.</p></section>' +
       '<div class="onboarding-actions"><button class="btn ghost" type="button" id="welcomeBack">Retour</button><button class="btn" type="button" id="welcomeNext">Continuer</button><button class="btn green" type="submit" id="welcomeFinish">Créer mon programme</button></div>' +
-    '</form><button class="onboarding-later" type="button">Configurer plus tard</button></section>';
+    '</form><button type="button" class="btn ghost" id="welcomeGuide">Découvrir l’application et le web</button><button class="onboarding-later" type="button">Configurer plus tard</button></section>';
   var step = 1;
   function closeWelcome() {
     try { localStorage.setItem('prepme_profile_prompt_seen', '1'); } catch (error) { }
@@ -2869,6 +2925,7 @@ function showProfileWelcome() {
     if (wantsNotifications) requestNotifications();
     else toast('✅ Ton programme personnalisé est prêt');
   };
+  el('welcomeGuide').onclick = function () { closeWelcome(); go('guide'); };
   overlay.querySelector('.onboarding-later').onclick = closeWelcome;
   overlay.onclick = function (event) { if (event.target === overlay) closeWelcome(); };
   overlay.addEventListener('keydown', function (event) { if (event.key === 'Escape') closeWelcome(); });
@@ -2941,7 +2998,7 @@ function boot() {
   var profilePromptSeen = false;
   try { profilePromptSeen = localStorage.getItem('prepme_profile_prompt_seen') === '1'; } catch (error) { }
   if (profilePromptSeen || (S.profile && S.profile.displayName && S.profile.diploma && S.profile.target)) showContributionWelcome();
-  else showProfileWelcome();
+  else if (route()[0] !== 'guide') showProfileWelcome();
   dailyReminder();
   setInterval(function () { if ((route()[0] || '') === '' ) { /* rafraîchit les cœurs sur l'accueil */ if (!S.unlimited && S.hearts < HEART_MAX) render(); } }, 60000);
   watchAppUpdates();

@@ -36,6 +36,7 @@ def inline(match):
     code = (BASE / src).read_text(encoding="utf-8")
     embedded = ""
     if src == "app.js":
+        code = code.replace("assets/prep-eap-accueil.jpg", "data:image/jpeg;base64," + base64.b64encode((BASE / "assets" / "prep-eap-accueil.jpg").read_bytes()).decode())
         code = code.replace("assets/recrutement-huism6.jpg", job_alert_uri)
         code = code.replace("if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0)", 'if (false)')
     return embedded, re.sub(r'</script', lambda _: '<\\/script', code, flags=re.I)
