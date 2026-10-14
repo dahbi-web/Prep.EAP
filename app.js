@@ -177,10 +177,10 @@ var STORAGE_CORRUPT = false;
 var HEART_MAX = 5, HEART_MIN = 25;           // 1 cœur toutes les 25 minutes
 var CROWN_MAX = 5, CROWN_PCT = 0.8;
 var CONTEST_DATE = '2026-10-10';
-var APP_VERSION = '3.6.2';
+var APP_VERSION = '3.6.4';
 var WHATSAPP_CONTACT_NUMBER = '212710713772';
 var WHATSAPP_CONTACT_DISPLAY = '0710 71 37 72';
-var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration ou envoyer des documents pour la section Concours.');
+var WHATSAPP_CONTACT_URL = 'https://wa.me/' + WHATSAPP_CONTACT_NUMBER + '?text=' + encodeURIComponent('Bonjour PrepMe, je souhaite signaler un problème, proposer une amélioration, partager une nouvelle idée ou envoyer des documents pour la section Concours.');
 var UPDATE_DISMISSED_KEY = 'concours_sante_update_dismissed';
 var UPDATE_RELOAD_KEY = 'concours_sante_update_reload';
 var UPDATE_VERSION_URL = 'https://raw.githubusercontent.com/dahbi-web/cnc-anass-prepa/main/version.json';
@@ -749,7 +749,7 @@ function autoActiveError(item) {
 }
 function autoUnitMetrics(d, u, ui, daysLeft) {
   var state = S.units[uKey(d.id, ui)] || {}, ok = +(state.ok || 0), ko = +(state.ko || 0), attempts = ok + ko;
-  var tracked = 0, due = 0, oldestDueDays = 0, errors = 0, errorQuestions = 0, repeated = 0, t = today();
+  var tracked = 0, due = 0, dueCards = 0, oldestDueDays = 0, oldestCardDueDays = 0, errors = 0, errorQuestions = 0, repeated = 0, t = today();
   u.qs.forEach(function (_, qi) {
     var item = S.srs[qKey(d.id, ui, qi)];
     if (!item) return;
@@ -764,16 +764,25 @@ function autoUnitMetrics(d, u, ui, daysLeft) {
       if (item.lap >= 2) repeated++;
     }
   });
+  u.cards.forEach(function (_, ci) {
+    var item = S.srs[cKey(d.id, ui, ci)];
+    if (!item) return;
+    tracked++;
+    if (item.due <= t) {
+      dueCards++;
+      oldestCardDueDays = Math.max(oldestCardDueDays, dayDiff(item.due, t) || 0);
+    }
+  });
   var accuracy = attempts ? Math.round(ok / attempts * 100) : null;
   var unseen = !state.lesson && !attempts && !tracked;
   var lastScore = state.runs ? +(state.lastScore || 0) : null;
   var weakness = Math.max(accuracy == null ? 55 : 100 - accuracy, lastScore == null ? 0 : 100 - lastScore);
   var importance = Math.min(100, 35 + Math.min(45, u.qs.length * 4) + Math.min(20, u.cards.length * 2));
-  var forgettingRisk = due ? Math.min(100, 55 + Math.round(due / Math.max(1, tracked) * 45)) : tracked ? 20 : 35;
+  var forgettingRisk = due + dueCards ? Math.min(100, 55 + Math.round((due + dueCards) / Math.max(1, tracked) * 45)) : tracked ? 20 : 35;
   var priority = urgencyScore(daysLeft) * .30 + weakness * .30 + importance * .20 + forgettingRisk * .10 + (unseen ? 100 : 0) * .10;
   if (repeated >= 2 || errors >= 3) priority += 20;
-  priority += Math.min(15, oldestDueDays * 2);
-  return { state: state, attempts: attempts, accuracy: accuracy, lastScore: lastScore, tracked: tracked, due: due, oldestDueDays: oldestDueDays, errors: errors, errorQuestions: errorQuestions, repeated: repeated,
+  priority += Math.min(15, Math.max(oldestDueDays, oldestCardDueDays) * 2);
+  return { state: state, attempts: attempts, accuracy: accuracy, lastScore: lastScore, tracked: tracked, due: due, dueCards: dueCards, oldestDueDays: oldestDueDays, oldestCardDueDays: oldestCardDueDays, errors: errors, errorQuestions: errorQuestions, repeated: repeated,
     unseen: unseen, weakness: weakness, importance: importance, forgettingRisk: forgettingRisk, priority: Math.min(100, Math.round(priority)) };
 }
 function chooseAutoTaskType(item, phase) {
@@ -785,6 +794,7 @@ function chooseAutoTaskType(item, phase) {
   }
   if (m.repeated >= 2 || m.errors >= 3) return 'errors';
   if (m.due) return 'review';
+  if (m.dueCards) return 'flashcards';
   if (m.unseen && (phase !== 'lastWeek' || m.importance >= 75)) return 'learn';
   if (u.qs.length && ((m.lastScore != null && m.lastScore < target) || (m.accuracy != null && m.accuracy < target))) return 'qcm';
   if (phase === 'lastWeek' || phase === 'consolidation') return 'qcm';
@@ -807,6 +817,7 @@ function autoTaskReason(item, type, daysLeft) {
   else if (m.accuracy != null && m.accuracy < (S.autoPlan.targetScore || 80)) parts.push('réussite cumulée ' + m.accuracy + ' %');
   if (m.errorQuestions) parts.push(m.errorQuestions + ' question' + (m.errorQuestions > 1 ? 's' : '') + ' encore fragile' + (m.errorQuestions > 1 ? 's' : ''));
   if (m.due) parts.push(m.due + ' révision' + (m.due > 1 ? 's' : '') + (m.oldestDueDays ? ' à faire · jusqu’à ' + m.oldestDueDays + ' jour' + (m.oldestDueDays > 1 ? 's' : '') + ' de retard' : ' prévue' + (m.due > 1 ? 's' : '') + ' aujourd’hui'));
+  if (m.dueCards) parts.push(m.dueCards + ' carte' + (m.dueCards > 1 ? 's' : '') + ' à revoir' + (m.oldestCardDueDays ? ' · jusqu’à ' + m.oldestCardDueDays + ' jour' + (m.oldestCardDueDays > 1 ? 's' : '') + ' de retard' : ' aujourd’hui'));
   if (m.unseen) parts.push('unité jamais étudiée');
   if (!parts.length && type === 'flashcards') parts.push('notions à entretenir par répétition espacée');
   if (!parts.length) parts.push('unité importante à consolider');
@@ -861,7 +872,7 @@ function generateAutoPlan() {
       var metrics = autoUnitMetrics(d, u, ui, daysLeft), item = { doc: d, unit: u, unitIndex: ui, metrics: metrics };
       var type = chooseAutoTaskType(item, phase);
       if (S.autoPlan.mode === 'learn' && metrics.unseen && phase !== 'lastDay') type = 'learn';
-      if (S.autoPlan.mode === 'review' && !metrics.unseen) type = metrics.errors ? 'errors' : metrics.due ? 'review' : 'qcm';
+      if (S.autoPlan.mode === 'review' && !metrics.unseen) type = metrics.errors ? 'errors' : metrics.due ? 'review' : metrics.dueCards ? 'flashcards' : 'qcm';
       if (S.autoPlan.focus === 'qcm' && u.qs.length) type = metrics.errors ? 'errors' : 'qcm';
       type = autoAvailableTaskType(type, u);
       var priority = metrics.priority + (S.autoPlan.focus === 'qcm' && (type === 'qcm' || type === 'errors') ? 25 : 0);
@@ -1416,6 +1427,7 @@ function render() {
   var html;
   switch (v) {
     case '': case 'home': html = vHome(); break;
+    case 'courses': html = vCourses(); break;
     case 'doc': html = vDoc(r[1]); break;
     case 'lesson': html = vLesson(r[1], r[2]); break;
     case 'quiz': html = vQuizStart(r[1], r[2]); break;
@@ -1451,11 +1463,9 @@ function navBar(v) {
   var d = dueList().length;
   var items = [
     ['', '🏠', 'Accueil'],
+    ['courses', '📖', 'Cours'],
     ['review', '🧠', 'Évaluation intelligente'],
     ['concours', '📝', 'Concours'],
-    ['pdf', '📚', 'Cours PDF'],
-    ['cards', '🃏', 'Cartes'],
-    ['league', '🏆', 'Classement'],
     ['stats', '📊', 'Statistiques'],
     ['set', '⚙️', 'Réglages']
   ];
@@ -1465,6 +1475,17 @@ function navBar(v) {
     var label = it[2] === 'Évaluation intelligente' ? 'Évaluation' : it[2] === 'Statistiques' ? 'Stats' : it[2];
     return '<button type="button" class="' + on.trim() + '" data-go="' + it[0] + '" aria-label="' + it[2] + '"' + (on ? ' aria-current="page"' : '') + '><span class="ic" aria-hidden="true">' + it[1] + '</span><span class="nav-label">' + label + '</span>' + dot + '</button>';
   }).join('') + '</div></nav>';
+}
+function vCourses() {
+  var totalUnits = 0, completedUnits = 0;
+  COURSE_DOCS.forEach(function (d) { d.units.forEach(function (_, i) { totalUnits++; if (ust(d.id, i).crowns >= CROWN_MAX) completedUnits++; }); });
+  var h = bar('Cours', '') + '<main class="wrap course-library"><header class="course-library-head"><span class="section-eyebrow">BIBLIOTHÈQUE</span><h1>Tous les cours</h1><p>' + COURSE_DOCS.length + ' cours structurés · ' + totalUnits + ' unités · ' + completedUnits + ' maîtrisées</p><button class="btn blue sm" data-go="search">🔎 Rechercher une notion</button></header><div class="course-library-grid">';
+  COURSE_DOCS.forEach(function (d) {
+    var pct = docPct(d), nq = 0;
+    d.units.forEach(function (u) { nq += u.qs.length; });
+    h += '<article class="mod home-course' + (pct >= 100 ? ' done' : docStarted(d) ? ' started' : '') + '"><button class="home-course-main" data-go="doc/' + d.id + '"><span class="bub">' + d.icon + '</span><span class="info"><span class="t">' + esc(d.code + '. ' + d.title) + '</span><span class="p">' + d.units.length + ' unités · ' + nq + ' QCM</span><span class="progress thin"><span style="width:' + pct + '%"></span></span></span><span class="pct">' + pct + '%</span></button><div class="home-course-actions"><button data-go="doc/' + d.id + '">Voir le cours</button>' + (nq ? '<button class="qcm" data-go="quiz/' + d.id + '/all">Faire les QCM</button>' : '<span class="qcm-pending">QCM en préparation</span>') + '</div></article>';
+  });
+  return h + '</div></main>';
 }
 function vPdfs() {
   var list = window.PREP_PDFS || [];
@@ -1477,18 +1498,12 @@ function vPdfs() {
   });
   return h + '</div>';
 }
-function nativeFilePdfHtml(title, href, back) {
-  var alternate = location.protocol === 'file:' && /CNC_ANASS_App_MOBILE\.html$/i.test(location.pathname) ? 'CNC_ANASS_App/' + href : '';
-  var fallback = alternate ? ' onerror="this.src=\'' + alternate.replace(/'/g, '\\&#39;') + '\'"' : '';
-  return bar(title, back) + '<div class="pdf-native-reader"><iframe class="pdf-native-frame" src="' + esc(href) + '" title="' + esc('PDF — ' + title) + '"' + fallback + '></iframe><div class="pdf-download"><a class="btn blue sm" href="' + esc(alternate || href) + '" target="_blank" rel="noopener">Ouvrir le PDF</a><a class="btn ghost sm" download href="' + esc(alternate || href) + '">⬇️ Télécharger</a></div></div>';
-}
 function vPdfView(index, startPage, backDid, backUi) {
   var p = (window.PREP_PDFS || [])[+index];
   if (!p) return vPdfs();
   var href = 'cours-pdf/' + encodeURIComponent(p[2]);
   var fallback = githubRawFile('cours-pdf', p[2]);
   var back = backDid !== undefined && backUi !== undefined ? 'lesson/' + backDid + '/' + backUi : 'pdf';
-  if (location.protocol === 'file:' && !window.PrepMeAPK) return nativeFilePdfHtml(p[1], href, back);
   return bar(p[1], back) + '<div class="pdf-reader" data-pdf-src="' + href + '" data-pdf-embedded="' + esc(p[2]) + '" data-pdf-fallback="' + esc(fallback) + '" data-pdf-page="' + Math.max(1, +(startPage || 1)) + '">' +
     '<div class="pdf-toolbar"><button class="pdf-tool" id="pdfPrev">←</button><span id="pdfPage">Page…</span><button class="pdf-tool" id="pdfNext">→</button><button class="pdf-tool" id="pdfZoomOut">−</button><span id="pdfZoom">100%</span><button class="pdf-tool" id="pdfZoomIn">+</button></div>' +
     '<div class="pdf-status" id="pdfStatus">Chargement du PDF…</div><div class="pdf-canvas-wrap"><canvas id="pdfCanvas"></canvas></div>' +
@@ -1506,7 +1521,7 @@ function initPdfReader() {
   if (!box) return;
   var status = el('pdfStatus');
   if (!window.pdfjsLib) { status.textContent = 'Lecteur PDF indisponible.'; return; }
-  window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = window.PREP_PDF_WORKER_URL || 'vendor/pdf.worker.min.js';
   var requestedPage = Math.max(1, +(box.getAttribute('data-pdf-page') || 1));
   PDF_READER = { doc: null, page: requestedPage, scale: 1.15, rendering: false, pending: null };
   var reader = PDF_READER;
@@ -1514,6 +1529,12 @@ function initPdfReader() {
   var fallbackSrc = box.getAttribute('data-pdf-fallback');
   var embeddedName = box.getAttribute('data-pdf-embedded');
   var embeddedB64 = embeddedName && ((window.PREP_COURSE_PDFS_B64 && window.PREP_COURSE_PDFS_B64[embeddedName]) || (window.CNC_CONCOURS_PDFS_B64 && window.CNC_CONCOURS_PDFS_B64[embeddedName]));
+  var downloadLink = box.querySelector('.pdf-download a');
+  if (downloadLink && embeddedB64) {
+    var course = window.PREP_COURSE_PDFS_B64 && window.PREP_COURSE_PDFS_B64[embeddedName];
+    downloadLink.href = concoursDocumentUrl({ folder: course ? 'cours-pdf' : embeddedName.split('/')[0], file: course ? embeddedName : embeddedName.substring(embeddedName.indexOf('/') + 1), format: 'PDF' });
+    downloadLink.download = embeddedName.split('/').pop();
+  }
   function loadPdf(src, usingFallback) {
     window.pdfjsLib.getDocument(src).promise.then(function (doc) {
       if (!isCurrentReader()) return;
@@ -1528,11 +1549,12 @@ function initPdfReader() {
   }
   if (embeddedB64) {
     status.textContent = 'Ouverture de la page ' + requestedPage + '…';
-    window.pdfjsLib.getDocument({ data: pdfBase64Bytes(embeddedB64) }).promise.then(function (doc) {
+    // Local HTML can block generated font files; draw the embedded glyphs directly.
+    window.pdfjsLib.getDocument({ data: pdfBase64Bytes(embeddedB64), disableFontFace: location.protocol === 'file:' }).promise.then(function (doc) {
       if (!isCurrentReader()) return;
       PDF_READER.doc = doc; status.style.display = 'none'; renderPdfPage(Math.min(requestedPage, doc.numPages));
     }).catch(function () { if (isCurrentReader()) status.textContent = 'Impossible d’ouvrir le PDF intégré.'; });
-  } else loadPdf(box.getAttribute('data-pdf-src'), false);
+  } else loadPdf(location.protocol === 'file:' && fallbackSrc ? fallbackSrc : box.getAttribute('data-pdf-src'), location.protocol === 'file:' && !!fallbackSrc);
   el('pdfPrev').onclick = function () { if (PDF_READER.page > 1) renderPdfPage(PDF_READER.page - 1); };
   el('pdfNext').onclick = function () { if (PDF_READER.doc && PDF_READER.page < PDF_READER.doc.numPages) renderPdfPage(PDF_READER.page + 1); };
   el('pdfZoomOut').onclick = function () { PDF_READER.scale = Math.max(.65, PDF_READER.scale - .15); renderPdfPage(PDF_READER.page); };
@@ -1689,7 +1711,6 @@ function vConcoursPdfView(index) {
   if (!p || p.format !== 'PDF') return vConcours();
   var href = concoursPdfHref(p);
   var fallback = githubRawFile(p.folder || 'concours-commun', p.file);
-  if (location.protocol === 'file:' && !window.PrepMeAPK) return nativeFilePdfHtml(p.title, href, 'concours');
   return bar(p.title, 'concours') + '<div class="pdf-reader" data-pdf-src="' + href + '" data-pdf-embedded="' + esc(concoursEmbeddedKey(p)) + '" data-pdf-fallback="' + esc(fallback) + '">' +
     '<div class="pdf-toolbar"><button class="pdf-tool" id="pdfPrev">←</button><span id="pdfPage">Page…</span><button class="pdf-tool" id="pdfNext">→</button><button class="pdf-tool" id="pdfZoomOut">−</button><span id="pdfZoom">100%</span><button class="pdf-tool" id="pdfZoomIn">+</button></div>' +
     '<div class="pdf-status" id="pdfStatus">Chargement du PDF…</div><div class="pdf-canvas-wrap"><canvas id="pdfCanvas"></canvas></div>' +
@@ -1703,7 +1724,7 @@ function jobAlertHtml() {
     '<div class="job-alert-grid"><a class="job-alert-visual" href="assets/recrutement-huism6.jpg" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir le visuel de l’offre d’emploi"><img src="assets/recrutement-huism6.jpg" alt="On recrute — Hôpital Universitaire du Sport Mohammed VI" loading="lazy"></a>' +
     '<div class="job-alert-copy"><p>Dans le cadre de son ouverture prochaine, l’Hôpital Universitaire du Sport Mohammed VI renforce ses équipes et lance une campagne de recrutement couvrant les métiers du soin, du médico-technique, de la rééducation ainsi que les fonctions administratives et support.</p>' +
     '<p>Porté par la Fondation Mohammed VI des Sciences et de la Santé, l’établissement réunit expertise médicale, chirurgie, médecine du sport, rééducation, réathlétisation, formation et recherche.</p></div></div>' +
-    '<details class="job-alert-details" open><summary>Voir les profils recherchés</summary><div class="job-alert-roles">' +
+    '<details class="job-alert-details"><summary>Voir les profils recherchés</summary><div class="job-alert-roles">' +
     '<div><h3>Soins et bloc opératoire</h3><ul><li>Infirmier(ère) polyvalent(e)</li><li>Infirmier(ère) anesthésiste</li><li>Aide opératoire</li><li>Aide-soignant(e)</li><li>Infirmier(ère) hygiéniste</li></ul></div>' +
     '<div><h3>Médico-technique, rééducation et parcours patient</h3><ul><li>Technicien(ne) de radiologie</li><li>Kinésithérapeute</li><li>Technicien(ne) ambulancier(ère)</li><li>Secrétaire médical(e)</li><li>Assistant(e) médical(e)</li></ul></div>' +
     '<div><h3>Accueil, admission et facturation</h3><ul><li>Responsable BAF</li></ul></div>' +
@@ -1742,7 +1763,25 @@ function autoPlanCardHtml(plan) {
 
 /* Accueil et guide de prise en main Prep.EAP. */
 function prepWelcome() {
-  return '<section class="prep-welcome" aria-labelledby="prepWelcomeTitle"><div class="prep-copy"><span class="prep-kicker">🎓 INFIRMIERS · TECHNICIENS DE SANTÉ</span><h2 id="prepWelcomeTitle">Prep.<em>EAP</em></h2><p class="prep-tagline">Votre allié pour réussir les concours EAP au Maroc</p><p>Un cours, quelques QCM, une révision : avancez chaque jour à votre rythme.</p><div class="prep-features"><span>📖 Cours</span><span>🎯 QCM</span><span>📅 Planning</span><span>📊 Progression</span></div><div class="prep-actions"><button class="btn blue" data-go="search">Commencer maintenant →</button><button class="btn ghost" data-go="guide">Découvrir l’application et le web</button></div></div><img class="prep-reference" src="assets/prep-eap-accueil.jpg" alt="Présentation de Prep.EAP : étudier, s’entraîner et réviser" width="853" height="1280"></section>';
+  return '<header class="home-brand"><button class="home-brand-main" data-go="home" aria-label="Accueil PrepMe"><span class="home-brand-mark" aria-hidden="true">P</span><span><b>PrepMe</b><small>Préparation aux concours de santé</small></span></button><button class="home-guide-link" data-go="guide">Guide <span aria-hidden="true">?</span></button></header>';
+}
+function homeQuickLinksHtml(due) {
+  var links = [
+    ['courses', '📖', 'Cours', 'Parcourir les modules'],
+    ['review', '🧠', 'Révisions', due ? due + ' à faire' : 'À jour'],
+    ['exam', '⏱️', 'Examen', 'Mode chronométré'],
+    ['concours', '📝', 'Annales', 'Sujets et corrigés'],
+    ['pdf', '📚', 'PDF', 'Documents sources'],
+    ['cards', '🃏', 'Cartes', 'Mémoriser vite'],
+    ['league', '🏆', 'Classement', 'Voir ma ligue'],
+    ['stats', '📊', 'Progression', 'Suivre mes résultats']
+  ];
+  return '<section class="home-section" aria-labelledby="quickAccessTitle"><div class="home-section-head"><div><span class="section-eyebrow">ACCÈS RAPIDE</span><h2 id="quickAccessTitle">Que veux-tu faire ?</h2></div></div><div class="home-quick-grid">' + links.map(function (item) {
+    return '<button data-go="' + item[0] + '"><span class="home-quick-icon" aria-hidden="true">' + item[1] + '</span><span><b>' + item[2] + '</b><small>' + item[3] + '</small></span></button>';
+  }).join('') + '</div></section>';
+}
+function feedbackCardHtml() {
+  return '<section class="card feedback-card" aria-labelledby="feedbackAnnouncementTitle"><div class="feedback-icon" aria-hidden="true">💬</div><div><h2 id="feedbackAnnouncementTitle">Une idée pour améliorer PrepMe ?</h2><p>Signale un problème ou propose une amélioration directement sur WhatsApp.</p></div><a class="btn green sm" href="' + esc(WHATSAPP_CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">Donner mon avis</a></section>';
 }
 function vGuide() {
   var steps = [
@@ -1793,7 +1832,7 @@ function vHome() {
     '</div>';
 
   h += '<div class="wrap">';
-  h += jobAlertHtml();
+  h += homeQuickLinksHtml(due);
   if (resume) h += '<div class="card resume-card" style="border-color:var(--blue)"><div class="row"><div style="flex:1"><b>▶️ Reprendre</b><div class="sub">' + esc(resumeLabel) + ' · dernière activité conservée sur cet appareil</div></div><button class="btn blue sm" data-go="' + esc(resume) + '">Reprendre</button></div></div>';
   h += '<div class="mode-switch" role="group" aria-label="Mode de préparation"><button class="' + (autoMode ? 'on' : '') + '" data-home-mode="auto"><b>✨ Auto</b><small>PrepMe te guide</small></button><button class="' + (!autoMode ? 'on' : '') + '" data-home-mode="manual"><b>🖐️ Manuel</b><small>Je choisis mon rythme</small></button></div>';
   if (autoMode) h += autoPlanCardHtml(autoPlan);
@@ -1850,6 +1889,7 @@ function vHome() {
       (nq ? '<button class="qcm" data-go="quiz/' + d.id + '/all">Faire les ' + nq + ' QCM</button>' : '<span class="qcm-pending">QCM en préparation</span>') + '</div></article>';
   });
   }
+  h += '<section class="home-secondary" aria-labelledby="home-secondary-title"><div class="home-section-head"><div><span class="section-eyebrow">À DÉCOUVRIR</span><h2 id="home-secondary-title">Informations et communauté</h2></div></div>' + jobAlertHtml() + feedbackCardHtml() + '</section>';
   h += '<section class="candidate-reviews" aria-labelledby="candidate-reviews-title">' +
     '<h2 id="candidate-reviews-title">💬 Avis des candidats</h2>' +
     '<div class="sub candidate-reviews-intro">Ce que disent les infirmiers et techniciens de santé qui utilisent la plateforme.</div>' +
@@ -2264,11 +2304,19 @@ function vCardsStart(did, ui) {
   var pool = one ? unitCards(d.id, +ui) : allCards(d ? d.id : null);
   var back = one ? 'lesson/' + d.id + '/' + ui : (d ? 'doc/' + d.id : '');
   if (!pool.length) return bar('Cartes', back) + '<div class="wrap"><div class="card">Aucune carte.</div></div>';
+  var autoTaskId = activeAutoTaskId(d ? d.id : null, one ? +ui : null);
+  var autoCards = autoTaskId && (S.tasks || []).some(function (task) { return task.id === autoTaskId && task.type === 'flashcards'; });
+  pool = shuffle(pool);
+  if (autoCards) pool.sort(function (a, b) {
+    var aDue = S.srs[a.k] && S.srs[a.k].due <= today(), bDue = S.srs[b.k] && S.srs[b.k].due <= today();
+    if (aDue !== bDue) return aDue ? -1 : 1;
+    return aDue ? S.srs[a.k].due.localeCompare(S.srs[b.k].due) : 0;
+  });
   RUN = {
     mode: 'review',
-    items: shuffle(pool).map(function (p) { return { type: 'c', c: p.c, k: p.k, d: p.d, u: p.u }; }).slice(0, one ? 20 : 30),
+    items: pool.map(function (p) { return { type: 'c', c: p.c, k: p.k, d: p.d, u: p.u }; }).slice(0, one ? 20 : 30),
     i: 0, ok: 0, ko: 0, xp: 0, combo: 0, maxCombo: 0, wrong: [], t0: Date.now(),
-    back: back, did: d ? d.id : null, ui: one ? +ui : null, autoTaskId: activeAutoTaskId(d ? d.id : null, one ? +ui : null)
+    back: back, did: d ? d.id : null, ui: one ? +ui : null, autoTaskId: autoTaskId
   };
   return reviewFrame();
 }
@@ -2704,6 +2752,16 @@ function bind() {
       download.href = url; download.download = p.file; document.body.appendChild(download); download.click(); download.remove();
     };
   });
+  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-course-download]'), function (a) {
+    a.onclick = function (event) {
+      var p = (window.PREP_PDFS || [])[+a.getAttribute('data-course-download')];
+      if (!p || !window.PREP_COURSE_PDFS_B64 || !window.PREP_COURSE_PDFS_B64[p[2]]) return;
+      event.preventDefault();
+      var download = document.createElement('a');
+      download.href = concoursDocumentUrl({folder:'cours-pdf', file:p[2], format:'PDF'}); download.download = p[2];
+      document.body.appendChild(download); download.click(); download.remove();
+    };
+  });
   var flip = el('flip'); if (flip) flip.onclick = function () { doFlip(); };
   if (RUN && RUN.mode === 'exam' && RUN.items[RUN.i]) tickExam();
 }
@@ -2963,16 +3021,6 @@ function showContributionWelcome() {
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     }
-  });
-  Array.prototype.forEach.call(ROOT.querySelectorAll('[data-course-download]'), function (a) {
-    a.onclick = function (event) {
-      var p = (window.PREP_PDFS || [])[+a.getAttribute('data-course-download')];
-      if (!p || !window.PREP_COURSE_PDFS_B64 || !window.PREP_COURSE_PDFS_B64[p[2]]) return;
-      event.preventDefault();
-      var download = document.createElement('a');
-      download.href = concoursDocumentUrl({folder:'cours-pdf', file:p[2], format:'PDF'}); download.download = p[2];
-      document.body.appendChild(download); download.click(); download.remove();
-    };
   });
   overlay.querySelector('.contribution-close').onclick = closeWelcome;
   overlay.querySelector('.contribution-later').onclick = closeWelcome;

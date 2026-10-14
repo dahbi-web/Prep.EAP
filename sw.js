@@ -1,6 +1,6 @@
 /* Service worker — mise en cache complète pour usage hors-ligne */
-var CACHE = 'cnc-anass-v102';
-var APP_VERSION = '3.6.2';
+var CACHE = 'cnc-anass-v104';
+var APP_VERSION = '3.6.4';
 var ASSETS = [
   './assets/prep-eap-accueil.jpg',
   "./cours-pdf/01- SNS Maroc.pdf",

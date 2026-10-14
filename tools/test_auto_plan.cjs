@@ -13,7 +13,9 @@ assert.ok(metricsStart > 0 && metricsEnd > metricsStart);
 const metricsContext = {
   S: {units:{'1.0':{runs:1,lastScore:90,ok:90,ko:10}},srs:{},autoPlan:{targetScore:80}},
   today: () => '2026-09-29', uKey: (did, ui) => `${did}.${ui}`,
-  qKey: (did, ui, qi) => `q${did}.${ui}.${qi}`, urgencyScore: () => 75
+  qKey: (did, ui, qi) => `q${did}.${ui}.${qi}`, urgencyScore: () => 75,
+  cKey: (did, ui, ci) => `c${did}.${ui}.${ci}`,
+  dayDiff: (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000)
 };
 vm.createContext(metricsContext);
 vm.runInContext(appSource.slice(metricsStart, metricsEnd), metricsContext);
@@ -32,6 +34,25 @@ assert.equal(metricsContext.autoUnitMetrics({id:1}, sampleUnit, 0, 12).weakness,
   'le score par défaut ne doit pas compter sans séance terminée');
 assert.equal(metricsContext.chooseAutoTaskType({metrics:metricsContext.autoUnitMetrics({id:1}, sampleUnit, 0, 12),unit:sampleUnit}, 'foundation'), 'flashcards',
   'sans séance terminée, le score par défaut ne doit pas changer le type de tâche');
+metricsContext.S.srs = {'q1.0.0':{due:'2026-09-29',b:2,lap:0}};
+const dueToday = metricsContext.autoUnitMetrics({id:1}, sampleUnit, 0, 12);
+metricsContext.S.srs['q1.0.0'].due = '2026-09-19';
+const overdue = metricsContext.autoUnitMetrics({id:1}, sampleUnit, 0, 12);
+assert.equal(dueToday.due, overdue.due);
+assert.equal(overdue.oldestDueDays, 10);
+assert.equal(overdue.priority - dueToday.priority, 15,
+  'une révision en retard doit monter dans le plan, avec un bonus plafonné');
+metricsContext.S.srs = {'c1.0.0':{due:'2026-09-29',b:2,lap:0}};
+const cardDueToday = metricsContext.autoUnitMetrics({id:1}, sampleUnit, 0, 12);
+metricsContext.S.srs['c1.0.0'].due = '2026-09-19';
+const cardOverdue = metricsContext.autoUnitMetrics({id:1}, sampleUnit, 0, 12);
+assert.equal(cardOverdue.dueCards, 1);
+assert.equal(cardOverdue.due, 0);
+assert.equal(cardOverdue.unseen, false, 'une carte déjà travaillée rend l’unité connue');
+assert.equal(cardOverdue.priority - cardDueToday.priority, 15,
+  'une carte en retard doit recevoir le même bonus plafonné qu’un QCM');
+assert.equal(metricsContext.chooseAutoTaskType({metrics:cardOverdue,unit:sampleUnit}, 'foundation'), 'flashcards');
+metricsContext.S.srs = {};
 const cardOnlyUnit = {t:'Unité avec cartes',qs:[],cards:[{}]};
 assert.equal(metricsContext.autoAvailableTaskType('qcm', cardOnlyUnit), 'flashcards');
 assert.equal(metricsContext.autoAvailableTaskType('review', cardOnlyUnit), 'flashcards');
@@ -44,6 +65,8 @@ metricsContext.getExamPhase = () => 'lastWeek';
 metricsContext.dayDiff = () => 5;
 metricsContext.CONTEST_DATE = '2026-10-04';
 vm.runInContext(appSource.slice(appSource.indexOf('function autoTaskMinutes('), appSource.indexOf('function regenerateAutoPlan(')), metricsContext);
+assert.match(metricsContext.autoTaskReason({metrics:cardOverdue,unit:sampleUnit}, 'flashcards', 12), /1 carte à revoir · jusqu’à 10 jours de retard/);
+assert.match(metricsContext.autoTaskReason({metrics:overdue,unit:sampleUnit}, 'review', 12), /10 jours de retard/);
 const budgetCandidates = [
   {id:'long',type:'learn',docId:1,unitIndex:0,priority:100,estimatedMinutes:20},
   {id:'fits',type:'qcm',docId:2,unitIndex:0,priority:80,estimatedMinutes:12}
@@ -87,8 +110,18 @@ for (const mode of ['review','adaptive']) {
 const focusedUnit = {t:'Unité de quatre QCM',qs:[{},{},{},{}],cards:[]};
 metricsContext.COURSE_DOCS = [{id:2,units:[focusedUnit]}];
 metricsContext.S.autoPlan.mode = 'adaptive';
+metricsContext.COURSE_DOCS = [{id:1,units:[sampleUnit]}];
+metricsContext.S.srs = {'c1.0.0':{due:'2026-09-19',b:2,lap:0}};
+let focusedTask = metricsContext.generateAutoPlan().tasks.find(item => item.docId === 1);
+assert.equal(focusedTask.type, 'flashcards', 'le plan adaptatif doit choisir les cartes échues');
+metricsContext.S.autoPlan.mode = 'review';
+focusedTask = metricsContext.generateAutoPlan().tasks.find(item => item.docId === 1);
+assert.equal(focusedTask.type, 'flashcards', 'le mode réviser doit choisir les cartes échues');
+metricsContext.S.srs = {};
+metricsContext.COURSE_DOCS = [{id:2,units:[focusedUnit]}];
+metricsContext.S.autoPlan.mode = 'adaptive';
 metricsContext.S.srs = {'q2.0.0':{lap:3,due:'2026-10-05'}};
-let focusedTask = metricsContext.generateAutoPlan().tasks.find(item => item.docId === 2);
+focusedTask = metricsContext.generateAutoPlan().tasks.find(item => item.docId === 2);
 assert.equal(focusedTask.type, 'errors');
 assert.equal(focusedTask.questionCount, 1, 'une erreur répétée représente un QCM, pas trois ni toute l’unité');
 assert.equal(focusedTask.estimatedMinutes, 5, 'le temps dépend du nombre de QCM ciblés, pas des erreurs cumulées');
@@ -114,6 +147,30 @@ vm.runInContext(appSource.slice(appSource.indexOf('function startAutoTask('), ap
 metricsContext.continueAutoTask('test-errors');
 assert.equal(metricsContext.RUN.items.length, 1, 'la séance erreurs doit servir uniquement les questions encore fragiles');
 assert.equal(metricsContext.RUN.items[0].k, 'q2.0.1');
+const manyDueUnit = {t:'Nombreux QCM échus',qs:Array.from({length:21}, () => ({})),cards:[]};
+metricsContext.unit = () => manyDueUnit;
+metricsContext.S.tasks = [{id:'test-review',type:'review',status:'in_progress',docId:2,unitIndex:0,title:manyDueUnit.t}];
+metricsContext.S.srs = Object.fromEntries(manyDueUnit.qs.map((_, qi) => [`q2.0.${qi}`, {due:qi === 20 ? '2026-09-19' : '2026-09-29'}]));
+metricsContext.continueAutoTask('test-review');
+assert.equal(metricsContext.RUN.items.length, 20);
+assert.equal(metricsContext.RUN.items[0].k, 'q2.0.20', 'la séance sert d’abord le QCM le plus en retard');
+const manyCards = Array.from({length:21}, (_, ci) => ({f:`Face ${ci}`,b:`Verso ${ci}`}));
+const cardContext = {
+  S:{srs:Object.fromEntries(manyCards.map((_, ci) => [`c2.0.${ci}`, {due:ci === 20 ? '2026-09-19' : '2026-09-29'}])),
+    tasks:[{id:'auto-cards',type:'flashcards'}]},
+  today:() => '2026-09-29', doc:() => ({id:2}), unit:() => ({cards:manyCards}),
+  unitCards:() => manyCards.map((c, ci) => ({c,k:`c2.0.${ci}`,d:2,u:0})),
+  activeAutoTaskId:() => 'auto-cards', shuffle:items => items, reviewFrame:() => ''
+};
+vm.createContext(cardContext);
+vm.runInContext(appSource.slice(appSource.indexOf('function vCardsStart('), appSource.indexOf('/* ------------------------------------------------------------ vue EXAMEN */')), cardContext);
+cardContext.vCardsStart(2, 0);
+assert.equal(cardContext.RUN.items.length, 20);
+assert.equal(cardContext.RUN.items[0].k, 'c2.0.20', 'la séance Auto doit servir d’abord la carte la plus en retard');
+metricsContext.S.srs = {};
+metricsContext.continueAutoTask('test-review');
+assert.equal(metricsContext.RUN.items.length, 20, 'une révision devenue obsolète garde une séance de secours');
+metricsContext.unit = () => focusedUnit;
 metricsContext.S.srs = {'q2.0.0':{lap:0,due:'2026-09-29'}};
 focusedTask = metricsContext.generateAutoPlan().tasks.find(item => item.docId === 2);
 assert.equal(focusedTask.type, 'review');

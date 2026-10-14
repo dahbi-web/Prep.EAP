@@ -1,10 +1,12 @@
 {
-  "version": "3.6.2",
-  "versionCode": 102,
-  "date": "2026-10-12",
-  "cache": "cnc-anass-v102",
+  "version": "3.6.4",
+  "versionCode": 104,
+  "date": "2026-10-14",
+  "cache": "cnc-anass-v104",
   "modules": 76,
   "nouveautes": [
+    "Annonce sur l’accueil : signalez les problèmes et proposez vos améliorations ou nouvelles idées sur WhatsApp.",
+    "Consultation et téléchargement des PDF rétablis : documents et lecteur intégrés au HTML autonome, utilisables sans dossier annexe et hors ligne.",
     "Accueil Prep.EAP inspiré du visuel fourni et guide application/web : cours, QCM, planning, progression, installation et sauvegarde.",
     "Séances express de 5 ou 10 QCM : priorité aux erreurs répétées dues, 40 % de nouvelles questions tant que moins de 60 % des QCM ont été vus, puis complément selon les points faibles",
     "Premier lancement guidé en 3 étapes : profil et spécialité, date du concours et rythme quotidien, puis résumé du programme et choix des rappels",

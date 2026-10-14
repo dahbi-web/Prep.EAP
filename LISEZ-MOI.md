@@ -4,7 +4,7 @@ Préparation aux concours de santé : 76 modules, 1 459 QCM interactifs et 1 257
 
 ## Ouvrir l’application
 
-- Entrée mobile légère : ouvrir `CNC_ANASS_App_MOBILE.html` en conservant les dossiers `cours-pdf`, `concours-commun` et `vendor` à côté du fichier. Les documents restent disponibles hors ligne et sont chargés uniquement à l’ouverture.
+- Fichier autonome : ouvrir `CNC_ANASS_App_MOBILE.html`. Les documents et le lecteur PDF sont intégrés ; aucun dossier annexe n’est nécessaire. Le fichier complet pèse environ 357 Mio. Sur téléphone, privilégier la PWA, qui charge les documents séparément.
 - Version PWA sur PC : lancer `node local-server.js` dans ce dossier puis ouvrir http://localhost:8080.
 - Installation sur téléphone : utiliser une version publiée en HTTPS et l’option d’installation du navigateur. Laisser finir le téléchargement initial avant de passer hors ligne.
 
@@ -24,7 +24,7 @@ Google Analytics 4 est chargé uniquement sur `https://dahbi-web.github.io/Prep.
 
 ## Reconstruire et contrôler
 
-- `node build_single.js` : générer l’entrée mobile légère ; conserver avec elle les dossiers de documents.
+- `node build_single.js` : générer le fichier autonome complet avec les PDF et le lecteur hors ligne. `python build_single.py` appelle le même générateur Node.
 - `node tools/test_reliability.cjs` : tests de sauvegarde, validation et cache.
 - `node tools/test_auto_plan.cjs` : plan adaptatif, préférence QCM, réglages et recalcul après séance.
 - `node tools/audit_concours.mjs` : catalogue et copies livrées.
