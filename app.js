@@ -749,12 +749,15 @@ function autoActiveError(item) {
 }
 function autoUnitMetrics(d, u, ui, daysLeft) {
   var state = S.units[uKey(d.id, ui)] || {}, ok = +(state.ok || 0), ko = +(state.ko || 0), attempts = ok + ko;
-  var tracked = 0, due = 0, errors = 0, errorQuestions = 0, repeated = 0, t = today();
+  var tracked = 0, due = 0, oldestDueDays = 0, errors = 0, errorQuestions = 0, repeated = 0, t = today();
   u.qs.forEach(function (_, qi) {
     var item = S.srs[qKey(d.id, ui, qi)];
     if (!item) return;
     tracked++;
-    if (item.due <= t) due++;
+    if (item.due <= t) {
+      due++;
+      oldestDueDays = Math.max(oldestDueDays, dayDiff(item.due, t) || 0);
+    }
     if (autoActiveError(item)) {
       errors += +(item.lap || 0);
       errorQuestions++;
@@ -769,7 +772,8 @@ function autoUnitMetrics(d, u, ui, daysLeft) {
   var forgettingRisk = due ? Math.min(100, 55 + Math.round(due / Math.max(1, tracked) * 45)) : tracked ? 20 : 35;
   var priority = urgencyScore(daysLeft) * .30 + weakness * .30 + importance * .20 + forgettingRisk * .10 + (unseen ? 100 : 0) * .10;
   if (repeated >= 2 || errors >= 3) priority += 20;
-  return { state: state, attempts: attempts, accuracy: accuracy, lastScore: lastScore, tracked: tracked, due: due, errors: errors, errorQuestions: errorQuestions, repeated: repeated,
+  priority += Math.min(15, oldestDueDays * 2);
+  return { state: state, attempts: attempts, accuracy: accuracy, lastScore: lastScore, tracked: tracked, due: due, oldestDueDays: oldestDueDays, errors: errors, errorQuestions: errorQuestions, repeated: repeated,
     unseen: unseen, weakness: weakness, importance: importance, forgettingRisk: forgettingRisk, priority: Math.min(100, Math.round(priority)) };
 }
 function chooseAutoTaskType(item, phase) {
@@ -802,7 +806,7 @@ function autoTaskReason(item, type, daysLeft) {
   if (m.lastScore != null && m.lastScore < (S.autoPlan.targetScore || 80)) parts.push('dernier score ' + m.lastScore + ' %');
   else if (m.accuracy != null && m.accuracy < (S.autoPlan.targetScore || 80)) parts.push('réussite cumulée ' + m.accuracy + ' %');
   if (m.errorQuestions) parts.push(m.errorQuestions + ' question' + (m.errorQuestions > 1 ? 's' : '') + ' encore fragile' + (m.errorQuestions > 1 ? 's' : ''));
-  if (m.due) parts.push(m.due + ' révision' + (m.due > 1 ? 's' : '') + ' prévue' + (m.due > 1 ? 's' : '') + ' aujourd’hui');
+  if (m.due) parts.push(m.due + ' révision' + (m.due > 1 ? 's' : '') + (m.oldestDueDays ? ' à faire · jusqu’à ' + m.oldestDueDays + ' jour' + (m.oldestDueDays > 1 ? 's' : '') + ' de retard' : ' prévue' + (m.due > 1 ? 's' : '') + ' aujourd’hui'));
   if (m.unseen) parts.push('unité jamais étudiée');
   if (!parts.length && type === 'flashcards') parts.push('notions à entretenir par répétition espacée');
   if (!parts.length) parts.push('unité importante à consolider');
@@ -1474,7 +1478,9 @@ function vPdfs() {
   return h + '</div>';
 }
 function nativeFilePdfHtml(title, href, back) {
-  return bar(title, back) + '<div class="pdf-native-reader"><iframe class="pdf-native-frame" src="' + esc(href) + '" title="' + esc('PDF — ' + title) + '"></iframe><div class="pdf-download"><a class="btn blue sm" href="' + esc(href) + '" target="_blank" rel="noopener">Ouvrir le PDF</a><a class="btn ghost sm" download href="' + esc(href) + '">⬇️ Télécharger</a></div></div>';
+  var alternate = location.protocol === 'file:' && /CNC_ANASS_App_MOBILE\.html$/i.test(location.pathname) ? 'CNC_ANASS_App/' + href : '';
+  var fallback = alternate ? ' onerror="this.src=\'' + alternate.replace(/'/g, '\\&#39;') + '\'"' : '';
+  return bar(title, back) + '<div class="pdf-native-reader"><iframe class="pdf-native-frame" src="' + esc(href) + '" title="' + esc('PDF — ' + title) + '"' + fallback + '></iframe><div class="pdf-download"><a class="btn blue sm" href="' + esc(alternate || href) + '" target="_blank" rel="noopener">Ouvrir le PDF</a><a class="btn ghost sm" download href="' + esc(alternate || href) + '">⬇️ Télécharger</a></div></div>';
 }
 function vPdfView(index, startPage, backDid, backUi) {
   var p = (window.PREP_PDFS || [])[+index];
@@ -2599,8 +2605,11 @@ function continueAutoTask(taskId) {
   var pool = u.qs.map(function (q, qi) { return { q: q, k: qKey(d.id, task.unitIndex, qi), d: d.id, u: +task.unitIndex }; });
   if (task.type === 'errors') pool = pool.filter(function (x) { return autoActiveError(S.srs[x.k]); });
   if (task.type === 'review') pool = pool.filter(function (x) { return S.srs[x.k] && S.srs[x.k].due <= today(); });
+  var reviewDuePool = task.type === 'review' && pool.length > 0;
   if (!pool.length) pool = u.qs.map(function (q, qi) { return { q: q, k: qKey(d.id, task.unitIndex, qi), d: d.id, u: +task.unitIndex }; });
-  RUN = { mode: 'lesson', items: shuffle(pool).slice(0, 20), i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0,
+  pool = shuffle(pool);
+  if (reviewDuePool) pool.sort(function (a, b) { return S.srs[a.k].due.localeCompare(S.srs[b.k].due); });
+  RUN = { mode: 'lesson', items: pool.slice(0, 20), i: 0, ok: 0, ko: 0, combo: 0, maxCombo: 0, xp: 0,
     back: '', title: task.title, did: d.id, ui: +task.unitIndex, wrong: [], t0: Date.now(), autoTaskId: task.id };
   trackQcmStart(RUN);
   ROOT.innerHTML = quizFrame() + navBar('review'); bind();
